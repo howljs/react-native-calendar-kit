@@ -69,6 +69,7 @@ const TimelineSlots = ({
     offsetY,
     isScrolling,
     allowDragToCreate,
+    pinchRef,
   } = useTimelineCalendarContext();
 
   const contentContainerStyle = useAnimatedStyle(() => {
@@ -221,6 +222,7 @@ const TimelineSlots = ({
     <GestureDetector gesture={gesture}>
       <ScrollView
         ref={timelineVerticalListRef}
+        waitFor={pinchRef}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         style={styles.container}

@@ -1,6 +1,7 @@
 import type { FlashList } from '@shopify/flash-list';
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { PixelRatio, ScrollView, useWindowDimensions } from 'react-native';
+import type { GestureType } from 'react-native-gesture-handler';
 import { SharedValue, useSharedValue } from 'react-native-reanimated';
 import { COLUMNS, DEFAULT_PROPS } from '../constants';
 import type {
@@ -49,6 +50,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
     | { [weekDay: string]: UnavailableHour[] };
   firstDate: { [key in CalendarViewMode]?: string };
   isDragCreateActive: SharedValue<boolean>;
+  pinchRef: React.MutableRefObject<GestureType | undefined>;
 }
 
 const TimelineCalendarContext = React.createContext<
@@ -94,6 +96,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   const initialDate = useRef(initDate);
   const timelineLayoutRef = useRef({ width: 0, height: 0 });
   const isScrolling = useRef(false);
+  const pinchRef = useRef();
 
   /** Prepare data*/
   const pages = useMemo(
@@ -232,6 +235,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       overlapEventsSpacing,
       rightEdgeSpacing,
       isDragCreateActive,
+      pinchRef,
     };
   }, [
     pages,

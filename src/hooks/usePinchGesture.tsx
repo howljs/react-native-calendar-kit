@@ -10,6 +10,7 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
     minTimeIntervalHeight,
     isDragCreateActive,
     offsetY,
+    pinchRef,
   } = useTimelineCalendarContext();
   const { goToOffsetY } = useTimelineScroll();
   const savedScale = useSharedValue(1);
@@ -17,6 +18,7 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
 
   const zoomGesture = Gesture.Pinch()
     .enabled(enabled)
+    .withRef(pinchRef)
     .onStart((event) => {
       const startY =
         offsetY.value + event.focalY - timeIntervalHeight.value * 2;
