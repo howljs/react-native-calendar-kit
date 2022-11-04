@@ -5,6 +5,7 @@ import {
   GestureResponderEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   StyleSheet,
   View,
   ViewabilityConfig,
@@ -222,7 +223,7 @@ const TimelineSlots = ({
     <GestureDetector gesture={gesture}>
       <ScrollView
         ref={timelineVerticalListRef}
-        waitFor={pinchRef}
+        waitFor={Platform.OS === 'android' ? pinchRef : undefined}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         style={styles.container}
