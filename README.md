@@ -21,6 +21,20 @@ Using NPM:
 $ npm install --save @howljs/calendar-kit
 ```
 
+## Installing dependencies into a bare React Native project
+
+Using Yarn:
+
+```
+$ yarn add @shopify/flash-list react-native-gesture-handler react-native-reanimated
+```
+
+Using NPM:
+
+```
+$ npm install --save @shopify/flash-list react-native-gesture-handler react-native-reanimated
+```
+
 > Follow installation instructions for [React Native Reanimated v2](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation) and [React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/docs/installation). This library needs these dependencies to be installed in your project
 
 ## Example Usage
