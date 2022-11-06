@@ -25,12 +25,24 @@ const ProgressBar = ({ barColor }: ProgressBarProps) => {
   });
 
   return (
-    <Animated.View style={[{ transform: [{ translateX }] }]}>
-      <View style={[styles.loadingBar, { backgroundColor: barColor }]} />
-    </Animated.View>
+    <View style={styles.progressBar}>
+      <View style={[styles.bgLoading, { backgroundColor: barColor }]} />
+      <Animated.View style={[{ transform: [{ translateX }] }]}>
+        <View style={[styles.loadingBar, { backgroundColor: barColor }]} />
+      </Animated.View>
+    </View>
   );
 };
 
 export default ProgressBar;
 
-const styles = StyleSheet.create({ loadingBar: { width: '100%', height: 2 } });
+const styles = StyleSheet.create({
+  progressBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  loadingBar: { width: '100%', height: 2 },
+  bgLoading: { position: 'absolute', width: '100%', height: 2, opacity: 0.3 },
+});

@@ -39,12 +39,6 @@ target 'CalendarKitExample' do
       :mac_catalyst_enabled => false
     )
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
-
-    # Fix mac m1
-    installer.pods_project.build_configurations.each do |build_configuration|
-      build_configuration.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
-    end
-
     # Fix archive with xcode 14.0
     installer.pods_project.targets.each do |target|
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"

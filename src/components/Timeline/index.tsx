@@ -1,5 +1,10 @@
 import dayjs from 'dayjs';
-import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import {
   GestureResponderEvent,
   LayoutChangeEvent,
@@ -47,6 +52,8 @@ const Timeline: React.ForwardRefRenderFunction<
     timeIntervalHeight,
     spaceFromTop,
     allowPinchToZoom,
+    scrollToNow,
+    initialDate,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -96,6 +103,25 @@ const Timeline: React.ForwardRefRenderFunction<
       viewMode,
     ]
   );
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      const current = dayjs();
+      const isSameDate = current.format('YYYY-MM-DD') === initialDate.current;
+      if (scrollToNow && isSameDate) {
+        const minutes = current.hour() * 60 + current.minute();
+        const position =
+          (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
+        goToOffsetY(Math.max(0, position - 200), true);
+      }
+    });
+  }, [
+    goToOffsetY,
+    initialDate,
+    scrollToNow,
+    spaceFromTop,
+    timeIntervalHeight.value,
+  ]);
 
   const _onContentLayout = ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
     if (!minTimeIntervalHeight.value) {

@@ -133,11 +133,7 @@ const TimelineHeader = ({
             renderItem={_renderMultipleDayItem}
           />
         </View>
-        {isLoading && (
-          <View style={styles.progressBar}>
-            <ProgressBar barColor={theme.loadingBarColor} />
-          </View>
-        )}
+        {isLoading && <ProgressBar barColor={theme.loadingBarColor} />}
       </View>
     );
   };
@@ -193,11 +189,4 @@ const styles = StyleSheet.create({
     zIndex: 99,
   },
   multipleDayContainer: { flexDirection: 'row' },
-  progressBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,122,255,0.3)',
-  },
 });

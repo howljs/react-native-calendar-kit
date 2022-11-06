@@ -99,6 +99,8 @@ export interface TimelineProviderProps {
   rightEdgeSpacing?: number;
 
   overlapEventsSpacing?: number;
+
+  scrollToNow?: boolean;
 }
 
 export interface DayBarItemProps {
@@ -123,6 +125,8 @@ export interface ThemeProperties {
   dragCreateItemBackgroundColor?: string;
   loadingBarColor?: string;
   unavailableBackgroundColor?: string;
+  editIndicatorColor?: string;
+  nowIndicatorColor?: string;
 }
 
 export interface RangeTime {
@@ -149,6 +153,7 @@ export interface EventItem {
   end: string;
   title?: string;
   color?: string;
+  [key: string]: any;
 }
 
 export interface PackedEvent extends EventItem {

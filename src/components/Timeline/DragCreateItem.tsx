@@ -123,7 +123,6 @@ const styles = StyleSheet.create({
   defaultStyle: {
     position: 'absolute',
     borderRadius: 4,
-    opacity: 0.1,
     top: 0,
     left: 0,
   },

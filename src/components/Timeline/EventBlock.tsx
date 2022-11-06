@@ -1,5 +1,3 @@
-import isEqual from 'lodash/isEqual';
-import pickBy from 'lodash/pickBy';
 import React, { memo } from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Animated, {
@@ -91,11 +89,7 @@ const EventBlock = ({
   );
 };
 
-export default memo(EventBlock, (prev, next) => {
-  const prevProps = pickBy(prev, (v) => typeof v !== 'function');
-  const nextProps = pickBy(next, (v) => typeof v !== 'function');
-  return isEqual(prevProps, nextProps);
-});
+export default memo(EventBlock);
 
 const styles = StyleSheet.create({
   eventBlock: {

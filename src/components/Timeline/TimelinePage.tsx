@@ -51,6 +51,7 @@ const TimelinePage = ({
     start,
     overlapEventsSpacing,
     rightEdgeSpacing,
+    theme,
   } = useTimelineCalendarContext();
 
   const eventsByColumns = useMemo(
@@ -143,6 +144,7 @@ const TimelinePage = ({
             timeIntervalHeight={timeIntervalHeight}
             width={columnWidth}
             dayIndex={dayIndex}
+            nowIndicatorColor={theme.nowIndicatorColor}
           />
         )}
       </React.Fragment>

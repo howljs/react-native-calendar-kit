@@ -11,6 +11,7 @@ interface NowIndicatorProps {
   dayIndex: number;
   width: number;
   timeIntervalHeight: SharedValue<number>;
+  nowIndicatorColor?: string;
 }
 
 const UPDATE_TIME = 60000;
@@ -24,6 +25,7 @@ const NowIndicator = ({
   width,
   dayIndex,
   timeIntervalHeight,
+  nowIndicatorColor,
 }: NowIndicatorProps) => {
   const initialMinutes = useRef(getCurrentMinutes());
   const translateY = useSharedValue(0);
@@ -63,8 +65,10 @@ const NowIndicator = ({
     <Animated.View
       style={[styles.container, { left: dayIndex * width }, animStyle]}
     >
-      <View style={[styles.line, { width }]} />
-      <View style={styles.dot} />
+      <View
+        style={[styles.line, { width, backgroundColor: nowIndicatorColor }]}
+      />
+      <View style={[styles.dot, { backgroundColor: nowIndicatorColor }]} />
     </Animated.View>
   );
 };

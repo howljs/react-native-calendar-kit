@@ -85,6 +85,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     unavailableHours,
     overlapEventsSpacing = DEFAULT_PROPS.OVERLAP_EVENTS_SPACING,
     rightEdgeSpacing = DEFAULT_PROPS.RIGHT_EDGE_SPACING,
+    scrollToNow = true,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -134,7 +135,8 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
         initTheme?.todayBackgroundColor ?? DEFAULT_PROPS.PRIMARY_COLOR,
       backgroundColor: initTheme?.backgroundColor ?? DEFAULT_PROPS.WHITE_COLOR,
       dragCreateItemBackgroundColor:
-        initTheme?.dragCreateItemBackgroundColor ?? DEFAULT_PROPS.PRIMARY_COLOR,
+        initTheme?.dragCreateItemBackgroundColor ??
+        DEFAULT_PROPS.CREATE_ITEM_BACKGROUND_COLOR,
       dragHourBackgroundColor:
         initTheme?.dragHourBackgroundColor ?? DEFAULT_PROPS.WHITE_COLOR,
       dragHourBorderColor:
@@ -145,6 +147,10 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       unavailableBackgroundColor:
         initTheme?.unavailableBackgroundColor ??
         DEFAULT_PROPS.UNAVAILABLE_BACKGROUND_COLOR,
+      editIndicatorColor:
+        initTheme?.editIndicatorColor ?? DEFAULT_PROPS.BLACK_COLOR,
+      nowIndicatorColor:
+        initTheme?.nowIndicatorColor ?? DEFAULT_PROPS.PRIMARY_COLOR,
     };
   }, [
     initTheme?.backgroundColor,
@@ -154,7 +160,9 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     initTheme?.dragHourBackgroundColor,
     initTheme?.dragHourBorderColor,
     initTheme?.dragHourColor,
+    initTheme?.editIndicatorColor,
     initTheme?.loadingBarColor,
+    initTheme?.nowIndicatorColor,
     initTheme?.todayBackgroundColor,
     initTheme?.todayTextColor,
     initTheme?.unavailableBackgroundColor,
@@ -236,6 +244,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       rightEdgeSpacing,
       isDragCreateActive,
       pinchRef,
+      scrollToNow,
     };
   }, [
     pages,
@@ -268,6 +277,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     overlapEventsSpacing,
     rightEdgeSpacing,
     isDragCreateActive,
+    scrollToNow,
   ]);
 
   return (
