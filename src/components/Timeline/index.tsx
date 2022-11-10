@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import weekDay from 'dayjs/plugin/weekday';
 import React, {
   forwardRef,
   useEffect,
@@ -12,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import { Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { COLUMNS, DEFAULT_PROPS } from '../../constants';
+import { COLUMNS, DEFAULT_PROPS, LOCALES } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useDragCreateGesture from '../../hooks/useDragCreateGesture';
 import useZoomGesture from '../../hooks/usePinchGesture';
@@ -22,6 +23,8 @@ import { groupEventsByDate } from '../../utils';
 import DragCreateItem from './DragCreateItem';
 import TimelineHeader from './TimelineHeader';
 import TimelineSlots from './TimelineSlots';
+
+dayjs.extend(weekDay);
 
 const Timeline: React.ForwardRefRenderFunction<
   TimelineCalendarHandle,
@@ -35,6 +38,7 @@ const Timeline: React.ForwardRefRenderFunction<
     isLoading,
     events,
     selectedEvent,
+    highlightDates,
     ...other
   },
   ref
@@ -54,6 +58,7 @@ const Timeline: React.ForwardRefRenderFunction<
     allowPinchToZoom,
     scrollToNow,
     initialDate,
+    locale,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -103,6 +108,13 @@ const Timeline: React.ForwardRefRenderFunction<
       viewMode,
     ]
   );
+
+  useEffect(() => {
+    const localeFn = LOCALES[locale];
+    if (localeFn) {
+      localeFn().then(() => dayjs.locale(locale));
+    }
+  }, [locale]);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -172,6 +184,7 @@ const Timeline: React.ForwardRefRenderFunction<
         renderDayBarItem={renderDayBarItem}
         onPressDayNum={onPressDayNum}
         isLoading={isLoading}
+        highlightDates={highlightDates}
       />
       <View style={styles.content} onLayout={_onContentLayout}>
         <TimelineSlots

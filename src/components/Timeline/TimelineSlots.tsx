@@ -19,7 +19,7 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
-import type { EventItem, PackedEvent } from '../../types';
+import type { EventItem, PackedEvent, UnavailableItemProps } from '../../types';
 import DragEditItem from './DragEditItem';
 import TimelineHours from './TimelineHours';
 import TimelinePage from './TimelinePage';
@@ -39,6 +39,7 @@ interface TimelineSlotsProps {
   renderEventContent?: (event: PackedEvent) => void;
   selectedEvent?: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
+  renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
 }
 
 const TimelineSlots = ({

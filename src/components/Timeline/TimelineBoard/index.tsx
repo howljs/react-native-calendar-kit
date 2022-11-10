@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { COLUMNS, SECONDS_IN_DAY } from '../../../constants';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
+import type { UnavailableItemProps } from '../../../types';
 import { convertDateToUnixTime, convertUnixTimeToDate } from '../../../utils';
 import type { HourItem } from '../TimelineHours';
 import HorizontalLine from './HorizontalLine';
@@ -22,12 +23,14 @@ interface TimelineBoardProps {
     event: GestureResponderEvent
   ) => void;
   holidays?: string[];
+  renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
 }
 
 const TimelineBoard = ({
   holidays,
   startDate,
   onPressBackgroundHandler,
+  renderCustomUnavailableItem,
 }: TimelineBoardProps) => {
   const {
     hours,
@@ -57,8 +60,9 @@ const TimelineBoard = ({
       return <VerticalLine key={dayIndex} index={dayIndex} />;
     }
     const currentUnix = startDayUnix + dayIndex * SECONDS_IN_DAY;
-    const isLtMin = currentUnix - minDayUnix < SECONDS_IN_DAY;
-    const isGtMax = maxDayUnix - currentUnix < SECONDS_IN_DAY;
+    const isLtMin = currentUnix - minDayUnix < 0;
+    const isGtMax = maxDayUnix - currentUnix < 0;
+
     let unavailableHour;
     if (Array.isArray(unavailableHours)) {
       unavailableHour = unavailableHours;
@@ -79,6 +83,7 @@ const TimelineBoard = ({
         isOutsideLimit={isLtMin || isGtMax}
         unavailableHour={unavailableHour}
         isDayDisabled={isDayDisabled}
+        renderCustomUnavailableItem={renderCustomUnavailableItem}
       />
     );
   };
@@ -96,6 +101,7 @@ const TimelineBoard = ({
             left={diffDayMin > 0 ? 0 : undefined}
             right={diffDayMax > 0 ? 0 : undefined}
             diffDays={diffDayMin > 0 ? diffDayMin : diffDayMax}
+            renderCustomUnavailableItem={renderCustomUnavailableItem}
           />
         );
       }

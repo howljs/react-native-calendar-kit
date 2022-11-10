@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 import { DEFAULT_PROPS } from '../../../constants';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
-import type { DayBarItemProps } from '../../../types';
+import type { DayBarItemProps, HighlightDates } from '../../../types';
 import MultipleDayBar from './MultipleDayBar';
 import ProgressBar from './ProgressBar';
 import SingleDayBar from './SingleDayBar';
@@ -13,12 +13,14 @@ interface TimelineHeaderProps {
   renderDayBarItem?: (props: DayBarItemProps) => JSX.Element;
   onPressDayNum?: (date: string) => void;
   isLoading?: boolean;
+  highlightDates?: HighlightDates;
 }
 
 const TimelineHeader = ({
   renderDayBarItem,
   onPressDayNum,
   isLoading,
+  highlightDates,
 }: TimelineHeaderProps) => {
   const {
     syncedLists,
@@ -31,6 +33,7 @@ const TimelineHeader = ({
     hourWidth,
     columnWidth,
     theme,
+    locale,
   } = useTimelineCalendarContext();
 
   const [startDate, setStartDate] = useState(
@@ -48,6 +51,8 @@ const TimelineHeader = ({
       viewMode,
       onPressDayNum,
       theme,
+      locale,
+      highlightDates,
     };
 
     if (renderDayBarItem) {
@@ -66,6 +71,8 @@ const TimelineHeader = ({
       viewMode,
       onPressDayNum,
       theme,
+      locale,
+      highlightDates,
     };
 
     if (renderDayBarItem) {
@@ -75,7 +82,10 @@ const TimelineHeader = ({
     return <MultipleDayBar {...dayItemProps} />;
   };
 
-  const extraValues = useMemo(() => ({}), []);
+  const extraValues = useMemo(
+    () => ({ locale, highlightDates, theme }),
+    [locale, highlightDates, theme]
+  );
 
   const _renderDayBarList = () => {
     const listProps = {

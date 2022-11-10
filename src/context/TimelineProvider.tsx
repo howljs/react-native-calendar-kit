@@ -4,12 +4,13 @@ import { PixelRatio, ScrollView, useWindowDimensions } from 'react-native';
 import type { GestureType } from 'react-native-gesture-handler';
 import { SharedValue, useSharedValue } from 'react-native-reanimated';
 import { COLUMNS, DEFAULT_PROPS } from '../constants';
+import useDeepCompare from '../hooks/useDeepCompare';
 import type {
   CalendarViewMode,
   TimelineProviderProps,
   UnavailableHour,
 } from '../types';
-import { calculateDates, calculateHours } from '../utils';
+import { calculateDates, calculateHours, getTheme } from '../utils';
 
 type CustomTimelineProviderProps = Required<
   Omit<
@@ -86,6 +87,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     overlapEventsSpacing = DEFAULT_PROPS.OVERLAP_EVENTS_SPACING,
     rightEdgeSpacing = DEFAULT_PROPS.RIGHT_EDGE_SPACING,
     scrollToNow = true,
+    locale = 'en',
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -125,48 +127,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     [hourWidth]
   );
 
-  const theme = useMemo(() => {
-    return {
-      cellBorderColor:
-        initTheme?.cellBorderColor ?? DEFAULT_PROPS.CELL_BORDER_COLOR,
-      dayTextColor: initTheme?.dayTextColor ?? DEFAULT_PROPS.SECONDARY_COLOR,
-      todayTextColor: initTheme?.todayTextColor ?? DEFAULT_PROPS.WHITE_COLOR,
-      todayBackgroundColor:
-        initTheme?.todayBackgroundColor ?? DEFAULT_PROPS.PRIMARY_COLOR,
-      backgroundColor: initTheme?.backgroundColor ?? DEFAULT_PROPS.WHITE_COLOR,
-      dragCreateItemBackgroundColor:
-        initTheme?.dragCreateItemBackgroundColor ??
-        DEFAULT_PROPS.CREATE_ITEM_BACKGROUND_COLOR,
-      dragHourBackgroundColor:
-        initTheme?.dragHourBackgroundColor ?? DEFAULT_PROPS.WHITE_COLOR,
-      dragHourBorderColor:
-        initTheme?.dragHourBorderColor ?? DEFAULT_PROPS.PRIMARY_COLOR,
-      dragHourColor: initTheme?.dragHourColor ?? DEFAULT_PROPS.PRIMARY_COLOR,
-      loadingBarColor:
-        initTheme?.loadingBarColor ?? DEFAULT_PROPS.PRIMARY_COLOR,
-      unavailableBackgroundColor:
-        initTheme?.unavailableBackgroundColor ??
-        DEFAULT_PROPS.UNAVAILABLE_BACKGROUND_COLOR,
-      editIndicatorColor:
-        initTheme?.editIndicatorColor ?? DEFAULT_PROPS.BLACK_COLOR,
-      nowIndicatorColor:
-        initTheme?.nowIndicatorColor ?? DEFAULT_PROPS.PRIMARY_COLOR,
-    };
-  }, [
-    initTheme?.backgroundColor,
-    initTheme?.cellBorderColor,
-    initTheme?.dayTextColor,
-    initTheme?.dragCreateItemBackgroundColor,
-    initTheme?.dragHourBackgroundColor,
-    initTheme?.dragHourBorderColor,
-    initTheme?.dragHourColor,
-    initTheme?.editIndicatorColor,
-    initTheme?.loadingBarColor,
-    initTheme?.nowIndicatorColor,
-    initTheme?.todayBackgroundColor,
-    initTheme?.todayTextColor,
-    initTheme?.unavailableBackgroundColor,
-  ]);
+  const theme = useDeepCompare(getTheme(initTheme));
 
   useEffect(() => {
     currentIndex.value = pages[viewMode].index;
@@ -245,6 +206,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       isDragCreateActive,
       pinchRef,
       scrollToNow,
+      locale,
     };
   }, [
     pages,
@@ -278,6 +240,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     rightEdgeSpacing,
     isDragCreateActive,
     scrollToNow,
+    locale,
   ]);
 
   return (

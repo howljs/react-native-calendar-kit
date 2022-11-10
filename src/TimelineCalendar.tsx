@@ -1,12 +1,7 @@
-import dayjs from 'dayjs';
-import isoWeek from 'dayjs/plugin/isoWeek';
-import weekday from 'dayjs/plugin/weekday';
 import React, { forwardRef } from 'react';
 import { Timeline } from './components';
 import TimelineProvider from './context/TimelineProvider';
 import type { TimelineCalendarHandle, TimelineCalendarProps } from './types';
-dayjs.extend(weekday);
-dayjs.extend(isoWeek);
 
 const TimelineCalendar: React.ForwardRefRenderFunction<
   TimelineCalendarHandle,
@@ -28,6 +23,8 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     renderEventContent,
     selectedEvent,
     onEndDragSelectedEvent,
+    renderCustomUnavailableItem,
+    highlightDates,
     ...timelineProviderProps
   },
   ref
@@ -48,6 +45,8 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     renderEventContent,
     selectedEvent,
     onEndDragSelectedEvent,
+    renderCustomUnavailableItem,
+    highlightDates,
   };
 
   return (

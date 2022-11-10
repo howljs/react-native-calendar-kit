@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
-import type { UnavailableHour } from '../../../types';
+import type { UnavailableHour, UnavailableItemProps } from '../../../types';
 import UnavailableHourItem from './UnavailableHourItem';
 
 interface VerticalBlockProps {
@@ -9,14 +9,16 @@ interface VerticalBlockProps {
   isOutsideLimit: boolean;
   unavailableHour?: UnavailableHour[];
   isDayDisabled?: boolean;
+  renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
 }
 
-const VerticalBlock = ({
+const VerticalBlock: React.FC<VerticalBlockProps> = ({
   dayIndex,
   isOutsideLimit,
   unavailableHour,
   isDayDisabled,
-}: VerticalBlockProps) => {
+  renderCustomUnavailableItem,
+}) => {
   const { columnWidth, start, end, theme } = useTimelineCalendarContext();
 
   const _renderUnavailableHour = (hour: UnavailableHour, i: number) => {
@@ -26,7 +28,8 @@ const VerticalBlock = ({
       <UnavailableHourItem
         key={`${dayIndex}_${i}`}
         top={startFixed - start}
-        height={endFixed - startFixed}
+        hour={endFixed - startFixed}
+        renderCustomUnavailableItem={renderCustomUnavailableItem}
       />
     );
   };
@@ -39,7 +42,8 @@ const VerticalBlock = ({
         return (
           <UnavailableHourItem
             top={startFixed - start}
-            height={endFixed - startFixed}
+            hour={endFixed - startFixed}
+            renderCustomUnavailableItem={renderCustomUnavailableItem}
           />
         );
       }

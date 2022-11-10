@@ -2,34 +2,52 @@ import React, { memo } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
+import type { UnavailableItemProps } from '../../../types';
 
 interface UnavailableHourProps {
   top: number;
-  height: number;
+  hour: number;
+  renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
 }
 
-const UnavailableHourItem = ({ top, height }: UnavailableHourProps) => {
+const UnavailableHourItem = ({
+  top,
+  hour,
+  renderCustomUnavailableItem,
+}: UnavailableHourProps) => {
   const { timeIntervalHeight, theme } = useTimelineCalendarContext();
   const unavailableHourStyle = useAnimatedStyle(() => {
     return {
       top: top * timeIntervalHeight.value,
-      height: height * timeIntervalHeight.value,
+      height: hour * timeIntervalHeight.value,
     };
   });
 
   return (
     <Animated.View
+      pointerEvents="box-none"
       style={[
         styles.unavailableHourItem,
         { backgroundColor: theme.unavailableBackgroundColor },
         unavailableHourStyle,
       ]}
-    />
+    >
+      {renderCustomUnavailableItem &&
+        renderCustomUnavailableItem({
+          timeIntervalHeight: timeIntervalHeight,
+          hour,
+        })}
+    </Animated.View>
   );
 };
 
 export default memo(UnavailableHourItem);
 
 const styles = StyleSheet.create({
-  unavailableHourItem: { left: 0, width: '100%', position: 'absolute' },
+  unavailableHourItem: {
+    left: 0,
+    width: '100%',
+    position: 'absolute',
+    overflow: 'hidden',
+  },
 });

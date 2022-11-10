@@ -5,7 +5,7 @@ import { GestureResponderEvent, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { COLUMNS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
-import type { EventItem, PackedEvent } from '../../types';
+import type { EventItem, PackedEvent, UnavailableItemProps } from '../../types';
 import { convertPositionToISOString, divideEventsByColumns } from '../../utils';
 import EventBlock from './EventBlock';
 import NowIndicator from './NowIndicator';
@@ -24,6 +24,7 @@ interface TimelinePageProps {
   onLongPressEvent?: (eventItem: PackedEvent) => void;
   renderEventContent?: (event: PackedEvent) => void;
   selectedEventId?: string;
+  renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
 }
 
 const TimelinePage = ({
@@ -38,6 +39,7 @@ const TimelinePage = ({
   onLongPressEvent,
   renderEventContent,
   selectedEventId,
+  renderCustomUnavailableItem,
 }: TimelinePageProps) => {
   const {
     rightSideWidth,
@@ -166,6 +168,7 @@ const TimelinePage = ({
           startDate={startDate}
           onPressBackgroundHandler={_onPressBackgroundHandler}
           holidays={holidays}
+          renderCustomUnavailableItem={renderCustomUnavailableItem}
         />
         {times(COLUMNS[viewMode], _renderTimelineColumn)}
       </Animated.View>

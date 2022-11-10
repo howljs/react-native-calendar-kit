@@ -4,6 +4,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { COLUMNS, DEFAULT_PROPS } from '../../../constants';
 import type { DayBarItemProps } from '../../../types';
+import { getDayBarStyle } from '../../../utils';
 
 const MultipleDayBar = ({
   width,
@@ -12,33 +13,39 @@ const MultipleDayBar = ({
   startDate,
   onPressDayNum,
   theme,
+  locale,
+  highlightDates,
 }: DayBarItemProps) => {
   const _renderDay = (dayIndex: number) => {
     const currentDate = dayjs(startDate).add(dayIndex, 'd');
     const dateStr = currentDate.format('YYYY-MM-DD');
-    const isToday = currentDate.isSame(dayjs(), 'd');
-    const [dayName, dayNum] = currentDate.format('ddd,DD').split(',');
-    const color = isToday ? theme.todayTextColor : theme.dayTextColor;
-    const bgColor = isToday
-      ? theme.todayBackgroundColor
-      : theme.backgroundColor;
-    const dayNumColor = isToday
-      ? theme.todayBackgroundColor
-      : theme.dayTextColor;
+    const [dayName, dayNum] = currentDate
+      .locale(locale)
+      .format('ddd,DD')
+      .split(',');
+    const highlightDate = highlightDates?.[dateStr];
+
+    const { dayNameColor, dayNumberColor, dayNumberBackgroundColor } =
+      getDayBarStyle(currentDate, theme, highlightDate);
 
     return (
       <View
         key={`${startDate}_${dayIndex}`}
         style={[styles.dayItem, { width: columnWidth }]}
       >
-        <Text style={[styles.dayName, { color: dayNumColor }]}>{dayName}</Text>
+        <Text style={[styles.dayName, { color: dayNameColor }]}>{dayName}</Text>
         <TouchableOpacity
           activeOpacity={0.6}
           disabled={!onPressDayNum}
           onPress={() => onPressDayNum?.(dateStr)}
-          style={[styles.dayNumBtn, { backgroundColor: bgColor }]}
+          style={[
+            styles.dayNumBtn,
+            { backgroundColor: dayNumberBackgroundColor },
+          ]}
         >
-          <Text style={[styles.dayNum, { color }]}>{dayNum}</Text>
+          <Text style={[styles.dayNum, { color: dayNumberColor }]}>
+            {dayNum}
+          </Text>
         </TouchableOpacity>
       </View>
     );

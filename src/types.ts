@@ -1,4 +1,6 @@
 import type { GestureResponderEvent } from 'react-native';
+import type { SharedValue } from 'react-native-reanimated';
+import type { LOCALES } from './constants';
 
 export interface TimelineCalendarHandle {
   goToDate: (props?: {
@@ -31,6 +33,13 @@ export interface TimelineProps {
   renderEventContent?: (event: PackedEvent) => void;
   selectedEvent?: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
+  renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
+  highlightDates?: HighlightDates;
+}
+
+export interface UnavailableItemProps {
+  timeIntervalHeight: SharedValue<number>;
+  hour: number;
 }
 
 export type CalendarViewMode = 'day' | 'week' | 'threeDays' | 'workWeek';
@@ -101,6 +110,8 @@ export interface TimelineProviderProps {
   overlapEventsSpacing?: number;
 
   scrollToNow?: boolean;
+
+  locale?: LocaleType;
 }
 
 export interface DayBarItemProps {
@@ -111,13 +122,12 @@ export interface DayBarItemProps {
   hourWidth: number;
   onPressDayNum?: (date: string) => void;
   theme: ThemeProperties;
+  locale: LocaleType;
+  highlightDates?: HighlightDates;
 }
 
 export interface ThemeProperties {
   cellBorderColor?: string;
-  todayTextColor?: string;
-  todayBackgroundColor?: string;
-  dayTextColor?: string;
   backgroundColor?: string;
   dragHourColor?: string;
   dragHourBorderColor?: string;
@@ -127,6 +137,20 @@ export interface ThemeProperties {
   unavailableBackgroundColor?: string;
   editIndicatorColor?: string;
   nowIndicatorColor?: string;
+
+  //Header style
+  dayNameColor?: string;
+  dayNumberColor?: string;
+  dayNumberBackgroundColor?: string;
+  todayNameColor?: string;
+  todayNumberColor?: string;
+  todayNumberBackgroundColor?: string;
+  saturdayNameColor?: string;
+  saturdayNumberColor?: string;
+  saturdayNumberBackgroundColor?: string;
+  sundayNameColor?: string;
+  sundayNumberColor?: string;
+  sundayNumberBackgroundColor?: string;
 }
 
 export interface RangeTime {
@@ -163,3 +187,13 @@ export interface PackedEvent extends EventItem {
   height: number;
   leftByIndex?: number;
 }
+
+export type LocaleType = keyof typeof LOCALES;
+
+export type HighlightDates = {
+  [date: string]: {
+    dayNumberColor?: string;
+    dayNumberBackgroundColor?: string;
+    dayNameColor?: string;
+  };
+};

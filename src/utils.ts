@@ -1,6 +1,7 @@
+import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import { SECONDS_IN_DAY } from './constants';
-import type { EventItem, PackedEvent } from './types';
+import { DEFAULT_PROPS, SECONDS_IN_DAY } from './constants';
+import type { EventItem, PackedEvent, ThemeProperties } from './types';
 
 type DateData = { data: string[]; index: number };
 
@@ -316,4 +317,74 @@ export const divideEventsByColumns = (props: DivideEventsProps) => {
       startDate,
     })
   );
+};
+
+export const getTheme = (
+  theme: ThemeProperties | undefined
+): ThemeProperties => {
+  return {
+    cellBorderColor: DEFAULT_PROPS.CELL_BORDER_COLOR,
+    backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
+    dragCreateItemBackgroundColor: DEFAULT_PROPS.CREATE_ITEM_BACKGROUND_COLOR,
+    dragHourBackgroundColor: DEFAULT_PROPS.WHITE_COLOR,
+    dragHourBorderColor: DEFAULT_PROPS.PRIMARY_COLOR,
+    dragHourColor: DEFAULT_PROPS.PRIMARY_COLOR,
+    loadingBarColor: DEFAULT_PROPS.PRIMARY_COLOR,
+    unavailableBackgroundColor: DEFAULT_PROPS.UNAVAILABLE_BACKGROUND_COLOR,
+    editIndicatorColor: DEFAULT_PROPS.BLACK_COLOR,
+    nowIndicatorColor: DEFAULT_PROPS.PRIMARY_COLOR,
+
+    dayNameColor: DEFAULT_PROPS.SECONDARY_COLOR,
+    dayNumberColor: DEFAULT_PROPS.SECONDARY_COLOR,
+    dayNumberBackgroundColor: DEFAULT_PROPS.WHITE_COLOR,
+    todayNameColor: DEFAULT_PROPS.PRIMARY_COLOR,
+    todayNumberColor: DEFAULT_PROPS.WHITE_COLOR,
+    todayNumberBackgroundColor: DEFAULT_PROPS.PRIMARY_COLOR,
+    saturdayNameColor: DEFAULT_PROPS.SECONDARY_COLOR,
+    saturdayNumberColor: DEFAULT_PROPS.SECONDARY_COLOR,
+    saturdayNumberBackgroundColor: DEFAULT_PROPS.WHITE_COLOR,
+    sundayNameColor: DEFAULT_PROPS.SECONDARY_COLOR,
+    sundayNumberColor: DEFAULT_PROPS.SECONDARY_COLOR,
+    sundayNumberBackgroundColor: DEFAULT_PROPS.WHITE_COLOR,
+    ...theme,
+  };
+};
+
+type DayBarStyle = {
+  dayNumberColor?: string;
+  dayNumberBackgroundColor?: string;
+  dayNameColor?: string;
+};
+
+export const getDayBarStyle = (
+  date: Dayjs,
+  theme: ThemeProperties,
+  highlightDate: DayBarStyle = {}
+) => {
+  const isToday = date.isSame(dayjs(), 'd');
+  const weekDay = date.weekday();
+  const isSunday = weekDay === 0;
+  const isSaturday = weekDay === 6;
+
+  let styleKey = 'day';
+  if (isToday) {
+    styleKey = 'today';
+  } else if (isSunday) {
+    styleKey = 'sunday';
+  } else if (isSaturday) {
+    styleKey = 'saturday';
+  }
+
+  const style = {
+    dayNameColor: theme[`${styleKey}NameColor` as keyof ThemeProperties],
+    dayNumberColor: theme[`${styleKey}NumberColor` as keyof ThemeProperties],
+    dayNumberBackgroundColor:
+      theme[`${styleKey}NumberBackgroundColor` as keyof ThemeProperties],
+  };
+
+  if (highlightDate && !isToday) {
+    return { ...style, ...highlightDate };
+  }
+
+  return style;
 };
