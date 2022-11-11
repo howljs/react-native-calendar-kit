@@ -139,3 +139,9 @@ Callback function will be called when time slots view is pressed out
 Callback function will be called when the event item is pressed
 
 <span style={{color: "grey"}}>function</span>
+
+### isShowHeader
+
+Show/Hide header component. Default is `true`
+
+<span style={{color: "grey"}}>boolean</span>

@@ -112,6 +112,8 @@ export interface TimelineProviderProps {
   scrollToNow?: boolean;
 
   locale?: LocaleType;
+
+  isShowHeader?: boolean;
 }
 
 export interface DayBarItemProps {

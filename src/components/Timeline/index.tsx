@@ -59,6 +59,7 @@ const Timeline: React.ForwardRefRenderFunction<
     scrollToNow,
     initialDate,
     locale,
+    isShowHeader,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -180,12 +181,14 @@ const Timeline: React.ForwardRefRenderFunction<
     <GestureHandlerRootView
       style={[styles.container, { backgroundColor: theme.backgroundColor }]}
     >
-      <TimelineHeader
-        renderDayBarItem={renderDayBarItem}
-        onPressDayNum={onPressDayNum}
-        isLoading={isLoading}
-        highlightDates={highlightDates}
-      />
+      {isShowHeader && (
+        <TimelineHeader
+          renderDayBarItem={renderDayBarItem}
+          onPressDayNum={onPressDayNum}
+          isLoading={isLoading}
+          highlightDates={highlightDates}
+        />
+      )}
       <View style={styles.content} onLayout={_onContentLayout}>
         <TimelineSlots
           {...other}

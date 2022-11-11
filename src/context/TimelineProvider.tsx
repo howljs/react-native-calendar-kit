@@ -88,6 +88,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     rightEdgeSpacing = DEFAULT_PROPS.RIGHT_EDGE_SPACING,
     scrollToNow = true,
     locale = 'en',
+    isShowHeader = true,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -207,6 +208,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       pinchRef,
       scrollToNow,
       locale,
+      isShowHeader,
     };
   }, [
     pages,
@@ -241,6 +243,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     isDragCreateActive,
     scrollToNow,
     locale,
+    isShowHeader,
   ]);
 
   return (
