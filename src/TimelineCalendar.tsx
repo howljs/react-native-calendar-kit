@@ -25,6 +25,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     onEndDragSelectedEvent,
     renderCustomUnavailableItem,
     highlightDates,
+    onChange,
     ...timelineProviderProps
   },
   ref
@@ -47,6 +48,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     onEndDragSelectedEvent,
     renderCustomUnavailableItem,
     highlightDates,
+    onChange,
   };
 
   return (

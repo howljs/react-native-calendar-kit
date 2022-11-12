@@ -35,6 +35,8 @@ export interface TimelineProps {
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
   highlightDates?: HighlightDates;
+  /** Callback function will be called when index changed */
+  onChange?: (props: OnChangeProps) => void;
 }
 
 export interface UnavailableItemProps {
@@ -200,3 +202,10 @@ export type HighlightDates = {
     dayNameColor?: string;
   };
 };
+
+export interface OnChangeProps {
+  date: string;
+  index: number;
+  length: number;
+  prevIndex: number | null;
+}

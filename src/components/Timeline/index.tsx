@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 import { COLUMNS, DEFAULT_PROPS, LOCALES } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useDragCreateGesture from '../../hooks/useDragCreateGesture';
@@ -39,6 +40,7 @@ const Timeline: React.ForwardRefRenderFunction<
     events,
     selectedEvent,
     highlightDates,
+    onChange,
     ...other
   },
   ref
@@ -60,6 +62,8 @@ const Timeline: React.ForwardRefRenderFunction<
     initialDate,
     locale,
     isShowHeader,
+    currentIndex,
+    pages,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -176,6 +180,25 @@ const Timeline: React.ForwardRefRenderFunction<
   };
 
   const groupedEvents = useMemo(() => groupEventsByDate(events), [events]);
+
+  useAnimatedReaction(
+    () => currentIndex.value,
+    (index, prevIndex) => {
+      if (!onChange) {
+        return;
+      }
+      const currentDate = pages[viewMode].data[index];
+      if (currentDate) {
+        runOnJS(onChange)({
+          length: pages[viewMode].data.length,
+          index,
+          prevIndex,
+          date: currentDate,
+        });
+      }
+    },
+    [viewMode]
+  );
 
   return (
     <GestureHandlerRootView

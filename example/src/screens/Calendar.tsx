@@ -1,6 +1,7 @@
 import {
   EventItem,
   HighlightDates,
+  OnChangeProps,
   PackedEvent,
   RangeTime,
   TimelineCalendar,
@@ -8,6 +9,7 @@ import {
   UnavailableItemProps,
 } from '@howljs/calendar-kit';
 import type { NavigationProp, RouteProp } from '@react-navigation/native';
+import dayjs from 'dayjs';
 import React, {
   useCallback,
   useLayoutEffect,
@@ -173,6 +175,12 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
     []
   );
 
+  const _onChange = ({ date }: OnChangeProps) => {
+    navigation.setOptions({
+      title: dayjs(date).format('MMMM YYYY'),
+    });
+  };
+
   return (
     <View style={[styles.container, { paddingBottom: safeBottom }]}>
       <TimelineCalendar
@@ -189,6 +197,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
         onEndDragSelectedEvent={setSelectedEvent}
         renderCustomUnavailableItem={_renderCustomUnavailableItem}
         highlightDates={highlightDates}
+        onChange={_onChange}
         theme={{
           unavailableBackgroundColor: 'transparent',
           //Saturday style

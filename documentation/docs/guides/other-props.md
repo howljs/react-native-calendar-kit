@@ -145,3 +145,9 @@ Callback function will be called when the event item is pressed
 Show/Hide header component. Default is `true`
 
 <span style={{color: "grey"}}>boolean</span>
+
+### onChange
+
+Callback function will be called when the timeline is scrolling
+
+<span style={{color: "grey"}}>boolean</span>
