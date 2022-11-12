@@ -50,6 +50,7 @@ export interface TimelineProps {
 export interface UnavailableItemProps {
   timeIntervalHeight: SharedValue<number>;
   hour: number;
+  width: number;
 }
 
 export type CalendarViewMode = 'day' | 'week' | 'threeDays' | 'workWeek';

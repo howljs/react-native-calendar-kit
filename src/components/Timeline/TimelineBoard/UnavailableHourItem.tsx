@@ -15,7 +15,8 @@ const UnavailableHourItem = ({
   hour,
   renderCustomUnavailableItem,
 }: UnavailableHourProps) => {
-  const { timeIntervalHeight, theme } = useTimelineCalendarContext();
+  const { timeIntervalHeight, theme, columnWidth } =
+    useTimelineCalendarContext();
   const unavailableHourStyle = useAnimatedStyle(() => {
     return {
       top: top * timeIntervalHeight.value,
@@ -36,6 +37,7 @@ const UnavailableHourItem = ({
         renderCustomUnavailableItem({
           timeIntervalHeight: timeIntervalHeight,
           hour,
+          width: columnWidth,
         })}
     </Animated.View>
   );

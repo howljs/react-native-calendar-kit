@@ -36,6 +36,7 @@ const UnavailableMultipleDays = ({
         renderCustomUnavailableItem({
           timeIntervalHeight: timeIntervalHeight,
           hour: totalHours,
+          width: diffDays * columnWidth,
         })}
     </View>
   );

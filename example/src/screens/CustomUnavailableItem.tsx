@@ -36,7 +36,7 @@ const CustomUnavailableItem = (props: UnavailableItemProps) => {
       <AnimatedRect
         x="0"
         y="0"
-        width="100%"
+        width={props.width}
         fill="url(#stripe-pattern)"
         animatedProps={rectProps}
       />
