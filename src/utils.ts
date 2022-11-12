@@ -170,23 +170,21 @@ const buildEvent = (
   const eventEnd = dayjs(event.end);
 
   const timeToHour = eventStart.hour() + eventStart.minute() / 60;
-  let top = timeToHour - options.startHour;
+  let start = timeToHour - options.startHour;
   const diffHour = eventEnd.diff(eventStart, 'm') / 60;
-  let height = diffHour;
-
   const isSameDate = eventStart.isSame(eventEnd, 'd');
   if (!isSameDate) {
     const currentDate = dayjs(options.startDate).add(options.dayIndex, 'd');
     const diffCurrent = eventStart.diff(currentDate, 'm') / 60;
     if (diffCurrent < 0) {
-      top = 0 + diffCurrent;
+      start = 0 + diffCurrent;
     }
   }
 
   return {
     ...event,
-    top,
-    height,
+    startHour: start,
+    duration: diffHour,
     left,
     width,
   };

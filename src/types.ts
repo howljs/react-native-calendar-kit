@@ -30,7 +30,10 @@ export interface TimelineProps {
   events?: EventItem[];
   onPressEvent?: (eventItem: PackedEvent) => void;
   onLongPressEvent?: (eventItem: PackedEvent) => void;
-  renderEventContent?: (event: PackedEvent) => void;
+  renderEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => void;
   selectedEvent?: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
@@ -187,9 +190,9 @@ export interface EventItem {
 
 export interface PackedEvent extends EventItem {
   left: number;
-  top: number;
+  startHour: number;
   width: number;
-  height: number;
+  duration: number;
   leftByIndex?: number;
 }
 

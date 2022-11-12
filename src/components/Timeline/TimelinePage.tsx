@@ -2,7 +2,10 @@ import dayjs from 'dayjs';
 import times from 'lodash/times';
 import React, { useMemo } from 'react';
 import { GestureResponderEvent, StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  SharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { COLUMNS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { EventItem, PackedEvent, UnavailableItemProps } from '../../types';
@@ -22,7 +25,10 @@ interface TimelinePageProps {
   events?: { [date: string]: EventItem[] };
   onPressEvent?: (eventItem: PackedEvent) => void;
   onLongPressEvent?: (eventItem: PackedEvent) => void;
-  renderEventContent?: (event: PackedEvent) => void;
+  renderEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => void;
   selectedEventId?: string;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
 }

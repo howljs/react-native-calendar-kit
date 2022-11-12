@@ -143,7 +143,6 @@ const TimelineHeader = ({
             renderItem={_renderMultipleDayItem}
           />
         </View>
-        {isLoading && <ProgressBar barColor={theme.loadingBarColor} />}
       </View>
     );
   };
@@ -180,6 +179,7 @@ const TimelineHeader = ({
       style={[styles.container, { backgroundColor: theme.backgroundColor }]}
     >
       {syncedLists ? _renderDayBarList() : _renderDayBarView()}
+      {isLoading && <ProgressBar barColor={theme.loadingBarColor} />}
     </View>
   );
 };

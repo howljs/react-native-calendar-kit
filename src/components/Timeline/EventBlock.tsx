@@ -14,7 +14,10 @@ export interface EventBlockProps {
   onPressEvent?: (eventItem: PackedEvent) => void;
   onLongPressEvent?: (eventItem: PackedEvent) => void;
   timeIntervalHeight: SharedValue<number>;
-  renderEventContent?: (event: PackedEvent) => void;
+  renderEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => void;
   selectedEventId?: string;
 }
 
@@ -33,8 +36,8 @@ const EventBlock = ({
   const _onLongPress = () => {
     const eventParams = {
       ...event,
-      top: event.top * timeIntervalHeight.value,
-      height: event.height * timeIntervalHeight.value,
+      top: event.startHour * timeIntervalHeight.value,
+      height: event.duration * timeIntervalHeight.value,
       leftByIndex: columnWidth * dayIndex,
     };
     onLongPressEvent?.(eventParams);
@@ -43,16 +46,16 @@ const EventBlock = ({
   const _onPress = () => {
     const eventParams = {
       ...event,
-      top: event.top * timeIntervalHeight.value,
-      height: event.height * timeIntervalHeight.value,
+      top: event.startHour * timeIntervalHeight.value,
+      height: event.duration * timeIntervalHeight.value,
       leftByIndex: columnWidth * dayIndex,
     };
     onPressEvent?.(eventParams);
   };
 
   const eventStyle = useAnimatedStyle(() => ({
-    top: event.top * timeIntervalHeight.value,
-    height: event.height * timeIntervalHeight.value,
+    top: event.startHour * timeIntervalHeight.value,
+    height: event.duration * timeIntervalHeight.value,
   }));
 
   const _renderEventContent = () => {
@@ -85,7 +88,9 @@ const EventBlock = ({
         ]}
         activeOpacity={0.6}
       >
-        {renderEventContent ? renderEventContent(event) : _renderEventContent()}
+        {renderEventContent
+          ? renderEventContent(event, timeIntervalHeight)
+          : _renderEventContent()}
       </TouchableOpacity>
     </Animated.View>
   );

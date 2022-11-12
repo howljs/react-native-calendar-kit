@@ -17,7 +17,10 @@ import {
   GestureType,
   ScrollView,
 } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  SharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { EventItem, PackedEvent, UnavailableItemProps } from '../../types';
 import DragEditItem from './DragEditItem';
@@ -36,7 +39,10 @@ interface TimelineSlotsProps {
   events?: { [date: string]: EventItem[] };
   onPressEvent?: (eventItem: PackedEvent) => void;
   onLongPressEvent?: (eventItem: PackedEvent) => void;
-  renderEventContent?: (event: PackedEvent) => void;
+  renderEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => void;
   selectedEvent?: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
