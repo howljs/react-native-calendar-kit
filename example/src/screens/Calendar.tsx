@@ -24,7 +24,7 @@ interface CalendarProps {
   navigation: NavigationProp<any>;
 }
 
-const generateColor = () => {
+const randLightColor = () => {
   return (
     'hsl(' +
     360 * Math.random() +
@@ -33,6 +33,16 @@ const generateColor = () => {
     '%,' +
     (85 + 10 * Math.random()) +
     '%)'
+  );
+};
+
+const randColor = () => {
+  return (
+    '#' +
+    Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, '0')
+      .toUpperCase()
   );
 };
 
@@ -98,7 +108,8 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
       title: randomId,
       start: event.start,
       end: event.end,
-      color: generateColor(),
+      color: randLightColor(),
+      containerStyle: { borderColor: randColor(), borderWidth: 1 },
     };
     setEvents((prev) => [...prev, newEvent]);
   };

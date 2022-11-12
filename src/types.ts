@@ -1,4 +1,4 @@
-import type { GestureResponderEvent } from 'react-native';
+import type { GestureResponderEvent, StyleProp, ViewStyle } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import type { LOCALES } from './constants';
 
@@ -179,6 +179,7 @@ export interface EventItem {
   end: string;
   title?: string;
   color?: string;
+  containerStyle?: StyleProp<ViewStyle>;
   [key: string]: any;
 }
 

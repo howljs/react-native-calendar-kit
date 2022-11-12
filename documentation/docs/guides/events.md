@@ -85,6 +85,12 @@ Color of the event
 
 <span style={{color: "grey"}}>string</span>
 
+### containerStyle
+
+Container style of the event
+
+<span style={{color: "grey"}}>ViewStyle</span>
+
 ### Other props
 
 You can add more properties to use with **[renderEventContent](#)**

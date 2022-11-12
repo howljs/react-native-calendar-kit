@@ -250,6 +250,7 @@ const DragEditItem = ({
               backgroundColor: event.color ? event.color : EVENT_DEFAULT_COLOR,
               top: defaultTopPosition,
             },
+            event.containerStyle,
             animatedStyle,
           ]}
         >

@@ -1,3 +1,4 @@
+import isEqual from 'lodash/isEqual';
 import React, { memo } from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Animated, {
@@ -69,6 +70,7 @@ const EventBlock = ({
           width: event.width,
           opacity: eventOpacity,
         },
+        event.containerStyle,
         eventStyle,
       ]}
     >
@@ -89,7 +91,15 @@ const EventBlock = ({
   );
 };
 
-export default memo(EventBlock);
+const areEqual = (prev: EventBlockProps, next: EventBlockProps) => {
+  const isSameEvent = isEqual(prev.event, next.event);
+  const isSameSelectedId = prev.selectedEventId === next.selectedEventId;
+  const isSameColumnWidth = prev.columnWidth === next.columnWidth;
+  const isSameDayIndex = prev.dayIndex === next.dayIndex;
+  return isSameEvent && isSameSelectedId && isSameColumnWidth && isSameDayIndex;
+};
+
+export default memo(EventBlock, areEqual);
 
 const styles = StyleSheet.create({
   eventBlock: {
