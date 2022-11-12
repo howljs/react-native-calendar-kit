@@ -79,7 +79,7 @@ const Timeline: React.ForwardRefRenderFunction<
         const numOfDays =
           viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
         const currentDay = dayjs(props?.date);
-        const firstDateMoment = dayjs(firstDate[viewMode]);
+        const firstDateMoment = dayjs(firstDate.current[viewMode]);
         const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
         const pageIndex = Math.floor(diffDays / numOfDays);
         if (pageIndex < 0 || pageIndex > totalPages[viewMode] - 1) {

@@ -181,6 +181,16 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
     });
   };
 
+  const _onPressDayNum = (date: string) => {
+    if (route.params?.viewMode === 'day') {
+      return;
+    }
+    navigation.navigate('Calendar', { viewMode: 'day' });
+    setTimeout(() => {
+      calendarRef.current?.goToDate({ date, animatedDate: true });
+    }, 100);
+  };
+
   return (
     <View style={[styles.container, { paddingBottom: safeBottom }]}>
       <TimelineCalendar
@@ -197,6 +207,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
         onEndDragSelectedEvent={setSelectedEvent}
         renderCustomUnavailableItem={_renderCustomUnavailableItem}
         highlightDates={highlightDates}
+        onPressDayNum={_onPressDayNum}
         onChange={_onChange}
         theme={{
           unavailableBackgroundColor: 'transparent',

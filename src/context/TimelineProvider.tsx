@@ -1,8 +1,13 @@
 import type { FlashList } from '@shopify/flash-list';
+import dayjs from 'dayjs';
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { PixelRatio, ScrollView, useWindowDimensions } from 'react-native';
 import type { GestureType } from 'react-native-gesture-handler';
-import { SharedValue, useSharedValue } from 'react-native-reanimated';
+import {
+  SharedValue,
+  useDerivedValue,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { COLUMNS, DEFAULT_PROPS } from '../constants';
 import useDeepCompare from '../hooks/useDeepCompare';
 import type {
@@ -49,7 +54,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   unavailableHours?:
     | UnavailableHour[]
     | { [weekDay: string]: UnavailableHour[] };
-  firstDate: { [key in CalendarViewMode]?: string };
+  firstDate: React.MutableRefObject<{ [key in CalendarViewMode]?: string }>;
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
 }
@@ -107,6 +112,12 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     () => calculateDates(firstDay, minDate, maxDate, initialDate.current),
     [firstDay, minDate, maxDate]
   );
+  const firstDate = useRef({
+    week: pages.week.data[0],
+    workWeek: pages.workWeek.data[0],
+    day: pages.day.data[0],
+    threeDays: pages.threeDays.data[0],
+  });
 
   const hours = useMemo(
     () => calculateHours(start, end, timeInterval),
@@ -115,6 +126,9 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
 
   /** Animated value */
   const currentIndex = useSharedValue(pages[viewMode].index);
+  const currentDate = useDerivedValue(
+    () => pages[viewMode].data[currentIndex.value] as string
+  );
   const timeIntervalHeight = useSharedValue(initialTimeIntervalHeight);
   const minTimeIntervalHeight = useSharedValue(
     initialMinTimeIntervalHeight || 0
@@ -131,16 +145,6 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   const theme = useDeepCompare(getTheme(initTheme));
 
   useEffect(() => {
-    currentIndex.value = pages[viewMode].index;
-    setTimeout(() => {
-      timelineHorizontalListRef.current?.scrollToIndex({
-        index: pages[viewMode].index,
-        animated: false,
-      });
-    }, 300);
-  }, [currentIndex, pages, viewMode]);
-
-  useEffect(() => {
     if (initialMinTimeIntervalHeight) {
       minTimeIntervalHeight.value = initialMinTimeIntervalHeight;
     }
@@ -154,12 +158,6 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       threeDays: pages.threeDays.data.length,
     };
     const totalHours = hours.length;
-    const firstDate = {
-      week: pages.week.data[0],
-      workWeek: pages.workWeek.data[0],
-      day: pages.day.data[0],
-      threeDays: pages.threeDays.data[0],
-    };
     const rightSideWidth = timelineWidth - rHourWidth;
     const columnWidth = rightSideWidth / COLUMNS[viewMode];
 
@@ -245,6 +243,29 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     locale,
     isShowHeader,
   ]);
+
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+
+    // Scroll to current date when viewMode is changed
+    const numOfDays =
+      viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
+    const currentDay = dayjs(currentDate.value);
+    const firstDateMoment = dayjs(firstDate.current[viewMode]);
+    const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
+    const pageIndex = Math.floor(diffDays / numOfDays);
+    setTimeout(() => {
+      timelineHorizontalListRef.current?.scrollToIndex({
+        index: pageIndex,
+        animated: false,
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]);
 
   return (
     <TimelineCalendarContext.Provider value={value}>
