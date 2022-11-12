@@ -41,9 +41,9 @@ const TimelineBoard = ({
     maxDate,
   } = useTimelineCalendarContext();
 
-  const _renderHorizontalLine = ({ text }: HourItem, index: number) => {
+  const _renderHorizontalLine = ({ hourNumber }: HourItem, index: number) => {
     return (
-      <React.Fragment key={`line_${text}`}>
+      <React.Fragment key={`line_${hourNumber}`}>
         <HorizontalLine hourIndex={index} />
         {isShowHalfLine && <HorizontalLine hourIndex={index + 0.5} />}
         {index === hours.length - 1 && <HorizontalLine hourIndex={index + 1} />}

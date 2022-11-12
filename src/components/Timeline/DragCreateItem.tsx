@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -27,6 +28,7 @@ const DragCreateItem = ({
     timeIntervalHeight,
     dragCreateInterval,
     theme,
+    hourFormat,
   } = useTimelineCalendarContext();
 
   const animatedStyles = useAnimatedStyle(() => {
@@ -54,6 +56,7 @@ const DragCreateItem = ({
         offsetY={offsetY}
         hourWidth={hourWidth}
         theme={theme}
+        hourFormat={hourFormat}
       />
     </View>
   );
@@ -66,6 +69,7 @@ interface AnimatedHourProps {
   offsetY: Animated.SharedValue<number>;
   hourWidth: number;
   theme: ThemeProperties;
+  hourFormat?: string;
 }
 
 const AnimatedHour = ({
@@ -73,8 +77,23 @@ const AnimatedHour = ({
   offsetY,
   hourWidth,
   theme,
+  hourFormat,
 }: AnimatedHourProps) => {
   const [time, setTime] = useState('');
+
+  const _onChangedTime = (
+    hourStr: string | number,
+    minutesStr: string | number
+  ) => {
+    let newTime = `${hourStr}:${minutesStr}`;
+    if (hourFormat) {
+      newTime = dayjs(
+        `1970/1/1 ${hourStr}:${minutesStr}`,
+        'YYYY/M/D HH:mm'
+      ).format(hourFormat);
+    }
+    setTime(newTime);
+  };
 
   useAnimatedReaction(
     () => currentHour.value,
@@ -92,7 +111,7 @@ const AnimatedHour = ({
       const offset = rHours < 0 ? 24 : 0;
       const hourStr = rHours + offset < 10 ? '0' + rHours : rHours + offset;
       const minutesStr = rMinutes < 10 ? '0' + rMinutes : rMinutes;
-      runOnJS(setTime)(`${hourStr}:${minutesStr}`);
+      runOnJS(_onChangedTime)(hourStr, minutesStr);
     }
   );
 

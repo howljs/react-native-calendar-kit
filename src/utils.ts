@@ -73,7 +73,12 @@ export const calculateDates = (
   return { day, week, threeDays, workWeek };
 };
 
-export const calculateHours = (start: number, end: number, step: number) => {
+export const calculateHours = (
+  start: number,
+  end: number,
+  step: number,
+  hourFormat?: string
+) => {
   const hours: { text: string; hourNumber: number }[] = [];
   let tempStart = start;
   while (tempStart < end) {
@@ -82,8 +87,15 @@ export const calculateHours = (start: number, end: number, step: number) => {
     const rMinutes = Math.round(minutes);
     const hourStr = ('0' + roundHour).slice(-2);
     const minuteStr = ('0' + rMinutes).slice(-2);
+    let time = `${hourStr}:${minuteStr}`;
+    if (hourFormat) {
+      time = dayjs(`1970/1/1 ${hourStr}:${minuteStr}`, 'YYYY/M/D HH:mm').format(
+        hourFormat
+      );
+    }
+
     hours.push({
-      text: `${hourStr}:${minuteStr}`,
+      text: time,
       hourNumber: tempStart,
     });
     tempStart += step / 60;

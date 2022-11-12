@@ -151,3 +151,9 @@ Show/Hide header component. Default is `true`
 Callback function will be called when the timeline is scrolling
 
 <span style={{color: "grey"}}>boolean</span>
+
+### hourFormat
+
+Hour format. Default is `HH:mm`
+
+<span style={{color: "grey"}}>string</span>

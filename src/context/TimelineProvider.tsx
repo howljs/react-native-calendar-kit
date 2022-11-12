@@ -25,6 +25,7 @@ type CustomTimelineProviderProps = Required<
     | 'maxTimeIntervalHeight'
     | 'initialTimeIntervalHeight'
     | 'unavailableHours'
+    | 'hourFormat'
   >
 >;
 
@@ -57,6 +58,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   firstDate: React.MutableRefObject<{ [key in CalendarViewMode]?: string }>;
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
+  hourFormat?: string;
 }
 
 const TimelineCalendarContext = React.createContext<
@@ -94,6 +96,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     scrollToNow = true,
     locale = 'en',
     isShowHeader = true,
+    hourFormat,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -120,8 +123,8 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   });
 
   const hours = useMemo(
-    () => calculateHours(start, end, timeInterval),
-    [end, start, timeInterval]
+    () => calculateHours(start, end, timeInterval, hourFormat),
+    [end, start, timeInterval, hourFormat]
   );
 
   /** Animated value */
@@ -207,6 +210,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       scrollToNow,
       locale,
       isShowHeader,
+      hourFormat,
     };
   }, [
     pages,
@@ -242,6 +246,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     scrollToNow,
     locale,
     isShowHeader,
+    hourFormat,
   ]);
 
   const mountedRef = useRef(false);

@@ -125,6 +125,8 @@ export interface TimelineProviderProps {
   locale?: LocaleType;
 
   isShowHeader?: boolean;
+
+  hourFormat?: string;
 }
 
 export interface DayBarItemProps {

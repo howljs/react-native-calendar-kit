@@ -9,7 +9,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { COLUMNS } from '../../constants';
+import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
 import type { PackedEvent, ThemeProperties } from '../../types';
@@ -44,6 +44,7 @@ const DragEditItem = ({
     timelineLayoutRef,
     totalHours,
     theme,
+    hourFormat,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -271,6 +272,7 @@ const DragEditItem = ({
         top={defaultTopPosition}
         hourWidth={hourWidth}
         theme={theme}
+        hourFormat={hourFormat}
       />
     </View>
   );
@@ -284,6 +286,7 @@ interface AnimatedHourProps {
   top: number;
   hourWidth: number;
   theme: ThemeProperties;
+  hourFormat?: string;
 }
 
 const AnimatedHour = ({
@@ -292,8 +295,23 @@ const AnimatedHour = ({
   top,
   hourWidth,
   theme,
+  hourFormat,
 }: AnimatedHourProps) => {
   const [time, setTime] = useState('');
+
+  const _onChangedTime = (
+    hourStr: string | number,
+    minutesStr: string | number
+  ) => {
+    let newTime = `${hourStr}:${minutesStr}`;
+    if (hourFormat) {
+      newTime = dayjs(
+        `1970/1/1 ${hourStr}:${minutesStr}`,
+        'YYYY/M/D HH:mm'
+      ).format(hourFormat);
+    }
+    setTime(newTime);
+  };
 
   useAnimatedReaction(
     () => currentHour.value,
@@ -311,7 +329,7 @@ const AnimatedHour = ({
       const offset = rHours < 0 ? 24 : 0;
       const hourStr = rHours + offset < 10 ? '0' + rHours : rHours + offset;
       const minutesStr = rMinutes < 10 ? '0' + rMinutes : rMinutes;
-      runOnJS(setTime)(`${hourStr}:${minutesStr}`);
+      runOnJS(_onChangedTime)(hourStr, minutesStr);
     }
   );
 
@@ -350,8 +368,8 @@ const styles = StyleSheet.create({
   },
   hourContainer: {
     position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#007aff',
+    borderColor: DEFAULT_PROPS.PRIMARY_COLOR,
+    backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
     borderWidth: 1,
     borderRadius: 4,
     top: -6,
@@ -367,6 +385,7 @@ const styles = StyleSheet.create({
   },
   title: { paddingVertical: 4, paddingHorizontal: 2, fontSize: 10 },
   hourText: {
+    color: DEFAULT_PROPS.PRIMARY_COLOR,
     fontSize: 10,
   },
   indicatorLine: {
