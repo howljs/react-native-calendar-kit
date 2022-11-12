@@ -132,6 +132,7 @@ const TimelinePage = ({
         onLongPressEvent={onLongPressEvent}
         renderEventContent={renderEventContent}
         selectedEventId={selectedEventId}
+        theme={theme}
       />
     );
   };

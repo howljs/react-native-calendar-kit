@@ -44,24 +44,24 @@ const highlightDates: HighlightDates = useMemo(
   viewMode="week"
   theme={{
     //Saturday style
-    saturdayNameColor: 'blue',
-    saturdayNumberBackgroundColor: '#FFF',
-    saturdayNumberColor: 'blue',
+    saturdayName: { color: 'blue' },
+    saturdayNumber: { color: 'blue' },
+    saturdayNumberContainer: { backgroundColor: 'white' },
 
     //Sunday style
-    sundayNameColor: 'red',
-    sundayNumberBackgroundColor: '#FFF',
-    sundayNumberColor: 'red',
+    sundayName: { color: 'red' },
+    sundayNumber: { color: 'red' },
+    sundayNumberContainer: { backgroundColor: 'white' },
 
     //Today style
-    todayNameColor: 'green',
-    todayNumberColor: '#FFF',
-    todayNumberBackgroundColor: 'green',
+    todayName: { color: 'green' },
+    todayNumber: { color: 'white' },
+    todayNumberContainer: { backgroundColor: 'green' },
 
     //Normal style
-    dayNameColor: 'gray',
-    dayNumberColor: 'gray',
-    dayNumberBackgroundColor: 'white',
+    dayName: { color: 'black' },
+    dayNumber: { color: 'black' },
+    dayNumberContainer: { backgroundColor: 'white' },
   }}
 />
 ```

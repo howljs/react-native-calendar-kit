@@ -19,33 +19,31 @@ const MultipleDayBar = ({
   const _renderDay = (dayIndex: number) => {
     const currentDate = dayjs(startDate).add(dayIndex, 'd');
     const dateStr = currentDate.format('YYYY-MM-DD');
-    const [dayName, dayNum] = currentDate
+    const [dayNameText, dayNum] = currentDate
       .locale(locale)
       .format('ddd,DD')
       .split(',');
     const highlightDate = highlightDates?.[dateStr];
 
-    const { dayNameColor, dayNumberColor, dayNumberBackgroundColor } =
-      getDayBarStyle(currentDate, theme, highlightDate);
+    const { dayName, dayNumber, dayNumberContainer } = getDayBarStyle(
+      currentDate,
+      theme,
+      highlightDate
+    );
 
     return (
       <View
         key={`${startDate}_${dayIndex}`}
         style={[styles.dayItem, { width: columnWidth }]}
       >
-        <Text style={[styles.dayName, { color: dayNameColor }]}>{dayName}</Text>
+        <Text style={[styles.dayName, dayName]}>{dayNameText}</Text>
         <TouchableOpacity
           activeOpacity={0.6}
           disabled={!onPressDayNum}
           onPress={() => onPressDayNum?.(dateStr)}
-          style={[
-            styles.dayNumBtn,
-            { backgroundColor: dayNumberBackgroundColor },
-          ]}
+          style={[styles.dayNumBtn, dayNumberContainer]}
         >
-          <Text style={[styles.dayNum, { color: dayNumberColor }]}>
-            {dayNum}
-          </Text>
+          <Text style={[styles.dayNumber, dayNumber]}>{dayNum}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -72,13 +70,14 @@ const styles = StyleSheet.create({
   },
   dayItem: { alignItems: 'center' },
   dayNumBtn: {
-    width: 28,
-    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
     marginTop: 2,
+    borderRadius: 14,
+    width: 28,
+    height: 28,
+    backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
   },
-  dayName: { fontSize: 12 },
-  dayNum: { fontSize: 16 },
+  dayName: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 12 },
+  dayNumber: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 16 },
 });

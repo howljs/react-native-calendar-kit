@@ -6,7 +6,9 @@ import Animated, {
   useAnimatedReaction,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import { DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
+import type { ThemeProperties } from '../../types';
 
 interface DragCreateItemProps {
   offsetX: SharedValue<number>;
@@ -51,9 +53,7 @@ const DragCreateItem = ({
         currentHour={currentHour}
         offsetY={offsetY}
         hourWidth={hourWidth}
-        color={theme.dragHourColor}
-        backgroundColor={theme.dragHourBackgroundColor}
-        borderColor={theme.dragHourBorderColor}
+        theme={theme}
       />
     </View>
   );
@@ -65,18 +65,14 @@ interface AnimatedHourProps {
   currentHour: Animated.SharedValue<number>;
   offsetY: Animated.SharedValue<number>;
   hourWidth: number;
-  color?: string;
-  backgroundColor?: string;
-  borderColor?: string;
+  theme: ThemeProperties;
 }
 
 const AnimatedHour = ({
   currentHour,
   offsetY,
   hourWidth,
-  color,
-  backgroundColor,
-  borderColor,
+  theme,
 }: AnimatedHourProps) => {
   const [time, setTime] = useState('');
 
@@ -110,11 +106,12 @@ const AnimatedHour = ({
     <Animated.View
       style={[
         styles.hourContainer,
-        { width: hourWidth - 8, backgroundColor, borderColor },
+        { width: hourWidth - 8 },
+        theme.dragHourContainer,
         animatedTextStyles,
       ]}
     >
-      <Text style={[styles.hourText, { color }]}>{time}</Text>
+      <Text style={[styles.hourText, theme.dragHourText]}>{time}</Text>
     </Animated.View>
   );
 };
@@ -133,8 +130,11 @@ const styles = StyleSheet.create({
     top: -6,
     alignItems: 'center',
     left: 4,
+    borderColor: DEFAULT_PROPS.PRIMARY_COLOR,
+    backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
   },
   hourText: {
+    color: DEFAULT_PROPS.PRIMARY_COLOR,
     fontSize: 10,
   },
 });

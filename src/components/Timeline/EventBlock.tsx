@@ -5,7 +5,7 @@ import Animated, {
   SharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
-import type { PackedEvent } from '../../types';
+import type { PackedEvent, ThemeProperties } from '../../types';
 
 export interface EventBlockProps {
   event: PackedEvent;
@@ -19,6 +19,7 @@ export interface EventBlockProps {
     timeIntervalHeight: SharedValue<number>
   ) => void;
   selectedEventId?: string;
+  theme: ThemeProperties;
 }
 
 const EVENT_DEFAULT_COLOR = '#FFFFFF';
@@ -32,6 +33,7 @@ const EventBlock = ({
   timeIntervalHeight,
   renderEventContent,
   selectedEventId,
+  theme,
 }: EventBlockProps) => {
   const _onLongPress = () => {
     const eventParams = {
@@ -59,7 +61,7 @@ const EventBlock = ({
   }));
 
   const _renderEventContent = () => {
-    return <Text style={styles.title}>{event.title}</Text>;
+    return <Text style={[styles.title, theme.eventTitle]}>{event.title}</Text>;
   };
 
   const eventOpacity = selectedEventId ? 0.6 : 1;
@@ -101,7 +103,14 @@ const areEqual = (prev: EventBlockProps, next: EventBlockProps) => {
   const isSameSelectedId = prev.selectedEventId === next.selectedEventId;
   const isSameColumnWidth = prev.columnWidth === next.columnWidth;
   const isSameDayIndex = prev.dayIndex === next.dayIndex;
-  return isSameEvent && isSameSelectedId && isSameColumnWidth && isSameDayIndex;
+  const isSameTheme = isEqual(prev.theme, next.theme);
+  return (
+    isSameEvent &&
+    isSameSelectedId &&
+    isSameColumnWidth &&
+    isSameDayIndex &&
+    isSameTheme
+  );
 };
 
 export default memo(EventBlock, areEqual);

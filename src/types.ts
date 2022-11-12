@@ -1,4 +1,9 @@
-import type { GestureResponderEvent, StyleProp, ViewStyle } from 'react-native';
+import type {
+  GestureResponderEvent,
+  StyleProp,
+  TextStyle,
+  ViewStyle,
+} from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import type { LOCALES } from './constants';
 
@@ -136,28 +141,33 @@ export interface DayBarItemProps {
 export interface ThemeProperties {
   cellBorderColor?: string;
   backgroundColor?: string;
-  dragHourColor?: string;
-  dragHourBorderColor?: string;
-  dragHourBackgroundColor?: string;
   dragCreateItemBackgroundColor?: string;
   loadingBarColor?: string;
   unavailableBackgroundColor?: string;
   editIndicatorColor?: string;
   nowIndicatorColor?: string;
 
+  // Hour Column
+  hourText?: TextStyle;
+  dragHourContainer?: ViewStyle;
+  dragHourText?: TextStyle;
+
   //Header style
-  dayNameColor?: string;
-  dayNumberColor?: string;
-  dayNumberBackgroundColor?: string;
-  todayNameColor?: string;
-  todayNumberColor?: string;
-  todayNumberBackgroundColor?: string;
-  saturdayNameColor?: string;
-  saturdayNumberColor?: string;
-  saturdayNumberBackgroundColor?: string;
-  sundayNameColor?: string;
-  sundayNumberColor?: string;
-  sundayNumberBackgroundColor?: string;
+  dayName?: TextStyle;
+  dayNumber?: TextStyle;
+  dayNumberContainer?: ViewStyle;
+  todayName?: TextStyle;
+  todayNumber?: TextStyle;
+  todayNumberContainer?: ViewStyle;
+  saturdayName?: TextStyle;
+  saturdayNumber?: TextStyle;
+  saturdayNumberContainer?: ViewStyle;
+  sundayName?: TextStyle;
+  sundayNumber?: TextStyle;
+  sundayNumberContainer?: ViewStyle;
+
+  //Event
+  eventTitle?: TextStyle;
 }
 
 export interface RangeTime {

@@ -201,25 +201,26 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
         theme={{
           unavailableBackgroundColor: 'transparent',
           //Saturday style
-          saturdayNameColor: 'blue',
-          saturdayNumberBackgroundColor: 'white',
-          saturdayNumberColor: 'blue',
+          saturdayName: { color: 'blue' },
+          saturdayNumber: { color: 'blue' },
+          saturdayNumberContainer: { backgroundColor: 'white' },
 
           //Sunday style
-          sundayNameColor: 'red',
-          sundayNumberBackgroundColor: 'white',
-          sundayNumberColor: 'red',
+          sundayName: { color: 'red' },
+          sundayNumber: { color: 'red' },
+          sundayNumberContainer: { backgroundColor: 'white' },
 
           //Today style
-          todayNameColor: 'green',
-          todayNumberColor: 'white',
-          todayNumberBackgroundColor: 'green',
+          todayName: { color: 'green' },
+          todayNumber: { color: 'white' },
+          todayNumberContainer: { backgroundColor: 'green' },
 
           //Normal style
-          dayNameColor: 'black',
-          dayNumberColor: 'black',
-          dayNumberBackgroundColor: 'white',
+          dayName: { color: 'black' },
+          dayNumber: { color: 'black' },
+          dayNumberContainer: { backgroundColor: 'white' },
         }}
+        locale="en"
       />
       {!!selectedEvent && _renderEditFooter()}
     </View>

@@ -5,6 +5,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
+import type { ThemeProperties } from '../../types';
 
 export type HourItem = { text: string; hourNumber: number };
 
@@ -20,6 +21,7 @@ const TimelineHours = () => {
         index={index}
         timeIntervalHeight={timeIntervalHeight}
         spaceContent={spaceFromTop}
+        theme={theme}
       />
     );
   };
@@ -53,11 +55,13 @@ const HourItem = ({
   index,
   timeIntervalHeight,
   spaceContent,
+  theme,
 }: {
   hour: HourItem;
   index: number;
   timeIntervalHeight: SharedValue<number>;
   spaceContent: number;
+  theme: ThemeProperties;
 }) => {
   const hourLabelStyle = useAnimatedStyle(() => {
     return { top: timeIntervalHeight.value * index - 6 + spaceContent };
@@ -66,7 +70,7 @@ const HourItem = ({
   return (
     <Animated.Text
       key={`hourLabel_${hour.text}`}
-      style={[styles.hourText, hourLabelStyle]}
+      style={[styles.hourText, theme.hourText, hourLabelStyle]}
     >
       {hour.text}
     </Animated.Text>

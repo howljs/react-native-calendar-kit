@@ -12,7 +12,7 @@ import Animated, {
 import { COLUMNS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
-import type { PackedEvent } from '../../types';
+import type { PackedEvent, ThemeProperties } from '../../types';
 
 interface DragEditItemProps {
   selectedEvent: PackedEvent;
@@ -237,7 +237,7 @@ const DragEditItem = ({
   }, []);
 
   const _renderEventContent = () => {
-    return <Text style={styles.title}>{event.title}</Text>;
+    return <Text style={[styles.title, theme.eventTitle]}>{event.title}</Text>;
   };
 
   return (
@@ -270,9 +270,7 @@ const DragEditItem = ({
         animatedTop={eventTop}
         top={defaultTopPosition}
         hourWidth={hourWidth}
-        color={theme.dragHourColor}
-        backgroundColor={theme.dragHourBackgroundColor}
-        borderColor={theme.dragHourBorderColor}
+        theme={theme}
       />
     </View>
   );
@@ -285,9 +283,7 @@ interface AnimatedHourProps {
   animatedTop: Animated.SharedValue<number>;
   top: number;
   hourWidth: number;
-  color?: string;
-  backgroundColor?: string;
-  borderColor?: string;
+  theme: ThemeProperties;
 }
 
 const AnimatedHour = ({
@@ -295,9 +291,7 @@ const AnimatedHour = ({
   animatedTop,
   top,
   hourWidth,
-  color,
-  backgroundColor,
-  borderColor,
+  theme,
 }: AnimatedHourProps) => {
   const [time, setTime] = useState('');
 
@@ -329,11 +323,15 @@ const AnimatedHour = ({
     <Animated.View
       style={[
         styles.hourContainer,
-        { width: hourWidth - 8, top: top - 6, backgroundColor, borderColor },
+        {
+          width: hourWidth - 8,
+          top: top - 6,
+        },
+        theme.dragHourContainer,
         animatedTextStyles,
       ]}
     >
-      <Text style={[styles.hourText, { color }]}>{time}</Text>
+      <Text style={[styles.hourText, theme.dragHourText]}>{time}</Text>
     </Animated.View>
   );
 };

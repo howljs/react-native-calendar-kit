@@ -1,5 +1,6 @@
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
+import { merge } from 'lodash';
 import { DEFAULT_PROPS, SECONDS_IN_DAY } from './constants';
 import type { EventItem, PackedEvent, ThemeProperties } from './types';
 
@@ -73,7 +74,7 @@ export const calculateDates = (
 };
 
 export const calculateHours = (start: number, end: number, step: number) => {
-  const hours = [];
+  const hours: { text: string; hourNumber: number }[] = [];
   let tempStart = start;
   while (tempStart < end) {
     const roundHour = Math.floor(tempStart);
@@ -320,32 +321,26 @@ export const divideEventsByColumns = (props: DivideEventsProps) => {
 export const getTheme = (
   theme: ThemeProperties | undefined
 ): ThemeProperties => {
-  return {
+  let defaultTheme = {
     cellBorderColor: DEFAULT_PROPS.CELL_BORDER_COLOR,
     backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
-    dragCreateItemBackgroundColor: DEFAULT_PROPS.CREATE_ITEM_BACKGROUND_COLOR,
-    dragHourBackgroundColor: DEFAULT_PROPS.WHITE_COLOR,
-    dragHourBorderColor: DEFAULT_PROPS.PRIMARY_COLOR,
-    dragHourColor: DEFAULT_PROPS.PRIMARY_COLOR,
     loadingBarColor: DEFAULT_PROPS.PRIMARY_COLOR,
     unavailableBackgroundColor: DEFAULT_PROPS.UNAVAILABLE_BACKGROUND_COLOR,
     editIndicatorColor: DEFAULT_PROPS.BLACK_COLOR,
     nowIndicatorColor: DEFAULT_PROPS.PRIMARY_COLOR,
+    dragCreateItemBackgroundColor: DEFAULT_PROPS.CREATE_ITEM_BACKGROUND_COLOR,
 
-    dayNameColor: DEFAULT_PROPS.SECONDARY_COLOR,
-    dayNumberColor: DEFAULT_PROPS.SECONDARY_COLOR,
-    dayNumberBackgroundColor: DEFAULT_PROPS.WHITE_COLOR,
-    todayNameColor: DEFAULT_PROPS.PRIMARY_COLOR,
-    todayNumberColor: DEFAULT_PROPS.WHITE_COLOR,
-    todayNumberBackgroundColor: DEFAULT_PROPS.PRIMARY_COLOR,
-    saturdayNameColor: DEFAULT_PROPS.SECONDARY_COLOR,
-    saturdayNumberColor: DEFAULT_PROPS.SECONDARY_COLOR,
-    saturdayNumberBackgroundColor: DEFAULT_PROPS.WHITE_COLOR,
-    sundayNameColor: DEFAULT_PROPS.SECONDARY_COLOR,
-    sundayNumberColor: DEFAULT_PROPS.SECONDARY_COLOR,
-    sundayNumberBackgroundColor: DEFAULT_PROPS.WHITE_COLOR,
-    ...theme,
+    //Header
+    todayName: { color: DEFAULT_PROPS.PRIMARY_COLOR },
+    todayNumber: { color: DEFAULT_PROPS.WHITE_COLOR },
+    todayNumberContainer: { backgroundColor: DEFAULT_PROPS.PRIMARY_COLOR },
   };
+
+  if (theme) {
+    defaultTheme = merge(defaultTheme, theme);
+  }
+
+  return defaultTheme;
 };
 
 type DayBarStyle = {
@@ -354,6 +349,7 @@ type DayBarStyle = {
   dayNameColor?: string;
 };
 
+type StyleKey = 'day' | 'today' | 'sunday' | 'saturday';
 export const getDayBarStyle = (
   date: Dayjs,
   theme: ThemeProperties,
@@ -364,7 +360,7 @@ export const getDayBarStyle = (
   const isSunday = weekDay === 0;
   const isSaturday = weekDay === 6;
 
-  let styleKey = 'day';
+  let styleKey: StyleKey = 'day';
   if (isToday) {
     styleKey = 'today';
   } else if (isSunday) {
@@ -373,15 +369,23 @@ export const getDayBarStyle = (
     styleKey = 'saturday';
   }
 
-  const style = {
-    dayNameColor: theme[`${styleKey}NameColor` as keyof ThemeProperties],
-    dayNumberColor: theme[`${styleKey}NumberColor` as keyof ThemeProperties],
-    dayNumberBackgroundColor:
-      theme[`${styleKey}NumberBackgroundColor` as keyof ThemeProperties],
+  let style = {
+    dayName: { ...theme[`${styleKey}Name`] },
+    dayNumber: { ...theme[`${styleKey}Number`] },
+    dayNumberContainer: { ...theme[`${styleKey}NumberContainer`] },
   };
 
-  if (highlightDate && !isToday) {
-    return { ...style, ...highlightDate };
+  if (!isToday) {
+    if (highlightDate.dayNameColor) {
+      style.dayName.color = highlightDate.dayNameColor;
+    }
+    if (highlightDate.dayNumberColor) {
+      style.dayNumber.color = highlightDate.dayNumberColor;
+    }
+    if (highlightDate.dayNumberBackgroundColor) {
+      style.dayNumberContainer.backgroundColor =
+        highlightDate.dayNumberBackgroundColor;
+    }
   }
 
   return style;
