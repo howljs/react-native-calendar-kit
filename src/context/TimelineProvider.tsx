@@ -98,6 +98,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     isShowHeader = true,
     hourFormat,
     eventAnimatedDuration = DEFAULT_PROPS.EVENT_ANIMATED_DURATION,
+    useHaptic = false,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -213,6 +214,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       isShowHeader,
       hourFormat,
       eventAnimatedDuration,
+      useHaptic,
     };
   }, [
     pages,
@@ -250,6 +252,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     isShowHeader,
     hourFormat,
     eventAnimatedDuration,
+    useHaptic,
   ]);
 
   const mountedRef = useRef(false);

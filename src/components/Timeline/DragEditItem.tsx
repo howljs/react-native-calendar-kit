@@ -13,6 +13,7 @@ import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
 import type { PackedEvent, ThemeProperties } from '../../types';
+import { triggerHaptic } from '../../utils';
 
 interface DragEditItemProps {
   selectedEvent: PackedEvent;
@@ -47,6 +48,7 @@ const DragEditItem = ({
     totalHours,
     theme,
     hourFormat,
+    useHaptic,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -63,6 +65,14 @@ const DragEditItem = ({
   const translateX = useSharedValue(0);
   const eventTop = useSharedValue(defaultTopPosition);
   const eventHeight = useSharedValue<number>(event.height);
+
+  const isVibrated = useRef(false);
+  useEffect(() => {
+    if (useHaptic && !isVibrated.current) {
+      isVibrated.current = true;
+      triggerHaptic();
+    }
+  }, [useHaptic]);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -196,6 +206,9 @@ const DragEditItem = ({
         });
         eventTop.value = newTopPosition;
         currentHour.value = roundedHour;
+        if (useHaptic) {
+          runOnJS(triggerHaptic)();
+        }
       }
       runOnJS(_handleScroll)({
         x: absoluteX,
@@ -225,6 +238,9 @@ const DragEditItem = ({
       const isSameHeight = eventHeight.value === clampedHeight;
       if (!isSameHeight) {
         eventHeight.value = clampedHeight;
+        if (useHaptic) {
+          runOnJS(triggerHaptic)();
+        }
       }
     })
     .onEnd(() => {

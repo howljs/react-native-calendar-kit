@@ -13,6 +13,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../context/TimelineProvider';
+import { triggerHaptic } from '../utils';
 import useTimelineScroll from './useTimelineScroll';
 
 interface useDragCreateGesture {
@@ -39,6 +40,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     dragStep,
     viewMode,
     isDragCreateActive,
+    useHaptic,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -164,6 +166,10 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       if (dragXPosition.value !== x || dragYPosition.value !== y) {
         dragXPosition.value = withTiming(x, { duration: 100 });
         dragYPosition.value = y;
+
+        if (useHaptic) {
+          runOnJS(triggerHaptic)();
+        }
       }
 
       runOnJS(_handleScroll)(event);
@@ -193,6 +199,10 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     dragXPosition.value = x;
     dragYPosition.value = y;
     startOffsetY.current = offsetY.value;
+
+    if (useHaptic) {
+      triggerHaptic();
+    }
   };
 
   return {

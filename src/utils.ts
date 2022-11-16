@@ -1,6 +1,7 @@
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { merge } from 'lodash';
+import { Platform } from 'react-native';
 import { DEFAULT_PROPS, SECONDS_IN_DAY } from './constants';
 import type { EventItem, PackedEvent, ThemeProperties } from './types';
 
@@ -401,4 +402,17 @@ export const getDayBarStyle = (
   }
 
   return style;
+};
+
+const options = {
+  enableVibrateFallback: true,
+  ignoreAndroidSystemSettings: false,
+};
+
+export const triggerHaptic = () => {
+  try {
+    const hapticFeedback = require('react-native-haptic-feedback').default;
+    const type = Platform.select({ ios: 'selection', default: 'soft' });
+    hapticFeedback.trigger(type, options);
+  } catch (ex) {}
 };

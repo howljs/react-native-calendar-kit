@@ -163,3 +163,9 @@ Hour format. Default is `HH:mm`
 How long the animation should last when the style of the event is changed. Default is `250`
 
 <span style={{color: "grey"}}>number</span>
+
+### useHaptic
+
+Haptic Feedback when drag to create/edit. If set to `true`, you need install [react-native-haptic-feedback](https://github.com/junina-de/react-native-haptic-feedback)
+
+<span style={{color: "grey"}}>boolean</span>

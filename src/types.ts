@@ -129,6 +129,8 @@ export interface TimelineProviderProps {
   hourFormat?: string;
 
   eventAnimatedDuration?: number;
+
+  useHaptic?: boolean;
 }
 
 export interface DayBarItemProps {
