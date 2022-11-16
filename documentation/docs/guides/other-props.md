@@ -157,3 +157,9 @@ Callback function will be called when the timeline is scrolling
 Hour format. Default is `HH:mm`
 
 <span style={{color: "grey"}}>string</span>
+
+### eventAnimatedDuration
+
+How long the animation should last when the style of the event is changed. Default is `250`
+
+<span style={{color: "grey"}}>number</span>
