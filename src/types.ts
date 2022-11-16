@@ -45,6 +45,8 @@ export interface TimelineProps {
   highlightDates?: HighlightDates;
   /** Callback function will be called when index changed */
   onChange?: (props: OnChangeProps) => void;
+
+  editEventGestureEnabled?: boolean;
 }
 
 export interface UnavailableItemProps {

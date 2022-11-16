@@ -46,6 +46,7 @@ interface TimelineSlotsProps {
   selectedEvent?: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
+  editEventGestureEnabled?: boolean;
 }
 
 const TimelineSlots = ({
@@ -57,6 +58,7 @@ const TimelineSlots = ({
   events,
   selectedEvent,
   onEndDragSelectedEvent,
+  editEventGestureEnabled = true,
   ...other
 }: TimelineSlotsProps) => {
   const {
@@ -250,7 +252,7 @@ const TimelineSlots = ({
           <DragEditItem
             selectedEvent={selectedEvent}
             onEndDragSelectedEvent={onEndDragSelectedEvent}
-            isEnabled={!isLoading}
+            isEnabled={editEventGestureEnabled}
           />
         )}
       </ScrollView>

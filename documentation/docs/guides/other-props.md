@@ -169,3 +169,9 @@ How long the animation should last when the style of the event is changed. Defau
 Haptic Feedback when drag to create/edit. If set to `true`, you need install [react-native-haptic-feedback](https://github.com/junina-de/react-native-haptic-feedback)
 
 <span style={{color: "grey"}}>boolean</span>
+
+### editEventGestureEnabled
+
+Enable drag with selected event. Default is `true`
+
+<span style={{color: "grey"}}>boolean</span>

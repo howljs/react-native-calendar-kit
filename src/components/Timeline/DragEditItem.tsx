@@ -66,10 +66,8 @@ const DragEditItem = ({
   const eventTop = useSharedValue(defaultTopPosition);
   const eventHeight = useSharedValue<number>(event.height);
 
-  const isVibrated = useRef(false);
   useEffect(() => {
-    if (useHaptic && !isVibrated.current) {
-      isVibrated.current = true;
+    if (useHaptic) {
       triggerHaptic();
     }
   }, [useHaptic]);
