@@ -127,6 +127,8 @@ export interface TimelineProviderProps {
   isShowHeader?: boolean;
 
   hourFormat?: string;
+
+  eventAnimatedDuration?: number;
 }
 
 export interface DayBarItemProps {

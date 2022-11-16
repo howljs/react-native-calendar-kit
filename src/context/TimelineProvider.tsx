@@ -97,6 +97,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     locale = 'en',
     isShowHeader = true,
     hourFormat,
+    eventAnimatedDuration = DEFAULT_PROPS.EVENT_ANIMATED_DURATION,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -211,6 +212,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       locale,
       isShowHeader,
       hourFormat,
+      eventAnimatedDuration,
     };
   }, [
     pages,
@@ -247,6 +249,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     locale,
     isShowHeader,
     hourFormat,
+    eventAnimatedDuration,
   ]);
 
   const mountedRef = useRef(false);

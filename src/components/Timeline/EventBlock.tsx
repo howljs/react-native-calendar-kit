@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Animated, {
   SharedValue,
   useAnimatedStyle,
+  withTiming,
 } from 'react-native-reanimated';
 import type { PackedEvent, ThemeProperties } from '../../types';
 
@@ -20,6 +21,7 @@ export interface EventBlockProps {
   ) => void;
   selectedEventId?: string;
   theme: ThemeProperties;
+  eventAnimatedDuration?: number;
 }
 
 const EVENT_DEFAULT_COLOR = '#FFFFFF';
@@ -32,8 +34,9 @@ const EventBlock = ({
   onLongPressEvent,
   timeIntervalHeight,
   renderEventContent,
-  selectedEventId,
   theme,
+  selectedEventId,
+  eventAnimatedDuration = 200,
 }: EventBlockProps) => {
   const _onLongPress = () => {
     const eventParams = {
@@ -55,33 +58,40 @@ const EventBlock = ({
     onPressEvent?.(eventParams);
   };
 
-  const eventStyle = useAnimatedStyle(() => ({
-    top: event.startHour * timeIntervalHeight.value,
-    height: event.duration * timeIntervalHeight.value,
-  }));
+  const eventStyle = useAnimatedStyle(() => {
+    return {
+      top: withTiming(event.startHour * timeIntervalHeight.value, {
+        duration: eventAnimatedDuration,
+      }),
+      height: withTiming(event.duration * timeIntervalHeight.value, {
+        duration: eventAnimatedDuration,
+      }),
+      left: withTiming(event.left + columnWidth * dayIndex, {
+        duration: eventAnimatedDuration,
+      }),
+      width: withTiming(event.width, {
+        duration: eventAnimatedDuration,
+      }),
+    };
+  }, [event]);
 
   const _renderEventContent = () => {
     return <Text style={[styles.title, theme.eventTitle]}>{event.title}</Text>;
   };
 
-  const eventOpacity = selectedEventId ? 0.6 : 1;
+  const eventOpacity = selectedEventId ? 0.5 : 1;
 
   return (
     <Animated.View
       style={[
         styles.eventBlock,
-        {
-          left: event.left + columnWidth * dayIndex,
-          width: event.width,
-          opacity: eventOpacity,
-        },
+        { opacity: eventOpacity },
         event.containerStyle,
         eventStyle,
       ]}
     >
       <TouchableOpacity
         delayLongPress={300}
-        disabled={!!selectedEventId}
         onPress={_onPress}
         onLongPress={_onLongPress}
         style={[
