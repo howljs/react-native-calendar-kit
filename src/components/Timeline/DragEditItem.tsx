@@ -18,6 +18,7 @@ interface DragEditItemProps {
   selectedEvent: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderEventContent?: (event: PackedEvent) => void;
+  isEnabled?: boolean;
 }
 
 const EVENT_DEFAULT_COLOR = '#FFFFFF';
@@ -26,6 +27,7 @@ const DragEditItem = ({
   selectedEvent,
   onEndDragSelectedEvent,
   renderEventContent,
+  isEnabled = true,
 }: DragEditItemProps) => {
   const {
     columnWidth,
@@ -156,6 +158,7 @@ const DragEditItem = ({
   };
 
   const dragPositionGesture = Gesture.Pan()
+    .enabled(isEnabled)
     .maxPointers(1)
     .onStart(() => {
       startOffsetY.value = offsetY.value;
@@ -207,6 +210,7 @@ const DragEditItem = ({
   const startHeight = useSharedValue(0);
 
   const dragDurationGesture = Gesture.Pan()
+    .enabled(isEnabled)
     .maxPointers(1)
     .onStart(() => {
       startOffsetY.value = offsetY.value;

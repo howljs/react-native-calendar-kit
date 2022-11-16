@@ -210,6 +210,7 @@ const Timeline: React.ForwardRefRenderFunction<
           onPressDayNum={onPressDayNum}
           isLoading={isLoading}
           highlightDates={highlightDates}
+          selectedEventId={selectedEvent?.id}
         />
       )}
       <View style={styles.content} onLayout={_onContentLayout}>

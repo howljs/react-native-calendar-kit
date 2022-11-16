@@ -250,6 +250,7 @@ const TimelineSlots = ({
           <DragEditItem
             selectedEvent={selectedEvent}
             onEndDragSelectedEvent={onEndDragSelectedEvent}
+            isEnabled={!isLoading}
           />
         )}
       </ScrollView>
