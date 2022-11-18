@@ -28,7 +28,7 @@ interface TimelinePageProps {
   renderEventContent?: (
     event: PackedEvent,
     timeIntervalHeight: SharedValue<number>
-  ) => void;
+  ) => JSX.Element;
   selectedEventId?: string;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
 }
@@ -60,6 +60,7 @@ const TimelinePage = ({
     overlapEventsSpacing,
     rightEdgeSpacing,
     theme,
+    eventAnimatedDuration,
   } = useTimelineCalendarContext();
 
   const eventsByColumns = useMemo(
@@ -133,6 +134,7 @@ const TimelinePage = ({
         renderEventContent={renderEventContent}
         selectedEventId={selectedEventId}
         theme={theme}
+        eventAnimatedDuration={eventAnimatedDuration}
       />
     );
   };

@@ -18,7 +18,7 @@ import { triggerHaptic } from '../../utils';
 interface DragEditItemProps {
   selectedEvent: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
-  renderEventContent?: (event: PackedEvent) => void;
+  renderEventContent?: (event: PackedEvent) => JSX.Element;
   isEnabled?: boolean;
 }
 

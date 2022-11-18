@@ -132,13 +132,8 @@ const Timeline: React.ForwardRefRenderFunction<
         goToOffsetY(Math.max(0, position - 200), true);
       }
     });
-  }, [
-    goToOffsetY,
-    initialDate,
-    scrollToNow,
-    spaceFromTop,
-    timeIntervalHeight.value,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [goToOffsetY, scrollToNow]);
 
   const _onContentLayout = ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
     if (!minTimeIntervalHeight.value) {

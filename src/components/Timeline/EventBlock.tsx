@@ -18,7 +18,7 @@ export interface EventBlockProps {
   renderEventContent?: (
     event: PackedEvent,
     timeIntervalHeight: SharedValue<number>
-  ) => void;
+  ) => JSX.Element;
   selectedEventId?: string;
   theme: ThemeProperties;
   eventAnimatedDuration?: number;
@@ -36,7 +36,7 @@ const EventBlock = ({
   renderEventContent,
   theme,
   selectedEventId,
-  eventAnimatedDuration = 200,
+  eventAnimatedDuration,
 }: EventBlockProps) => {
   const _onLongPress = () => {
     const eventParams = {

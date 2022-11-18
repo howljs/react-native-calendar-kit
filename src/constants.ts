@@ -30,7 +30,7 @@ export const DEFAULT_PROPS = {
   RIGHT_EDGE_SPACING: 1,
   OVERLAP_EVENTS_SPACING: 1,
   BLACK_COLOR: '#000000',
-  EVENT_ANIMATED_DURATION: 250,
+  EVENT_ANIMATED_DURATION: 150,
 };
 
 export const COLUMNS = { week: 7, threeDays: 3, workWeek: 5, day: 1 };
