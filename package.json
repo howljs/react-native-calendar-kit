@@ -38,7 +38,9 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "calendar-kit",
+    "calendar-week-view"
   ],
   "repository": "https://github.com/howljs/react-native-calendar-kit",
   "author": "howljs <lehau.dev@gmail.com> (https://github.com/howljs)",

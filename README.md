@@ -20,6 +20,8 @@ Using NPM:
 $ npm install --save @howljs/calendar-kit
 ```
 
+The libraries we will install now are [@shopify/flash-list](https://shopify.github.io/flash-list/), [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/) and [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/). If you already have these libraries installed and at the latest version, you are done here! Otherwise, read on.
+
 ## Installing dependencies into a bare React Native project
 
 Using Yarn:
@@ -36,6 +38,14 @@ $ npm install --save @shopify/flash-list react-native-gesture-handler react-nati
 
 > Follow installation instructions for [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation) and [React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/docs/installation).
 
+## Installing dependencies into an Expo managed project
+
+```
+$ npx expo install @shopify/flash-list react-native-gesture-handler react-native-reanimated
+```
+
+> Follow installation instructions for [React Native Reanimated](https://docs.expo.dev/versions/latest/sdk/reanimated/) and [React Native Gesture Handler](https://docs.expo.dev/versions/latest/sdk/gesture-handler/).
+
 ## Documentation
 
 - [Guides](https://howljs.github.io/react-native-calendar-kit/docs/intro)
@@ -47,7 +57,7 @@ $ npm install --save @shopify/flash-list react-native-gesture-handler react-nati
 - [Pinch to zoom](https://howljs.github.io/react-native-calendar-kit/docs/guides/pinch-to-zoom)
 - [Drag and drop to create a new event](https://howljs.github.io/react-native-calendar-kit/docs/guides/drag-to-create)
 - [Drag and drop to edit the event](https://howljs.github.io/react-native-calendar-kit/docs/guides/drag-to-edit)
-- Set unavailable hours and unavailable days
+- [Set unavailable hours and unavailable days](https://howljs.github.io/react-native-calendar-kit/docs/guides/unavailable-time)
 
 ## Basic Usage
 
