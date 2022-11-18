@@ -135,13 +135,11 @@ export interface TimelineProviderProps {
   /**
    * Use Haptic Feedback when drag to create/edit.
    *
-   * **Bare React Native project** - `bare`, you need install [react-native-haptic-feedback](https://github.com/junina-de/react-native-haptic-feedback)
-   *
-   * **Expo managed project** - `expo`, you need install [expo-haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)
+   * Only support **Bare React Native project**
    *
    **/
 
-  useHaptic?: 'bare' | 'expo';
+  useHaptic?: boolean;
 }
 
 export interface DayBarItemProps {

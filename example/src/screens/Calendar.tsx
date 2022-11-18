@@ -232,7 +232,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
           dayNumberContainer: { backgroundColor: 'white' },
         }}
         locale="en"
-        useHaptic="bare"
+        useHaptic
       />
       {!!selectedEvent && _renderEditFooter()}
     </View>

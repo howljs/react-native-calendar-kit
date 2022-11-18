@@ -168,11 +168,7 @@ How long the animation should last when the style of the event is changed. Defau
 
 Haptic Feedback when drag to create/edit.
 
-**Bare React Native project** - `bare`, you need install [react-native-haptic-feedback](https://github.com/junina-de/react-native-haptic-feedback)
-
-**Expo managed project** - `expo`, you need install [expo-haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)
-
-<span style={{color: "grey"}}>string</span>
+<span style={{color: "grey"}}>boolean</span>
 
 ### editEventGestureEnabled
 
