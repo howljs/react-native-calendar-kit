@@ -67,9 +67,7 @@ const DragEditItem = ({
   const eventHeight = useSharedValue<number>(event.height);
 
   useEffect(() => {
-    if (useHaptic) {
-      triggerHaptic();
-    }
+    triggerHaptic(useHaptic);
   }, [useHaptic]);
 
   useEffect(() => {
@@ -204,9 +202,7 @@ const DragEditItem = ({
         });
         eventTop.value = newTopPosition;
         currentHour.value = roundedHour;
-        if (useHaptic) {
-          runOnJS(triggerHaptic)();
-        }
+        runOnJS(triggerHaptic)(useHaptic);
       }
       runOnJS(_handleScroll)({
         x: absoluteX,
@@ -236,9 +232,7 @@ const DragEditItem = ({
       const isSameHeight = eventHeight.value === clampedHeight;
       if (!isSameHeight) {
         eventHeight.value = clampedHeight;
-        if (useHaptic) {
-          runOnJS(triggerHaptic)();
-        }
+        runOnJS(triggerHaptic)(useHaptic);
       }
     })
     .onEnd(() => {

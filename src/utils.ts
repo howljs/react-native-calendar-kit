@@ -404,15 +404,24 @@ export const getDayBarStyle = (
   return style;
 };
 
-const options = {
-  enableVibrateFallback: true,
-  ignoreAndroidSystemSettings: false,
-};
+export const triggerHaptic = (workflow?: 'bare' | 'expo') => {
+  if (workflow === 'expo') {
+    try {
+      const expoHaptic = require('expo-haptics');
+      expoHaptic.selectionAsync();
+    } catch (error) {}
+    return;
+  }
 
-export const triggerHaptic = () => {
-  try {
-    const hapticFeedback = require('react-native-haptic-feedback').default;
-    const type = Platform.select({ ios: 'selection', default: 'soft' });
-    hapticFeedback.trigger(type, options);
-  } catch (ex) {}
+  if (workflow === 'bare') {
+    try {
+      const options = {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      };
+      const hapticFeedback = require('react-native-haptic-feedback')?.default;
+      const type = Platform.select({ ios: 'selection', default: 'soft' });
+      hapticFeedback.trigger(type, options);
+    } catch (error) {}
+  }
 };

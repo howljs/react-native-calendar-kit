@@ -26,6 +26,7 @@ type CustomTimelineProviderProps = Required<
     | 'initialTimeIntervalHeight'
     | 'unavailableHours'
     | 'hourFormat'
+    | 'useHaptic'
   >
 >;
 
@@ -59,6 +60,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
   hourFormat?: string;
+  useHaptic?: 'bare' | 'expo';
 }
 
 const TimelineCalendarContext = React.createContext<
@@ -98,7 +100,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     isShowHeader = true,
     hourFormat,
     eventAnimatedDuration = DEFAULT_PROPS.EVENT_ANIMATED_DURATION,
-    useHaptic = false,
+    useHaptic,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
