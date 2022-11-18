@@ -47,6 +47,7 @@ interface TimelineSlotsProps {
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
   editEventGestureEnabled?: boolean;
+  getNow?: () => Date;
 }
 
 const TimelineSlots = ({

@@ -31,6 +31,7 @@ interface TimelinePageProps {
   ) => JSX.Element;
   selectedEventId?: string;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
+  getNow?: () => Date;
 }
 
 const TimelinePage = ({
@@ -46,6 +47,7 @@ const TimelinePage = ({
   renderEventContent,
   selectedEventId,
   renderCustomUnavailableItem,
+  getNow
 }: TimelinePageProps) => {
   const {
     rightSideWidth,
@@ -156,6 +158,7 @@ const TimelinePage = ({
             width={columnWidth}
             dayIndex={dayIndex}
             nowIndicatorColor={theme.nowIndicatorColor}
+            getNow={getNow}
           />
         )}
       </React.Fragment>

@@ -47,6 +47,9 @@ export interface TimelineProps {
   onChange?: (props: OnChangeProps) => void;
 
   editEventGestureEnabled?: boolean;
+
+  /** Used in the NowIndicator to determine a custom current time **/
+  getNow?: () => Date;
 }
 
 export interface UnavailableItemProps {

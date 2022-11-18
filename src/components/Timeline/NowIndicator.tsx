@@ -12,12 +12,13 @@ interface NowIndicatorProps {
   width: number;
   timeIntervalHeight: SharedValue<number>;
   nowIndicatorColor?: string;
+  getNow?: () => Date;
 }
 
 const UPDATE_TIME = 60000;
 
-const getCurrentMinutes = () => {
-  const now = new Date();
+const getCurrentMinutes = (getNow: () => Date) => {
+  const now = getNow ? getNow() : new Date();
   return now.getHours() * 60 + now.getMinutes();
 };
 
@@ -26,13 +27,14 @@ const NowIndicator = ({
   dayIndex,
   timeIntervalHeight,
   nowIndicatorColor,
+  getNow
 }: NowIndicatorProps) => {
-  const initialMinutes = useRef(getCurrentMinutes());
+  const initialMinutes = useRef(getCurrentMinutes(getNow));
   const translateY = useSharedValue(0);
   const intervalCallbackId = useRef<any>(null);
 
   const updateLinePosition = useCallback(() => {
-    const newMinutes = getCurrentMinutes();
+    const newMinutes = getCurrentMinutes(getNow);
     const subtractInitialMinutes = newMinutes - initialMinutes.current;
     const newY = (subtractInitialMinutes / 60) * timeIntervalHeight.value;
     translateY.value = withTiming(newY, {
