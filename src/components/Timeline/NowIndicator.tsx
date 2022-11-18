@@ -17,7 +17,7 @@ interface NowIndicatorProps {
 
 const UPDATE_TIME = 60000;
 
-const getCurrentMinutes = (getNow: () => Date) => {
+const getCurrentMinutes = (getNow?: () => Date) => {
   const now = getNow ? getNow() : new Date();
   return now.getHours() * 60 + now.getMinutes();
 };
