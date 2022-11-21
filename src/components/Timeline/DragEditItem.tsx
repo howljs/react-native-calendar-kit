@@ -272,8 +272,22 @@ const DragEditItem = ({
             : _renderEventContent()}
           <GestureDetector gesture={dragDurationGesture}>
             <View style={[styles.indicator, { width: columnWidth }]}>
-              <View style={styles.indicatorLine} />
-              <View style={styles.indicatorLine} />
+              <View
+                style={[
+                  styles.indicatorLine,
+                  theme.editIndicatorColor
+                    ? { backgroundColor: theme.editIndicatorColor }
+                    : undefined,
+                ]}
+              />
+              <View
+                style={[
+                  styles.indicatorLine,
+                  theme.editIndicatorColor
+                    ? { backgroundColor: theme.editIndicatorColor }
+                    : undefined,
+                ]}
+              />
             </View>
           </GestureDetector>
         </Animated.View>
