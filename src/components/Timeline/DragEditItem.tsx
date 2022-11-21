@@ -8,6 +8,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  SharedValue,
 } from 'react-native-reanimated';
 import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
@@ -18,7 +19,10 @@ import { triggerHaptic } from '../../utils';
 interface DragEditItemProps {
   selectedEvent: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
-  renderEventContent?: (event: PackedEvent) => JSX.Element;
+  renderEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => JSX.Element;
   isEnabled?: boolean;
 }
 
@@ -268,7 +272,7 @@ const DragEditItem = ({
           ]}
         >
           {renderEventContent
-            ? renderEventContent(event)
+            ? renderEventContent(event, timeIntervalHeight)
             : _renderEventContent()}
           <GestureDetector gesture={dragDurationGesture}>
             <View style={[styles.indicator, { width: columnWidth }]}>
