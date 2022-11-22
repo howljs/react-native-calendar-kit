@@ -144,6 +144,8 @@ export interface TimelineProviderProps {
    **/
 
   useHaptic?: boolean;
+
+  timeZone?: string;
 }
 
 export interface DayBarItemProps {

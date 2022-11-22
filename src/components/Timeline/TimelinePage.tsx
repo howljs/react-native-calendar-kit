@@ -140,8 +140,8 @@ const TimelinePage = ({
   };
 
   const _renderTimelineColumn = (dayIndex: number) => {
-    const currentDate = dayjs(startDate).add(dayIndex, 'd');
-    const isToday = currentDate.isSame(dayjs(), 'd');
+    const currentColumn = dayjs(startDate).add(dayIndex, 'd');
+    const isToday = currentColumn.isSame(dayjs(), 'd');
 
     return (
       <React.Fragment key={dayIndex}>

@@ -18,11 +18,15 @@ export const calculateDates = (
     threeDays: DateData = { data: [], index: -1 },
     workWeek: DateData = { data: [], index: -1 };
 
-  const initialDateUnix = convertDateToUnixTime(initialDateStr);
-  const minDateUnix = convertDateToUnixTime(minDateStr);
-  const maxDateUnix = convertDateToUnixTime(maxDateStr);
-  const minWeekDay = new Date(minDateUnix * 1000).getDay();
-  const maxWeekDay = new Date(maxDateUnix * 1000).getDay();
+  const initialDate = dayjs(initialDateStr);
+  const minDate = dayjs(minDateStr);
+  const maxDate = dayjs(maxDateStr);
+  const initialDateUnix = initialDate.unix();
+  const minDateUnix = minDate.unix();
+  const maxDateUnix = maxDate.unix();
+  const minWeekDay = minDate.weekday();
+  const maxWeekDay = maxDate.weekday();
+
   const fDow = (7 + initialFirstDay) % 7;
   const diffBefore = (minWeekDay + 7 - fDow) % 7;
 
@@ -45,7 +49,7 @@ export const calculateDates = (
     startDay = minDateUnix;
   for (let dayIndex = 0; dayIndex < totalDays; dayIndex++) {
     const currentUnix = minWeekDateUnix + dayIndex * SECONDS_IN_DAY;
-    const dateStr = convertUnixTimeToDate(currentUnix);
+    const dateStr = dayjs.unix(currentUnix).format('YYYY-MM-DD');
     if (startDay === currentUnix) {
       if (currentUnix <= maxDateUnix) {
         day.data.push(dateStr);
@@ -118,26 +122,6 @@ export const convertPositionToISOString = (
   return dateMoment.toISOString();
 };
 
-export const convertDateToUnixTime = (date: string) => {
-  return Math.floor(new Date(date).getTime() / 1000);
-};
-
-export const convertUnixTimeToDate = (unixTime: number) => {
-  const date = new Date(unixTime * 1000);
-  const year = date.getFullYear();
-  const month = ('0' + (date.getMonth() + 1)).slice(-2);
-  const day = ('0' + date.getDate()).slice(-2);
-  return `${year}-${month}-${day}`;
-};
-
-export const convertISOStringToDate = (isoDate: string) => {
-  const date = new Date(isoDate);
-  const year = date.getFullYear();
-  const month = ('0' + (date.getMonth() + 1)).slice(-2);
-  const day = ('0' + date.getDate()).slice(-2);
-  return `${year}-${month}-${day}`;
-};
-
 export const groupEventsByDate = (events: EventItem[] = []) => {
   let groupedEvents: Record<string, EventItem[]> = {};
   events.forEach((event) => {
@@ -182,7 +166,6 @@ const buildEvent = (
 ): PackedEvent => {
   const eventStart = dayjs(event.start);
   const eventEnd = dayjs(event.end);
-
   const timeToHour = eventStart.hour() + eventStart.minute() / 60;
   let start = timeToHour - options.startHour;
   const diffHour = eventEnd.diff(eventStart, 'm') / 60;
@@ -310,10 +293,10 @@ interface DivideEventsProps {
 export const divideEventsByColumns = (props: DivideEventsProps) => {
   const { events = {}, startDate, columns, ...other } = props;
   let eventsByColumns: EventItem[][] = [];
-  const startUnix = convertDateToUnixTime(startDate);
+  const startUnix = dayjs(startDate).unix();
   for (let i = 0; i < columns; i++) {
     const currentUnix = startUnix + i * SECONDS_IN_DAY;
-    const dateStr = convertUnixTimeToDate(currentUnix);
+    const dateStr = dayjs.unix(currentUnix).format('YYYY-MM-DD');
     let eventsInDate: EventItem[] = [];
     const eventInDate = events[dateStr];
     if (eventInDate) {

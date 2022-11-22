@@ -26,6 +26,7 @@ type CustomTimelineProviderProps = Required<
     | 'initialTimeIntervalHeight'
     | 'unavailableHours'
     | 'hourFormat'
+    | 'timeZone'
   >
 >;
 
@@ -59,6 +60,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
   hourFormat?: string;
+  timeZone?: string;
 }
 
 const TimelineCalendarContext = React.createContext<
@@ -99,6 +101,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     hourFormat,
     eventAnimatedDuration = DEFAULT_PROPS.EVENT_ANIMATED_DURATION,
     useHaptic = false,
+    timeZone,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -215,6 +218,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       hourFormat,
       eventAnimatedDuration,
       useHaptic,
+      timeZone,
     };
   }, [
     pages,
@@ -253,6 +257,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     hourFormat,
     eventAnimatedDuration,
     useHaptic,
+    timeZone,
   ]);
 
   const mountedRef = useRef(false);

@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -17,8 +18,8 @@ interface NowIndicatorProps {
 const UPDATE_TIME = 60000;
 
 const getCurrentMinutes = () => {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
+  const now = dayjs();
+  return now.hour() * 60 + now.minute();
 };
 
 const NowIndicator = ({
@@ -44,7 +45,6 @@ const NowIndicator = ({
     if (intervalCallbackId.current) {
       clearInterval(intervalCallbackId.current);
     }
-
     intervalCallbackId.current = setInterval(updateLinePosition, UPDATE_TIME);
     return () => {
       if (intervalCallbackId.current) {

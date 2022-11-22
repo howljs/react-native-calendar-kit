@@ -130,7 +130,6 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const positionIndex = Math.floor(event.x / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
     const eventStart = dayjs(startDate).add(positionIndex, 'd').add(time, 'h');
-
     const isBeforeMinDate = eventStart.isBefore(dayjs(minDate), 'd');
     const isAfterMaxDate = eventStart.isAfter(dayjs(maxDate), 'd');
     if (isBeforeMinDate || isAfterMaxDate) {

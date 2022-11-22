@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import times from 'lodash/times';
 import React, { memo, useMemo } from 'react';
 import {
@@ -9,7 +10,6 @@ import {
 import { COLUMNS, SECONDS_IN_DAY } from '../../../constants';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
 import type { UnavailableItemProps } from '../../../types';
-import { convertDateToUnixTime, convertUnixTimeToDate } from '../../../utils';
 import type { HourItem } from '../TimelineHours';
 import HorizontalLine from './HorizontalLine';
 import UnavailableMultipleDays from './UnavailableMultipleDays';
@@ -51,9 +51,9 @@ const TimelineBoard = ({
     );
   };
 
-  const minDayUnix = useMemo(() => convertDateToUnixTime(minDate), [minDate]);
-  const maxDayUnix = useMemo(() => convertDateToUnixTime(maxDate), [maxDate]);
-  const startDayUnix = convertDateToUnixTime(startDate);
+  const minDayUnix = useMemo(() => dayjs(minDate).unix(), [minDate]);
+  const maxDayUnix = useMemo(() => dayjs(maxDate).unix(), [maxDate]);
+  const startDayUnix = useMemo(() => dayjs(startDate).unix(), [startDate]);
 
   const _renderVerticalBlock = (dayIndex: number) => {
     if (!unavailableHours && !holidays) {
@@ -67,12 +67,12 @@ const TimelineBoard = ({
     if (Array.isArray(unavailableHours)) {
       unavailableHour = unavailableHours;
     } else {
-      const currentWeekDay = new Date(currentUnix * 1000).getDay();
+      const currentWeekDay = dayjs.unix(currentUnix).weekday();
       unavailableHour = unavailableHours?.[currentWeekDay];
     }
     let isDayDisabled = false;
     if (holidays?.length) {
-      const dateStr = convertUnixTimeToDate(currentUnix);
+      const dateStr = dayjs.unix(currentUnix).format('YYYY-MM-DD');
       isDayDisabled = holidays.includes(dateStr);
     }
 
