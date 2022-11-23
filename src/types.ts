@@ -39,6 +39,10 @@ export interface TimelineProps {
     event: PackedEvent,
     timeIntervalHeight: SharedValue<number>
   ) => JSX.Element;
+  renderSelectedEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => JSX.Element;
   selectedEvent?: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;

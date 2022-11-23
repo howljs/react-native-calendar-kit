@@ -175,3 +175,9 @@ Haptic Feedback when drag to create/edit.
 Enable drag with selected event. Default is `true`
 
 <span style={{color: "grey"}}>boolean</span>
+
+### renderSelectedEventContent
+
+Custom component rendered inside an selected event
+
+<span style={{color: "grey"}}>function</span>

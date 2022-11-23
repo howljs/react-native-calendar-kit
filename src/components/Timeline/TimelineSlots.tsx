@@ -43,6 +43,10 @@ interface TimelineSlotsProps {
     event: PackedEvent,
     timeIntervalHeight: SharedValue<number>
   ) => JSX.Element;
+  renderSelectedEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => JSX.Element;
   selectedEvent?: PackedEvent;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
@@ -60,6 +64,7 @@ const TimelineSlots = ({
   onEndDragSelectedEvent,
   editEventGestureEnabled = true,
   renderEventContent,
+  renderSelectedEventContent,
   ...other
 }: TimelineSlotsProps) => {
   const {
@@ -255,7 +260,9 @@ const TimelineSlots = ({
             selectedEvent={selectedEvent}
             onEndDragSelectedEvent={onEndDragSelectedEvent}
             isEnabled={editEventGestureEnabled}
-            renderEventContent={renderEventContent}
+            renderEventContent={
+              renderSelectedEventContent || renderEventContent
+            }
           />
         )}
       </ScrollView>

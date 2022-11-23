@@ -27,6 +27,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     highlightDates,
     onChange,
     editEventGestureEnabled,
+    renderSelectedEventContent,
     ...timelineProviderProps
   },
   ref
@@ -51,6 +52,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     highlightDates,
     onChange,
     editEventGestureEnabled,
+    renderSelectedEventContent,
   };
 
   return (
