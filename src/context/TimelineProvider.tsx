@@ -8,7 +8,6 @@ import {
   useDerivedValue,
   useSharedValue,
 } from 'react-native-reanimated';
-import type { TimeZone } from '../assets/timeZone';
 import { COLUMNS, DEFAULT_PROPS } from '../constants';
 import useDeepCompare from '../hooks/useDeepCompare';
 import type {
@@ -16,7 +15,12 @@ import type {
   TimelineProviderProps,
   UnavailableHour,
 } from '../types';
-import { calculateDates, calculateHours, getTheme } from '../utils';
+import {
+  calculateDates,
+  calculateHours,
+  getTheme,
+  getTimeZoneOffset,
+} from '../utils';
 
 type CustomTimelineProviderProps = Required<
   Omit<
@@ -61,7 +65,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
   hourFormat?: string;
-  timeZone?: TimeZone;
+  tzOffset: number;
 }
 
 const TimelineCalendarContext = React.createContext<
@@ -116,11 +120,13 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   const isScrolling = useRef(false);
   const pinchRef = useRef();
 
+  const tzOffset = useMemo(() => getTimeZoneOffset(timeZone), [timeZone]);
+
   /** Prepare data*/
   const pages = useMemo(
     () =>
-      calculateDates(firstDay, minDate, maxDate, initialDate.current, timeZone),
-    [firstDay, minDate, maxDate, timeZone]
+      calculateDates(firstDay, minDate, maxDate, initialDate.current, tzOffset),
+    [firstDay, minDate, maxDate, tzOffset]
   );
   const firstDate = useRef({
     week: pages.week.data[0],
@@ -220,7 +226,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       hourFormat,
       eventAnimatedDuration,
       useHaptic,
-      timeZone,
+      tzOffset,
     };
   }, [
     pages,
@@ -259,7 +265,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     hourFormat,
     eventAnimatedDuration,
     useHaptic,
-    timeZone,
+    tzOffset,
   ]);
 
   const mountedRef = useRef(false);

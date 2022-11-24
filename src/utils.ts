@@ -13,14 +13,14 @@ export const calculateDates = (
   minDateStr: string,
   maxDateStr: string,
   initialDateStr: string,
-  timeZone?: TimeZone
+  tzOffset: number
 ) => {
   let day: DateData = { data: [], index: -1 },
     week: DateData = { data: [], index: -1 },
     threeDays: DateData = { data: [], index: -1 },
     workWeek: DateData = { data: [], index: -1 };
 
-  const initialDate = dayjsWithTz(timeZone, initialDateStr);
+  const initialDate = dayjs(initialDateStr).add(tzOffset, 'm');
   const minDate = dayjs(minDateStr);
   const maxDate = dayjs(maxDateStr);
   const minDateUnix = minDate.unix();
@@ -126,12 +126,12 @@ export const convertPositionToISOString = (
 
 export const groupEventsByDate = (
   events: EventItem[] = [],
-  timeZone?: TimeZone
+  tzOffset: number
 ) => {
   let groupedEvents: Record<string, EventItem[]> = {};
   events.forEach((event) => {
-    const startEvent = dayjsWithTz(timeZone, event.start).startOf('d');
-    const endEvent = dayjsWithTz(timeZone, event.end).startOf('d');
+    const startEvent = dayjs(event.start).add(tzOffset, 'm').startOf('d');
+    const endEvent = dayjs(event.end).add(tzOffset, 'm').startOf('d');
     const diffDays = endEvent.diff(startEvent, 'd');
     for (let i = 0; i <= diffDays; i++) {
       const dateStr = startEvent.add(i, 'd').format('YYYY-MM-DD');
@@ -169,8 +169,8 @@ const buildEvent = (
   width: number,
   options: PopulateOptions
 ): PackedEvent => {
-  const eventStart = dayjsWithTz(options.timeZone, event.start);
-  const eventEnd = dayjsWithTz(options.timeZone, event.end);
+  const eventStart = dayjs(event.start).add(options.tzOffset, 'm');
+  const eventEnd = dayjs(event.end).add(options.tzOffset, 'm');
   const timeToHour = eventStart.hour() + eventStart.minute() / 60;
   let start = timeToHour - options.startHour;
   const diffHour = eventEnd.diff(eventStart, 'm') / 60;
@@ -225,7 +225,7 @@ type PopulateOptions = {
   startDate: string;
   overlapEventsSpacing: number;
   rightEdgeSpacing: number;
-  timeZone?: TimeZone;
+  tzOffset: number;
 };
 
 export const populateEvents = (
@@ -294,7 +294,7 @@ interface DivideEventsProps {
   startHour: number;
   overlapEventsSpacing: number;
   rightEdgeSpacing: number;
-  timeZone?: TimeZone;
+  tzOffset: number;
 }
 
 export const divideEventsByColumns = (props: DivideEventsProps) => {
@@ -357,9 +357,10 @@ export const getDayBarStyle = (
   date: Dayjs,
   theme: ThemeProperties,
   highlightDate: DayBarStyle = {},
-  timeZone?: TimeZone
+  tzOffset: number
 ) => {
-  const isToday = date.isSame(dayjsWithTz(timeZone), 'd');
+  const currentDate = dayjs().add(tzOffset, 'm');
+  const isToday = date.isSame(currentDate, 'd');
   const weekDay = date.weekday();
   const isSunday = weekDay === 0;
   const isSaturday = weekDay === 6;
@@ -405,15 +406,6 @@ export const triggerHaptic = () => {
     const type = Platform.select({ ios: 'selection', default: 'soft' });
     hapticFeedback.trigger(type, options);
   } catch (ex) {}
-};
-
-export const dayjsWithTz = (timeZone?: TimeZone, dateStr?: string) => {
-  if (!timeZone) {
-    return dayjs(dateStr);
-  }
-
-  const tzOffset = getTimeZoneOffset(timeZone);
-  return dayjs(dateStr).add(tzOffset, 'm');
 };
 
 export const getTimeZoneOffset = (timeZone?: TimeZone) => {

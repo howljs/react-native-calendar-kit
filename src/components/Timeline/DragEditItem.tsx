@@ -4,17 +4,17 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
+  SharedValue,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  SharedValue,
 } from 'react-native-reanimated';
 import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
 import type { PackedEvent, ThemeProperties } from '../../types';
-import { getTimeZoneOffset, triggerHaptic } from '../../utils';
+import { triggerHaptic } from '../../utils';
 
 interface DragEditItemProps {
   selectedEvent: PackedEvent;
@@ -53,7 +53,7 @@ const DragEditItem = ({
     theme,
     hourFormat,
     useHaptic,
-    timeZone,
+    tzOffset,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -149,7 +149,6 @@ const DragEditItem = ({
     const newLeftPosition = event.leftByIndex! + translateX.value;
     const dayIndex = Math.round(newLeftPosition / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
-    const tzOffset = getTimeZoneOffset(timeZone);
     const currentDateMoment = dayjs(startDate)
       .add(dayIndex, 'd')
       .add(currentHour.value, 'h')

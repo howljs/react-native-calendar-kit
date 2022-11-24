@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -6,21 +7,19 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import type { TimeZone } from '../../assets/timeZone';
-import { dayjsWithTz } from '../../utils';
 
 interface NowIndicatorProps {
   dayIndex: number;
   width: number;
   timeIntervalHeight: SharedValue<number>;
   nowIndicatorColor?: string;
-  timeZone?: TimeZone;
+  tzOffset: number;
 }
 
 const UPDATE_TIME = 60000;
 
-const getCurrentMinutes = (timeZone?: TimeZone) => {
-  const now = dayjsWithTz(timeZone);
+const getCurrentMinutes = (tzOffset: number) => {
+  const now = dayjs().add(tzOffset, 'm');
   return now.hour() * 60 + now.minute();
 };
 
@@ -29,20 +28,20 @@ const NowIndicator = ({
   dayIndex,
   timeIntervalHeight,
   nowIndicatorColor,
-  timeZone,
+  tzOffset,
 }: NowIndicatorProps) => {
-  const initialMinutes = useRef(getCurrentMinutes(timeZone));
+  const initialMinutes = useRef(getCurrentMinutes(tzOffset));
   const translateY = useSharedValue(0);
   const intervalCallbackId = useRef<any>(null);
 
   const updateLinePosition = useCallback(() => {
-    const newMinutes = getCurrentMinutes(timeZone);
+    const newMinutes = getCurrentMinutes(tzOffset);
     const subtractInitialMinutes = newMinutes - initialMinutes.current;
     const newY = (subtractInitialMinutes / 60) * timeIntervalHeight.value;
     translateY.value = withTiming(newY, {
       duration: 500,
     });
-  }, [timeIntervalHeight.value, timeZone, translateY]);
+  }, [timeIntervalHeight.value, tzOffset, translateY]);
 
   useEffect(() => {
     updateLinePosition();

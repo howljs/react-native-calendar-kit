@@ -12,7 +12,7 @@ const SingleDayBar = ({
   locale,
   highlightDates,
   onPressDayNum,
-  timeZone,
+  tzOffset,
 }: DayBarItemProps) => {
   const _renderDay = () => {
     const currentDate = dayjs(startDate);
@@ -27,7 +27,7 @@ const SingleDayBar = ({
       currentDate,
       theme,
       highlightDate,
-      timeZone
+      tzOffset
     );
 
     return (

@@ -36,7 +36,7 @@ const TimelineHeader = ({
     columnWidth,
     theme,
     locale,
-    timeZone,
+    tzOffset,
   } = useTimelineCalendarContext();
 
   const [startDate, setStartDate] = useState(
@@ -56,7 +56,7 @@ const TimelineHeader = ({
       theme,
       locale,
       highlightDates,
-      timeZone,
+      tzOffset,
     };
 
     if (renderDayBarItem) {
@@ -77,7 +77,7 @@ const TimelineHeader = ({
       theme,
       locale,
       highlightDates,
-      timeZone,
+      tzOffset,
     };
 
     if (renderDayBarItem) {

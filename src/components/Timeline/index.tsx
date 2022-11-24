@@ -20,7 +20,7 @@ import useDragCreateGesture from '../../hooks/useDragCreateGesture';
 import useZoomGesture from '../../hooks/usePinchGesture';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
 import type { TimelineCalendarHandle, TimelineProps } from '../../types';
-import { dayjsWithTz, groupEventsByDate } from '../../utils';
+import { groupEventsByDate } from '../../utils';
 import DragCreateItem from './DragCreateItem';
 import TimelineHeader from './TimelineHeader';
 import TimelineSlots from './TimelineSlots';
@@ -62,7 +62,7 @@ const Timeline: React.ForwardRefRenderFunction<
     isShowHeader,
     currentIndex,
     pages,
-    timeZone,
+    tzOffset,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -77,7 +77,7 @@ const Timeline: React.ForwardRefRenderFunction<
       }) => {
         const numOfDays =
           viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-        const currentDay = dayjsWithTz(timeZone, props?.date);
+        const currentDay = dayjs(props?.date).add(tzOffset, 'm');
         const firstDateMoment = dayjs(firstDate.current[viewMode]);
         const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
         const pageIndex = Math.floor(diffDays / numOfDays);
@@ -111,7 +111,7 @@ const Timeline: React.ForwardRefRenderFunction<
       timelineHorizontalListRef,
       totalPages,
       viewMode,
-      timeZone,
+      tzOffset,
     ]
   );
 
@@ -124,7 +124,7 @@ const Timeline: React.ForwardRefRenderFunction<
 
   useEffect(() => {
     requestAnimationFrame(() => {
-      const current = dayjsWithTz(timeZone);
+      const current = dayjs().add(tzOffset, 'm');
       const isSameDate = current.format('YYYY-MM-DD') === initialDate.current;
       if (scrollToNow && isSameDate) {
         const minutes = current.hour() * 60 + current.minute();
@@ -176,8 +176,8 @@ const Timeline: React.ForwardRefRenderFunction<
   };
 
   const groupedEvents = useMemo(
-    () => groupEventsByDate(events, timeZone),
-    [events, timeZone]
+    () => groupEventsByDate(events, tzOffset),
+    [events, tzOffset]
   );
 
   useAnimatedReaction(

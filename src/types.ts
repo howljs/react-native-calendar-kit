@@ -166,7 +166,7 @@ export interface DayBarItemProps {
   theme: ThemeProperties;
   locale: LocaleType;
   highlightDates?: HighlightDates;
-  timeZone?: TimeZone;
+  tzOffset: number;
 }
 
 export interface ThemeProperties {

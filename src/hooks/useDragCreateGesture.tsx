@@ -13,7 +13,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../context/TimelineProvider';
-import { getTimeZoneOffset, triggerHaptic } from '../utils';
+import { triggerHaptic } from '../utils';
 import useTimelineScroll from './useTimelineScroll';
 
 interface useDragCreateGesture {
@@ -41,7 +41,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     viewMode,
     isDragCreateActive,
     useHaptic,
-    timeZone,
+    tzOffset,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -130,7 +130,6 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const time = event.y / timeIntervalHeight.value;
     const positionIndex = Math.floor(event.x / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
-    const tzOffset = getTimeZoneOffset(timeZone);
     const eventStart = dayjs(startDate)
       .add(positionIndex, 'd')
       .add(time, 'h')
