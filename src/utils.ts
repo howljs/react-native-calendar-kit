@@ -11,17 +11,17 @@ export const calculateDates = (
   initialFirstDay: number,
   minDateStr: string,
   maxDateStr: string,
-  initialDateStr: string
+  initialDateStr: string,
+  timeZone?: string
 ) => {
   let day: DateData = { data: [], index: -1 },
     week: DateData = { data: [], index: -1 },
     threeDays: DateData = { data: [], index: -1 },
     workWeek: DateData = { data: [], index: -1 };
 
-  const initialDate = dayjs(initialDateStr);
+  const initialDate = dayjsWithTz(timeZone, initialDateStr);
   const minDate = dayjs(minDateStr);
   const maxDate = dayjs(maxDateStr);
-  const initialDateUnix = initialDate.unix();
   const minDateUnix = minDate.unix();
   const maxDateUnix = maxDate.unix();
   const minWeekDay = minDate.weekday();
@@ -49,7 +49,8 @@ export const calculateDates = (
     startDay = minDateUnix;
   for (let dayIndex = 0; dayIndex < totalDays; dayIndex++) {
     const currentUnix = minWeekDateUnix + dayIndex * SECONDS_IN_DAY;
-    const dateStr = dayjs.unix(currentUnix).format('YYYY-MM-DD');
+    const dateFromUnix = dayjs.unix(currentUnix);
+    const dateStr = dateFromUnix.format('YYYY-MM-DD');
     if (startDay === currentUnix) {
       if (currentUnix <= maxDateUnix) {
         day.data.push(dateStr);
@@ -68,7 +69,7 @@ export const calculateDates = (
       threeDays.data.push(dateStr);
       startThreeDays = currentUnix + 3 * SECONDS_IN_DAY;
     }
-    if (currentUnix === initialDateUnix) {
+    if (dateFromUnix.isSame(initialDate, 'day')) {
       day.index = day.data.length - 1;
       threeDays.index = threeDays.data.length - 1;
       week.index = week.data.length - 1;
@@ -122,11 +123,14 @@ export const convertPositionToISOString = (
   return dateMoment.toISOString();
 };
 
-export const groupEventsByDate = (events: EventItem[] = []) => {
+export const groupEventsByDate = (
+  events: EventItem[] = [],
+  timeZone?: string
+) => {
   let groupedEvents: Record<string, EventItem[]> = {};
   events.forEach((event) => {
-    const startEvent = dayjs(event.start).startOf('d');
-    const endEvent = dayjs(event.end).startOf('d');
+    const startEvent = dayjsWithTz(timeZone, event.start).startOf('d');
+    const endEvent = dayjsWithTz(timeZone, event.end).startOf('d');
     const diffDays = endEvent.diff(startEvent, 'd');
     for (let i = 0; i <= diffDays; i++) {
       const dateStr = startEvent.add(i, 'd').format('YYYY-MM-DD');
@@ -164,8 +168,8 @@ const buildEvent = (
   width: number,
   options: PopulateOptions
 ): PackedEvent => {
-  const eventStart = dayjs(event.start);
-  const eventEnd = dayjs(event.end);
+  const eventStart = dayjsWithTz(options.timeZone, event.start);
+  const eventEnd = dayjsWithTz(options.timeZone, event.end);
   const timeToHour = eventStart.hour() + eventStart.minute() / 60;
   let start = timeToHour - options.startHour;
   const diffHour = eventEnd.diff(eventStart, 'm') / 60;
@@ -220,6 +224,7 @@ type PopulateOptions = {
   startDate: string;
   overlapEventsSpacing: number;
   rightEdgeSpacing: number;
+  timeZone?: string;
 };
 
 export const populateEvents = (
@@ -288,6 +293,7 @@ interface DivideEventsProps {
   startHour: number;
   overlapEventsSpacing: number;
   rightEdgeSpacing: number;
+  timeZone?: string;
 }
 
 export const divideEventsByColumns = (props: DivideEventsProps) => {
@@ -349,9 +355,10 @@ type StyleKey = 'day' | 'today' | 'sunday' | 'saturday';
 export const getDayBarStyle = (
   date: Dayjs,
   theme: ThemeProperties,
-  highlightDate: DayBarStyle = {}
+  highlightDate: DayBarStyle = {},
+  timeZone?: string
 ) => {
-  const isToday = date.isSame(dayjs(), 'd');
+  const isToday = date.isSame(dayjsWithTz(timeZone), 'd');
   const weekDay = date.weekday();
   const isSunday = weekDay === 0;
   const isSaturday = weekDay === 6;
@@ -397,4 +404,31 @@ export const triggerHaptic = () => {
     const type = Platform.select({ ios: 'selection', default: 'soft' });
     hapticFeedback.trigger(type, options);
   } catch (ex) {}
+};
+
+export const dayjsWithTz = (timeZone?: string, dateStr?: string) => {
+  if (!timeZone) {
+    return dayjs(dateStr);
+  }
+  const date = dateStr ? new Date(dateStr) : new Date();
+  const tzDate = date.toLocaleString('en-US', {
+    timeZone,
+    hour12: false,
+  });
+  return dayjs(tzDate, 'MM/DD/YYYY, HH:mm:ss');
+};
+
+export const getTimeZoneOffset = (timeZone?: string) => {
+  if (!timeZone) {
+    return 0;
+  }
+  const tzDate = new Date().toLocaleString('en-US', {
+    timeZone,
+    hour12: false,
+  });
+  const tz = dayjs(tzDate, 'MM/DD/YYYY, HH:mm:ss');
+  const dateWithoutTimezone = dayjs();
+  const diffSeconds = tz.diff(dateWithoutTimezone, 's');
+  const extra = diffSeconds > 0 ? 1 : 0;
+  return diffSeconds + extra;
 };

@@ -233,6 +233,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
         }}
         locale="en"
         useHaptic
+        timeZone="Asia/Tokyo"
       />
       {!!selectedEvent && _renderEditFooter()}
     </View>

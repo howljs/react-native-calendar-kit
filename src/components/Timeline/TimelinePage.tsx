@@ -9,7 +9,11 @@ import Animated, {
 import { COLUMNS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { EventItem, PackedEvent, UnavailableItemProps } from '../../types';
-import { convertPositionToISOString, divideEventsByColumns } from '../../utils';
+import {
+  convertPositionToISOString,
+  dayjsWithTz,
+  divideEventsByColumns,
+} from '../../utils';
 import EventBlock from './EventBlock';
 import NowIndicator from './NowIndicator';
 import TimelineBoard from './TimelineBoard';
@@ -61,6 +65,7 @@ const TimelinePage = ({
     rightEdgeSpacing,
     theme,
     eventAnimatedDuration,
+    timeZone,
   } = useTimelineCalendarContext();
 
   const eventsByColumns = useMemo(
@@ -73,6 +78,7 @@ const TimelinePage = ({
         startDate,
         overlapEventsSpacing,
         rightEdgeSpacing,
+        timeZone,
       }),
     [
       columnWidth,
@@ -82,6 +88,7 @@ const TimelinePage = ({
       start,
       startDate,
       viewMode,
+      timeZone,
     ]
   );
 
@@ -141,7 +148,7 @@ const TimelinePage = ({
 
   const _renderTimelineColumn = (dayIndex: number) => {
     const currentColumn = dayjs(startDate).add(dayIndex, 'd');
-    const isToday = currentColumn.isSame(dayjs(), 'd');
+    const isToday = currentColumn.isSame(dayjsWithTz(timeZone), 'd');
 
     return (
       <React.Fragment key={dayIndex}>
@@ -156,6 +163,7 @@ const TimelinePage = ({
             width={columnWidth}
             dayIndex={dayIndex}
             nowIndicatorColor={theme.nowIndicatorColor}
+            timeZone={timeZone}
           />
         )}
       </React.Fragment>

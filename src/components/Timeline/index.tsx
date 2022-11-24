@@ -1,6 +1,4 @@
 import dayjs from 'dayjs';
-import weekDay from 'dayjs/plugin/weekday';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
 import React, {
   forwardRef,
   useEffect,
@@ -21,13 +19,10 @@ import useDragCreateGesture from '../../hooks/useDragCreateGesture';
 import useZoomGesture from '../../hooks/usePinchGesture';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
 import type { TimelineCalendarHandle, TimelineProps } from '../../types';
-import { groupEventsByDate } from '../../utils';
+import { dayjsWithTz, groupEventsByDate } from '../../utils';
 import DragCreateItem from './DragCreateItem';
 import TimelineHeader from './TimelineHeader';
 import TimelineSlots from './TimelineSlots';
-
-dayjs.extend(weekDay);
-dayjs.extend(customParseFormat);
 
 const Timeline: React.ForwardRefRenderFunction<
   TimelineCalendarHandle,
@@ -66,6 +61,7 @@ const Timeline: React.ForwardRefRenderFunction<
     isShowHeader,
     currentIndex,
     pages,
+    timeZone,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -80,7 +76,7 @@ const Timeline: React.ForwardRefRenderFunction<
       }) => {
         const numOfDays =
           viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-        const currentDay = dayjs(props?.date);
+        const currentDay = dayjsWithTz(timeZone, props?.date);
         const firstDateMoment = dayjs(firstDate.current[viewMode]);
         const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
         const pageIndex = Math.floor(diffDays / numOfDays);
@@ -113,6 +109,7 @@ const Timeline: React.ForwardRefRenderFunction<
       timelineHorizontalListRef,
       totalPages,
       viewMode,
+      timeZone,
     ]
   );
 
@@ -125,7 +122,7 @@ const Timeline: React.ForwardRefRenderFunction<
 
   useEffect(() => {
     requestAnimationFrame(() => {
-      const current = dayjs();
+      const current = dayjsWithTz(timeZone);
       const isSameDate = current.format('YYYY-MM-DD') === initialDate.current;
       if (scrollToNow && isSameDate) {
         const minutes = current.hour() * 60 + current.minute();
@@ -176,7 +173,10 @@ const Timeline: React.ForwardRefRenderFunction<
     onLongPressBackground?.(date, event);
   };
 
-  const groupedEvents = useMemo(() => groupEventsByDate(events), [events]);
+  const groupedEvents = useMemo(
+    () => groupEventsByDate(events, timeZone),
+    [events, timeZone]
+  );
 
   useAnimatedReaction(
     () => currentIndex.value,

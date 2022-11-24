@@ -117,8 +117,9 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
 
   /** Prepare data*/
   const pages = useMemo(
-    () => calculateDates(firstDay, minDate, maxDate, initialDate.current),
-    [firstDay, minDate, maxDate]
+    () =>
+      calculateDates(firstDay, minDate, maxDate, initialDate.current, timeZone),
+    [firstDay, minDate, maxDate, timeZone]
   );
   const firstDate = useRef({
     week: pages.week.data[0],

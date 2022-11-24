@@ -158,6 +158,7 @@ export interface DayBarItemProps {
   theme: ThemeProperties;
   locale: LocaleType;
   highlightDates?: HighlightDates;
+  timeZone?: string;
 }
 
 export interface ThemeProperties {

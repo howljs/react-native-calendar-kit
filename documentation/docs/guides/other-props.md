@@ -181,3 +181,9 @@ Enable drag with selected event. Default is `true`
 Custom component rendered inside an selected event
 
 <span style={{color: "grey"}}>function</span>
+
+### timeZone
+
+Use calendar in different time zones
+
+<span style={{color: "grey"}}>string</span>
