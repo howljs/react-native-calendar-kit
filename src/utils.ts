@@ -2,6 +2,7 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { merge } from 'lodash';
 import { Platform } from 'react-native';
+import { TimeZone, timeZoneData } from './assets/timeZone';
 import { DEFAULT_PROPS, SECONDS_IN_DAY } from './constants';
 import type { EventItem, PackedEvent, ThemeProperties } from './types';
 
@@ -12,7 +13,7 @@ export const calculateDates = (
   minDateStr: string,
   maxDateStr: string,
   initialDateStr: string,
-  timeZone?: string
+  timeZone?: TimeZone
 ) => {
   let day: DateData = { data: [], index: -1 },
     week: DateData = { data: [], index: -1 },
@@ -125,7 +126,7 @@ export const convertPositionToISOString = (
 
 export const groupEventsByDate = (
   events: EventItem[] = [],
-  timeZone?: string
+  timeZone?: TimeZone
 ) => {
   let groupedEvents: Record<string, EventItem[]> = {};
   events.forEach((event) => {
@@ -224,7 +225,7 @@ type PopulateOptions = {
   startDate: string;
   overlapEventsSpacing: number;
   rightEdgeSpacing: number;
-  timeZone?: string;
+  timeZone?: TimeZone;
 };
 
 export const populateEvents = (
@@ -293,7 +294,7 @@ interface DivideEventsProps {
   startHour: number;
   overlapEventsSpacing: number;
   rightEdgeSpacing: number;
-  timeZone?: string;
+  timeZone?: TimeZone;
 }
 
 export const divideEventsByColumns = (props: DivideEventsProps) => {
@@ -356,7 +357,7 @@ export const getDayBarStyle = (
   date: Dayjs,
   theme: ThemeProperties,
   highlightDate: DayBarStyle = {},
-  timeZone?: string
+  timeZone?: TimeZone
 ) => {
   const isToday = date.isSame(dayjsWithTz(timeZone), 'd');
   const weekDay = date.weekday();
@@ -406,29 +407,20 @@ export const triggerHaptic = () => {
   } catch (ex) {}
 };
 
-export const dayjsWithTz = (timeZone?: string, dateStr?: string) => {
+export const dayjsWithTz = (timeZone?: TimeZone, dateStr?: string) => {
   if (!timeZone) {
     return dayjs(dateStr);
   }
-  const date = dateStr ? new Date(dateStr) : new Date();
-  const tzDate = date.toLocaleString('en-US', {
-    timeZone,
-    hour12: false,
-  });
-  return dayjs(tzDate, 'MM/DD/YYYY, HH:mm:ss');
+
+  const tzOffset = getTimeZoneOffset(timeZone);
+  return dayjs(dateStr).add(tzOffset, 'm');
 };
 
-export const getTimeZoneOffset = (timeZone?: string) => {
+export const getTimeZoneOffset = (timeZone?: TimeZone) => {
   if (!timeZone) {
     return 0;
   }
-  const tzDate = new Date().toLocaleString('en-US', {
-    timeZone,
-    hour12: false,
-  });
-  const tz = dayjs(tzDate, 'MM/DD/YYYY, HH:mm:ss');
-  const dateWithoutTimezone = dayjs();
-  const diffSeconds = tz.diff(dateWithoutTimezone, 's');
-  const extra = diffSeconds > 0 ? 1 : 0;
-  return diffSeconds + extra;
+  const timeZoneInfo = timeZoneData[timeZone];
+  const defaultOffset = dayjs().utcOffset();
+  return timeZoneInfo.offset - defaultOffset;
 };

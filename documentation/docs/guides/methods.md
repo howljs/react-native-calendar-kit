@@ -11,7 +11,7 @@ const calendarRef = useRef<TimelineCalendarHandle>(null);
 <TimelineCalendar ref={calendarRef} viewMode="week" />;
 
 //...
-<TouchableOpacity style={styles.headerRight} onPress={() => {
+<TouchableOpacity onPress={() => {
      //Optional
     const optionalProps = {
       date: "2022-11-09" //Default: today
@@ -35,7 +35,6 @@ const calendarRef = useRef<TimelineCalendarHandle>(null);
 
 //...
 <TouchableOpacity
-  style={styles.headerRight}
   onPress={() => {
     calendarRef.current?.goToNextPage();
   }}
@@ -54,11 +53,28 @@ const calendarRef = useRef<TimelineCalendarHandle>(null);
 
 //...
 <TouchableOpacity
-  style={styles.headerRight}
   onPress={() => {
     calendarRef.current?.goToPrevPage();
   }}
 >
   <Text>Previous week</Text>
+</TouchableOpacity>;
+```
+
+## getZones
+
+```tsx title="Example"
+const calendarRef = useRef<TimelineCalendarHandle>(null);
+
+//...
+<TimelineCalendar ref={calendarRef} viewMode="week" />;
+
+//...
+<TouchableOpacity
+  onPress={() => {
+    calendarRef.current?.getZones();
+  }}
+>
+  <Text>Get Supported Time Zone List</Text>
 </TouchableOpacity>;
 ```

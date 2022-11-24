@@ -5,6 +5,7 @@ import type {
   ViewStyle,
 } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
+import type { TimeZone } from './assets/timeZone';
 import type { LOCALES } from './constants';
 
 export interface TimelineCalendarHandle {
@@ -16,6 +17,13 @@ export interface TimelineCalendarHandle {
   }) => void;
   goToNextPage: (animated?: boolean) => void;
   goToPrevPage: (animated?: boolean) => void;
+  getZones: () => {
+    name: string;
+    offset: number;
+    alternativeName: string;
+    raw: string;
+    countryName: string;
+  }[];
 }
 
 export interface TimelineCalendarProps
@@ -145,7 +153,7 @@ export interface TimelineProviderProps {
 
   useHaptic?: boolean;
 
-  timeZone?: string;
+  timeZone?: TimeZone;
 }
 
 export interface DayBarItemProps {
@@ -158,7 +166,7 @@ export interface DayBarItemProps {
   theme: ThemeProperties;
   locale: LocaleType;
   highlightDates?: HighlightDates;
-  timeZone?: string;
+  timeZone?: TimeZone;
 }
 
 export interface ThemeProperties {

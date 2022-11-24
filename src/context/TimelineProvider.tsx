@@ -8,6 +8,7 @@ import {
   useDerivedValue,
   useSharedValue,
 } from 'react-native-reanimated';
+import type { TimeZone } from '../assets/timeZone';
 import { COLUMNS, DEFAULT_PROPS } from '../constants';
 import useDeepCompare from '../hooks/useDeepCompare';
 import type {
@@ -60,7 +61,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
   hourFormat?: string;
-  timeZone?: string;
+  timeZone?: TimeZone;
 }
 
 const TimelineCalendarContext = React.createContext<

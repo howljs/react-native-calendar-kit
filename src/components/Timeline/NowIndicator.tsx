@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import type { TimeZone } from '../../assets/timeZone';
 import { dayjsWithTz } from '../../utils';
 
 interface NowIndicatorProps {
@@ -13,12 +14,12 @@ interface NowIndicatorProps {
   width: number;
   timeIntervalHeight: SharedValue<number>;
   nowIndicatorColor?: string;
-  timeZone?: string;
+  timeZone?: TimeZone;
 }
 
 const UPDATE_TIME = 60000;
 
-const getCurrentMinutes = (timeZone?: string) => {
+const getCurrentMinutes = (timeZone?: TimeZone) => {
   const now = dayjsWithTz(timeZone);
   return now.hour() * 60 + now.minute();
 };

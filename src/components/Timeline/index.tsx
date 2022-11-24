@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
+import { timeZoneData } from '../../assets/timeZone';
 import { COLUMNS, DEFAULT_PROPS, LOCALES } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useDragCreateGesture from '../../hooks/useDragCreateGesture';
@@ -98,6 +99,7 @@ const Timeline: React.ForwardRefRenderFunction<
       },
       goToNextPage: goToNextPage,
       goToPrevPage: goToPrevPage,
+      getZones: () => Object.values(timeZoneData),
     }),
     [
       firstDate,
