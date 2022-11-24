@@ -14,7 +14,7 @@ import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
 import type { PackedEvent, ThemeProperties } from '../../types';
-import { triggerHaptic } from '../../utils';
+import { getTimeZoneOffset, triggerHaptic } from '../../utils';
 
 interface DragEditItemProps {
   selectedEvent: PackedEvent;
@@ -53,6 +53,7 @@ const DragEditItem = ({
     theme,
     hourFormat,
     useHaptic,
+    timeZone,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -148,9 +149,11 @@ const DragEditItem = ({
     const newLeftPosition = event.leftByIndex! + translateX.value;
     const dayIndex = Math.round(newLeftPosition / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
+    const tzOffset = getTimeZoneOffset(timeZone);
     const currentDateMoment = dayjs(startDate)
       .add(dayIndex, 'd')
-      .add(currentHour.value, 'h');
+      .add(currentHour.value, 'h')
+      .subtract(tzOffset, 's');
 
     const newEvent = {
       ...selectedEvent,

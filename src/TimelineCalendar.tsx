@@ -1,7 +1,13 @@
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import weekDay from 'dayjs/plugin/weekday';
 import React, { forwardRef } from 'react';
 import { Timeline } from './components';
 import TimelineProvider from './context/TimelineProvider';
 import type { TimelineCalendarHandle, TimelineCalendarProps } from './types';
+
+dayjs.extend(weekDay);
+dayjs.extend(customParseFormat);
 
 const TimelineCalendar: React.ForwardRefRenderFunction<
   TimelineCalendarHandle,

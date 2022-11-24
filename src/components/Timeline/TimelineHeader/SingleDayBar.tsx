@@ -12,6 +12,7 @@ const SingleDayBar = ({
   locale,
   highlightDates,
   onPressDayNum,
+  timeZone,
 }: DayBarItemProps) => {
   const _renderDay = () => {
     const currentDate = dayjs(startDate);
@@ -25,7 +26,8 @@ const SingleDayBar = ({
     const { dayName, dayNumber, dayNumberContainer } = getDayBarStyle(
       currentDate,
       theme,
-      highlightDate
+      highlightDate,
+      timeZone
     );
 
     return (

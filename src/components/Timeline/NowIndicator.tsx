@@ -6,19 +6,21 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { dayjsWithTz } from '../../utils';
 
 interface NowIndicatorProps {
   dayIndex: number;
   width: number;
   timeIntervalHeight: SharedValue<number>;
   nowIndicatorColor?: string;
+  timeZone?: string;
 }
 
 const UPDATE_TIME = 60000;
 
-const getCurrentMinutes = () => {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
+const getCurrentMinutes = (timeZone?: string) => {
+  const now = dayjsWithTz(timeZone);
+  return now.hour() * 60 + now.minute();
 };
 
 const NowIndicator = ({
@@ -26,25 +28,29 @@ const NowIndicator = ({
   dayIndex,
   timeIntervalHeight,
   nowIndicatorColor,
+  timeZone,
 }: NowIndicatorProps) => {
-  const initialMinutes = useRef(getCurrentMinutes());
+  const initialMinutes = useRef(getCurrentMinutes(timeZone));
   const translateY = useSharedValue(0);
   const intervalCallbackId = useRef<any>(null);
 
   const updateLinePosition = useCallback(() => {
-    const newMinutes = getCurrentMinutes();
+    const newMinutes = getCurrentMinutes(timeZone);
     const subtractInitialMinutes = newMinutes - initialMinutes.current;
     const newY = (subtractInitialMinutes / 60) * timeIntervalHeight.value;
     translateY.value = withTiming(newY, {
       duration: 500,
     });
-  }, [timeIntervalHeight.value, translateY]);
+  }, [timeIntervalHeight.value, timeZone, translateY]);
+
+  useEffect(() => {
+    updateLinePosition();
+  }, [updateLinePosition]);
 
   useEffect(() => {
     if (intervalCallbackId.current) {
       clearInterval(intervalCallbackId.current);
     }
-
     intervalCallbackId.current = setInterval(updateLinePosition, UPDATE_TIME);
     return () => {
       if (intervalCallbackId.current) {

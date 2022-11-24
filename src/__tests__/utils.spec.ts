@@ -1,13 +1,8 @@
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import weekday from 'dayjs/plugin/weekday';
-import {
-  calculateDates,
-  calculateHours,
-  convertDateToUnixTime,
-  convertUnixTimeToDate,
-} from '../utils';
-import { expectHourData } from '../__mock__/data';
+import { calculateDates, calculateHours } from '../utils';
+import { expectHourData } from '../__mocks__/data';
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
 
@@ -71,27 +66,5 @@ describe('get hours from start/end', () => {
       expect(hour?.hourNumber).toBe(expectHourData.case4[i]?.hourNumber);
       expect(hour?.text).toBe(expectHourData.case4[i]?.text);
     }
-  });
-});
-
-describe('convert unix time to date', () => {
-  it('1667385834 -> 2022-11-02', () => {
-    const date = convertUnixTimeToDate(1667385834);
-    expect(date).toBe('2022-11-02');
-  });
-  it('1667126634 -> 2022-10-30', () => {
-    const date = convertUnixTimeToDate(1667126634);
-    expect(date).toBe('2022-10-30');
-  });
-});
-
-describe('convert date to unix', () => {
-  it('2022-11-02 -> 1667347200', () => {
-    const unixTime = convertDateToUnixTime('2022-11-02');
-    expect(unixTime).toBe(1667347200);
-  });
-  it('2022-10-30 -> 1667088000', () => {
-    const unixTime = convertDateToUnixTime('2022-10-30');
-    expect(unixTime).toBe(1667088000);
   });
 });
