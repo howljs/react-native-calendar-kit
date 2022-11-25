@@ -1,8 +1,13 @@
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import weekday from 'dayjs/plugin/weekday';
-import { calculateDates, calculateHours } from '../utils';
-import { expectHourData } from '../__mocks__/data';
+import {
+  calculateDates,
+  calculateHours,
+  getTimeZoneOffset,
+  groupEventsByDate,
+} from '../utils';
+import { expectHourData, sampleData } from '../__mocks__/data';
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
 
@@ -11,7 +16,8 @@ describe('get date data', () => {
     const fromDate = '2022-10-01';
     const toDate = '2022-10-31';
     const initialDate = '2022-10-10';
-    const dates = calculateDates(1, fromDate, toDate, initialDate);
+    const tzOffset = 0;
+    const dates = calculateDates(1, fromDate, toDate, initialDate, tzOffset);
 
     const expectData = {
       day: { length: 31, index: 9 },
@@ -66,5 +72,28 @@ describe('get hours from start/end', () => {
       expect(hour?.hourNumber).toBe(expectHourData.case4[i]?.hourNumber);
       expect(hour?.text).toBe(expectHourData.case4[i]?.text);
     }
+  });
+});
+
+describe('group events by date', () => {
+  it('group with timezone +7', () => {
+    const tzOffset = getTimeZoneOffset('Asia/Ho_Chi_Minh');
+    const events = groupEventsByDate(sampleData, tzOffset);
+    const expectIds = ['2022-11-22', '2022-11-23', '2022-11-24'];
+    const eventIds = Object.keys(events).sort((a, b) => a.localeCompare(b));
+    expect(eventIds.toString()).toEqual(expectIds.toString());
+    expect(events['2022-11-22']?.length).toEqual(1);
+    expect(events['2022-11-23']?.length).toEqual(4);
+    expect(events['2022-11-24']?.length).toEqual(1);
+  });
+  it('group with timezone +9', () => {
+    const tzOffset = getTimeZoneOffset('Asia/Tokyo');
+    const events = groupEventsByDate(sampleData, tzOffset);
+    const expectIds = ['2022-11-22', '2022-11-23', '2022-11-24'];
+    const eventIds = Object.keys(events).sort((a, b) => a.localeCompare(b));
+    expect(eventIds.toString()).toEqual(expectIds.toString());
+    expect(events['2022-11-22']?.length).toEqual(1);
+    expect(events['2022-11-23']?.length).toEqual(4);
+    expect(events['2022-11-24']?.length).toEqual(2);
   });
 });
