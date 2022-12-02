@@ -48,7 +48,7 @@ const randColor = () => {
   );
 };
 
-const unavailableHour = {
+const unavailableHours = {
   '0': [{ start: 0, end: 24 }],
   '1': [
     { start: 0, end: 7 },
@@ -71,6 +71,15 @@ const unavailableHour = {
     { start: 18, end: 24 },
   ],
   '6': [{ start: 0, end: 24 }],
+  '2022-12-01': [
+    { start: 0, end: 7.5 },
+    { start: 12, end: 13.5 },
+    { start: 17, end: 24 },
+  ],
+  '2022-11-29': [
+    { start: 0, end: 8.5 },
+    { start: 16, end: 24 },
+  ],
 };
 
 const Calendar = ({ route, navigation }: CalendarProps) => {
@@ -199,7 +208,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
         allowPinchToZoom
         allowDragToCreate
         events={events}
-        unavailableHours={unavailableHour}
+        unavailableHours={unavailableHours}
         holidays={['2022-11-05', '2022-11-02']}
         onDragCreateEnd={_onDragCreateEnd}
         onLongPressEvent={_onLongPressEvent}

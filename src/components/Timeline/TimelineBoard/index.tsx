@@ -64,12 +64,19 @@ const TimelineBoard = ({
     const isGtMax = maxDayUnix - currentUnix < 0;
 
     let unavailableHour;
-    if (Array.isArray(unavailableHours)) {
-      unavailableHour = unavailableHours;
-    } else {
-      const currentWeekDay = dayjs.unix(currentUnix).weekday();
-      unavailableHour = unavailableHours?.[currentWeekDay];
+    if (unavailableHours) {
+      if (Array.isArray(unavailableHours)) {
+        unavailableHour = unavailableHours;
+      } else {
+        const current = dayjs.unix(currentUnix);
+        const currentDateStr = current.format('YYYY-MM-DD');
+        const currentWeekDay = current.weekday();
+        unavailableHour =
+          unavailableHours?.[currentDateStr] ||
+          unavailableHours?.[currentWeekDay];
+      }
     }
+
     let isDayDisabled = false;
     if (holidays?.length) {
       const dateStr = dayjs.unix(currentUnix).format('YYYY-MM-DD');
