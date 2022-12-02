@@ -29,39 +29,45 @@ const unavailableHours = [
 
 ### Set unavailable hours by week day.
 
-It's a object with key: `0 -> 6` <=> `Sunday -> Saturday`, you can set any day
+It's a object with key: `0 -> 6` <=> `Sunday -> Saturday` or a fixed date (Ex: 2022-12-01)
 
 ```jsx title="Example"
 const unavailableHours = {
   //Sunday
-  0: [{ start: 0, end: 24 }],
+  '0': [{ start: 0, end: 24 }],
   //Monday
-  1: [
+  '1': [
     { start: 0, end: 7 },
     { start: 18, end: 24 },
   ],
   //Tuesday
-  2: [
+  '2': [
     { start: 0, end: 7 },
     { start: 18, end: 24 },
   ],
   //Wednesday
-  3: [
+  '3': [
     { start: 0, end: 7 },
     { start: 18, end: 24 },
   ],
   //Thursday
-  4: [
+  '4': [
     { start: 0, end: 7 },
     { start: 18, end: 24 },
   ],
   //Friday
-  5: [
+  '5': [
     { start: 0, end: 7 },
     { start: 18, end: 24 },
   ],
   //Saturday
-  6: [{ start: 0, end: 24 }],
+  '6': [{ start: 0, end: 24 }],
+  //2022-12-01
+  '2022-12-01': [
+    { start: 0, end: 7.5 },
+    { start: 12, end: 13.5 },
+    { start: 17, end: 24 },
+  ],
 };
 
 <TimelineCalendar viewMode="week" unavailableHours={unavailableHours} />;
