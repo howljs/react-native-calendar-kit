@@ -59,11 +59,17 @@ const EventBlock = ({
   };
 
   const eventStyle = useAnimatedStyle(() => {
+    let eventHeight = event.duration * timeIntervalHeight.value;
+
+    if (theme.minimumEventHeight) {
+      eventHeight = Math.max(theme.minimumEventHeight, eventHeight);
+    }
+
     return {
       top: withTiming(event.startHour * timeIntervalHeight.value, {
         duration: eventAnimatedDuration,
       }),
-      height: withTiming(event.duration * timeIntervalHeight.value, {
+      height: withTiming(eventHeight, {
         duration: eventAnimatedDuration,
       }),
       left: withTiming(event.left + columnWidth * dayIndex, {

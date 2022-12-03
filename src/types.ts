@@ -199,6 +199,7 @@ export interface ThemeProperties {
 
   //Event
   eventTitle?: TextStyle;
+  minimumEventHeight?: number;
 }
 
 export interface RangeTime {
