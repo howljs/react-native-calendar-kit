@@ -29,6 +29,7 @@ const DragCreateItem = ({
     dragCreateInterval,
     theme,
     hourFormat,
+    editHourFormat,
   } = useTimelineCalendarContext();
 
   const animatedStyles = useAnimatedStyle(() => {
@@ -56,7 +57,7 @@ const DragCreateItem = ({
         offsetY={offsetY}
         hourWidth={hourWidth}
         theme={theme}
-        hourFormat={hourFormat}
+        hourFormat={editHourFormat || hourFormat}
       />
     </View>
   );

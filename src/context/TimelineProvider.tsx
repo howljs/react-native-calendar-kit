@@ -31,6 +31,7 @@ type CustomTimelineProviderProps = Required<
     | 'initialTimeIntervalHeight'
     | 'unavailableHours'
     | 'hourFormat'
+    | 'editHourFormat'
     | 'timeZone'
   >
 >;
@@ -65,6 +66,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
   hourFormat?: string;
+  editHourFormat?: string;
   tzOffset: number;
 }
 

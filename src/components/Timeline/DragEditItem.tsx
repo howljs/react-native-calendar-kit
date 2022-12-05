@@ -52,6 +52,7 @@ const DragEditItem = ({
     totalHours,
     theme,
     hourFormat,
+    editHourFormat,
     useHaptic,
     tzOffset,
   } = useTimelineCalendarContext();
@@ -310,7 +311,7 @@ const DragEditItem = ({
         top={defaultTopPosition}
         hourWidth={hourWidth}
         theme={theme}
-        hourFormat={hourFormat}
+        hourFormat={editHourFormat || hourFormat}
       />
     </View>
   );

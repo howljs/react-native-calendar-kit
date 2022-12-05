@@ -142,6 +142,7 @@ export interface TimelineProviderProps {
 
   hourFormat?: string;
 
+  editHourFormat?: string;
   eventAnimatedDuration?: number;
 
   /**
