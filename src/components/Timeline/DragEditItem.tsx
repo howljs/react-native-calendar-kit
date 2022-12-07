@@ -24,6 +24,7 @@ interface DragEditItemProps {
     timeIntervalHeight: SharedValue<number>
   ) => JSX.Element;
   isEnabled?: boolean;
+  EditIndicatorComponent?: JSX.Element;
 }
 
 const EVENT_DEFAULT_COLOR = '#FFFFFF';
@@ -33,6 +34,7 @@ const DragEditItem = ({
   onEndDragSelectedEvent,
   renderEventContent,
   isEnabled = true,
+  EditIndicatorComponent,
 }: DragEditItemProps) => {
   const {
     columnWidth,
@@ -283,23 +285,29 @@ const DragEditItem = ({
             ? renderEventContent(event, timeIntervalHeight)
             : _renderEventContent()}
           <GestureDetector gesture={dragDurationGesture}>
-            <View style={[styles.indicator, { width: columnWidth }]}>
-              <View
-                style={[
-                  styles.indicatorLine,
-                  theme.editIndicatorColor
-                    ? { backgroundColor: theme.editIndicatorColor }
-                    : undefined,
-                ]}
-              />
-              <View
-                style={[
-                  styles.indicatorLine,
-                  theme.editIndicatorColor
-                    ? { backgroundColor: theme.editIndicatorColor }
-                    : undefined,
-                ]}
-              />
+            <View style={styles.indicatorContainer}>
+              {EditIndicatorComponent ? (
+                EditIndicatorComponent
+              ) : (
+                <View style={styles.indicator}>
+                  <View
+                    style={[
+                      styles.indicatorLine,
+                      theme.editIndicatorColor
+                        ? { backgroundColor: theme.editIndicatorColor }
+                        : undefined,
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.indicatorLine,
+                      theme.editIndicatorColor
+                        ? { backgroundColor: theme.editIndicatorColor }
+                        : undefined,
+                    ]}
+                  />
+                </View>
+              )}
             </View>
           </GestureDetector>
         </Animated.View>
@@ -414,12 +422,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     left: 4,
   },
-  indicator: {
+  indicatorContainer: {
     position: 'absolute',
     bottom: 0,
-    height: 16,
+    left: 0,
+    right: 0,
+  },
+  indicator: {
+    width: '100%',
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'flex-end',
   },
   title: { paddingVertical: 4, paddingHorizontal: 2, fontSize: 10 },
   hourText: {

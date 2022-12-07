@@ -34,6 +34,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     onChange,
     editEventGestureEnabled,
     renderSelectedEventContent,
+    EditIndicatorComponent,
     ...timelineProviderProps
   },
   ref
@@ -59,6 +60,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     onChange,
     editEventGestureEnabled,
     renderSelectedEventContent,
+    EditIndicatorComponent,
   };
 
   return (

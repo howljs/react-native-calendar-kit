@@ -51,6 +51,7 @@ interface TimelineSlotsProps {
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
   editEventGestureEnabled?: boolean;
+  EditIndicatorComponent?: JSX.Element;
 }
 
 const TimelineSlots = ({
@@ -65,6 +66,7 @@ const TimelineSlots = ({
   editEventGestureEnabled = true,
   renderEventContent,
   renderSelectedEventContent,
+  EditIndicatorComponent,
   ...other
 }: TimelineSlotsProps) => {
   const {
@@ -260,6 +262,7 @@ const TimelineSlots = ({
             selectedEvent={selectedEvent}
             onEndDragSelectedEvent={onEndDragSelectedEvent}
             isEnabled={editEventGestureEnabled}
+            EditIndicatorComponent={EditIndicatorComponent}
             renderEventContent={
               renderSelectedEventContent || renderEventContent
             }

@@ -94,6 +94,9 @@ const Calendar = () => {
           editIndicatorColor: '#FFF',
         }}
         // End Optional
+
+        // Custom edit indicator
+        EditIndicatorComponent={<View style={{ backgroundColor: 'red', width: '100%', height: 16 }} />}
       />
       {!!selectedEvent && _renderEditFooter()}
     </SafeAreaView>
@@ -177,3 +180,11 @@ Handle the navigation time when navigating to next/previous view while dragging.
 - `dragHourBackgroundColor`
 
 <span style={{ color: 'grey' }}>object</span>
+
+### EditIndicatorComponent
+
+Custom edit indicator
+
+![custom-indicator](./img/edit-indicator.png)
+
+<span style={{ color: 'grey' }}>Component</span>

@@ -59,6 +59,7 @@ export interface TimelineProps {
   onChange?: (props: OnChangeProps) => void;
 
   editEventGestureEnabled?: boolean;
+  EditIndicatorComponent?: JSX.Element;
 }
 
 export interface UnavailableItemProps {
