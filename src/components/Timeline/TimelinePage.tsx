@@ -186,7 +186,7 @@ const TimelinePage = ({
         />
         {times(COLUMNS[viewMode], _renderTimelineColumn)}
       </Animated.View>
-      {(isLoading || !!selectedEventId) && <View style={styles.loadingFrame} />}
+      {isLoading && <View style={styles.loadingFrame} />}
     </View>
   );
 };

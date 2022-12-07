@@ -169,7 +169,7 @@ const Timeline: React.ForwardRefRenderFunction<
     date: string,
     event: GestureResponderEvent
   ) => {
-    if (allowDragToCreate) {
+    if (allowDragToCreate && !selectedEvent) {
       onLongPress(event);
     }
     onLongPressBackground?.(date, event);

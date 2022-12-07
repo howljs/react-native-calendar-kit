@@ -97,6 +97,7 @@ const EventBlock = ({
       ]}
     >
       <TouchableOpacity
+        disabled={!!selectedEventId}
         delayLongPress={300}
         onPress={_onPress}
         onLongPress={_onLongPress}
