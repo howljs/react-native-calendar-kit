@@ -42,6 +42,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     isDragCreateActive,
     useHaptic,
     tzOffset,
+    start,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -70,7 +71,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const extraPos = nearestMinutes - (rMinutes % nearestMinutes);
     const roundedHour = (rMinutes + extraPos + rHours * 60) / 60;
     const calcY = roundedHour * timeIntervalHeight.value;
-    currentHour.value = roundedHour;
+    currentHour.value = roundedHour + start;
 
     return {
       x: Math.max(0, calcX),
@@ -133,6 +134,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const eventStart = dayjs(startDate)
       .add(positionIndex, 'd')
       .add(time, 'h')
+      .add(start, 'h')
       .subtract(tzOffset, 'm');
     const isBeforeMinDate = eventStart.isBefore(dayjs(minDate), 'd');
     const isAfterMaxDate = eventStart.isAfter(dayjs(maxDate), 'd');

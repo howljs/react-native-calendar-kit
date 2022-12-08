@@ -179,7 +179,7 @@ const buildEvent = (
     const currentDate = dayjs(options.startDate).add(options.dayIndex, 'd');
     const diffCurrent = eventStart.diff(currentDate, 'm') / 60;
     if (diffCurrent < 0) {
-      start = 0 + diffCurrent;
+      start = 0 + diffCurrent - options.startHour;
     }
   }
 

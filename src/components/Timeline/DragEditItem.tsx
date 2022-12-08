@@ -56,6 +56,7 @@ const DragEditItem = ({
     hourFormat,
     useHaptic,
     tzOffset,
+    start,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -211,7 +212,7 @@ const DragEditItem = ({
           duration: 100,
         });
         eventTop.value = newTopPosition;
-        currentHour.value = roundedHour;
+        currentHour.value = roundedHour + start;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
         }
