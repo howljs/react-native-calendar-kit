@@ -142,9 +142,10 @@ const TimelinePage = ({
     );
   };
 
+  const currentDate = useMemo(() => dayjs().add(tzOffset, 'm'), [tzOffset]);
+
   const _renderTimelineColumn = (dayIndex: number) => {
     const currentColumn = dayjs(startDate).add(dayIndex, 'd');
-    const currentDate = dayjs().add(tzOffset, 'm');
     const isToday = currentColumn.isSame(currentDate, 'd');
 
     return (
@@ -161,6 +162,7 @@ const TimelinePage = ({
             dayIndex={dayIndex}
             nowIndicatorColor={theme.nowIndicatorColor}
             tzOffset={tzOffset}
+            start={start}
           />
         )}
       </React.Fragment>

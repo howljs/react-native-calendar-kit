@@ -14,6 +14,7 @@ interface NowIndicatorProps {
   timeIntervalHeight: SharedValue<number>;
   nowIndicatorColor?: string;
   tzOffset: number;
+  start: number;
 }
 
 const UPDATE_TIME = 60000;
@@ -29,6 +30,7 @@ const NowIndicator = ({
   timeIntervalHeight,
   nowIndicatorColor,
   tzOffset,
+  start,
 }: NowIndicatorProps) => {
   const initialMinutes = useRef(getCurrentMinutes(tzOffset));
   const translateY = useSharedValue(0);
@@ -36,18 +38,17 @@ const NowIndicator = ({
 
   const updateLinePosition = useCallback(() => {
     const newMinutes = getCurrentMinutes(tzOffset);
-    const subtractInitialMinutes = newMinutes - initialMinutes.current;
+    const extraMinutes = start * 60;
+    const subtractInitialMinutes =
+      newMinutes - (initialMinutes.current + extraMinutes);
     const newY = (subtractInitialMinutes / 60) * timeIntervalHeight.value;
     translateY.value = withTiming(newY, {
       duration: 500,
     });
-  }, [timeIntervalHeight.value, tzOffset, translateY]);
+  }, [timeIntervalHeight.value, tzOffset, translateY, start]);
 
   useEffect(() => {
     updateLinePosition();
-  }, [updateLinePosition]);
-
-  useEffect(() => {
     if (intervalCallbackId.current) {
       clearInterval(intervalCallbackId.current);
     }
@@ -62,7 +63,6 @@ const NowIndicator = ({
   const animStyle = useAnimatedStyle(() => {
     return {
       top: (initialMinutes.current / 60) * timeIntervalHeight.value,
-
       transform: [{ translateY: translateY.value }],
     };
   }, []);
