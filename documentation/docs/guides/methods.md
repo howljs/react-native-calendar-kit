@@ -63,6 +63,8 @@ const calendarRef = useRef<TimelineCalendarHandle>(null);
 
 ## getZones
 
+Get Supported Time Zone List
+
 ```tsx title="Example"
 const calendarRef = useRef<TimelineCalendarHandle>(null);
 
@@ -76,5 +78,45 @@ const calendarRef = useRef<TimelineCalendarHandle>(null);
   }}
 >
   <Text>Get Supported Time Zone List</Text>
+</TouchableOpacity>;
+```
+
+## getZone
+
+Get zone info by zone name
+
+```tsx title="Example"
+const calendarRef = useRef<TimelineCalendarHandle>(null);
+
+//...
+<TimelineCalendar ref={calendarRef} viewMode="week" />;
+
+//...
+<TouchableOpacity
+  onPress={() => {
+    calendarRef.current?.getZone('Asia/Ho_Chi_Minh');
+  }}
+>
+  <Text>Get zone info</Text>
+</TouchableOpacity>;
+```
+
+## goToHour
+
+Scroll timeline to the custom hour
+
+```tsx title="Example"
+const calendarRef = useRef<TimelineCalendarHandle>(null);
+
+//...
+<TimelineCalendar ref={calendarRef} viewMode="week" />;
+
+//...
+<TouchableOpacity
+  onPress={() => {
+    calendarRef.current?.goToHour(7.5);
+  }}
+>
+  <Text>Go to 07:30</Text>
 </TouchableOpacity>;
 ```
