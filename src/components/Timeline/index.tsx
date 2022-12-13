@@ -94,12 +94,20 @@ const Timeline: React.ForwardRefRenderFunction<
           const minutes = currentDay.hour() * 60 + currentDay.minute();
           const position =
             (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
-          goToOffsetY(Math.max(0, position - 200), props?.animatedHour);
+          const offset = timeIntervalHeight.value * 5;
+          goToOffsetY(Math.max(0, position - offset), props?.animatedHour);
         }
       },
       goToNextPage: goToNextPage,
       goToPrevPage: goToPrevPage,
       getZones: () => Object.values(timeZoneData),
+      getZone: (key: keyof typeof timeZoneData) => timeZoneData[key],
+      goToHour: (hour: number, animated?: boolean) => {
+        const minutes = hour * 60;
+        const position =
+          (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
+        goToOffsetY(Math.max(0, position - 8), animated);
+      },
     }),
     [
       firstDate,
@@ -130,7 +138,8 @@ const Timeline: React.ForwardRefRenderFunction<
         const minutes = current.hour() * 60 + current.minute();
         const position =
           (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
-        goToOffsetY(Math.max(0, position - 200), true);
+        const offset = timeIntervalHeight.value * 5;
+        goToOffsetY(Math.max(0, position - offset), true);
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -5,7 +5,7 @@ import type {
   ViewStyle,
 } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
-import type { TimeZone } from './assets/timeZone';
+import type { TimeZone, timeZoneData } from './assets/timeZone';
 import type { LOCALES } from './constants';
 
 export interface TimelineCalendarHandle {
@@ -24,6 +24,14 @@ export interface TimelineCalendarHandle {
     raw: string;
     countryName: string;
   }[];
+  getZone: (zoneName: keyof typeof timeZoneData) => {
+    name: string;
+    offset: number;
+    alternativeName: string;
+    raw: string;
+    countryName: string;
+  };
+  goToHour: (hour: number, animated?: boolean) => void;
 }
 
 export interface TimelineCalendarProps
