@@ -187,3 +187,16 @@ Custom component rendered inside an selected event
 Use calendar in different time zones
 
 <span style={{color: "grey"}}>string</span>
+
+
+### renderHalfLineCustom
+
+Custom component rendered inside the line in the middle of the interval
+
+<span style={{color: "grey"}}>function</span>
+
+### halfLineContainerStyle
+
+Container style of the line in the middle of the interval.
+
+<span style={{color: "grey"}}>function</span>

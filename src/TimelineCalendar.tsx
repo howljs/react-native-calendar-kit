@@ -35,6 +35,8 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     editEventGestureEnabled,
     renderSelectedEventContent,
     EditIndicatorComponent,
+    renderHalfLineCustom,
+    halfLineContainerStyle,
     ...timelineProviderProps
   },
   ref
@@ -61,6 +63,8 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     editEventGestureEnabled,
     renderSelectedEventContent,
     EditIndicatorComponent,
+    renderHalfLineCustom,
+    halfLineContainerStyle,
   };
 
   return (

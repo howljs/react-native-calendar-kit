@@ -1,7 +1,12 @@
 import dayjs from 'dayjs';
 import times from 'lodash/times';
 import React, { useMemo } from 'react';
-import { GestureResponderEvent, StyleSheet, View } from 'react-native';
+import {
+  GestureResponderEvent,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -31,6 +36,8 @@ interface TimelinePageProps {
   ) => JSX.Element;
   selectedEventId?: string;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
+  renderHalfLineCustom?: (width: number) => JSX.Element;
+  halfLineContainerStyle?: ViewStyle;
 }
 
 const TimelinePage = ({
@@ -46,6 +53,8 @@ const TimelinePage = ({
   renderEventContent,
   selectedEventId,
   renderCustomUnavailableItem,
+  renderHalfLineCustom,
+  halfLineContainerStyle,
 }: TimelinePageProps) => {
   const {
     rightSideWidth,
@@ -185,6 +194,8 @@ const TimelinePage = ({
           onPressBackgroundHandler={_onPressBackgroundHandler}
           holidays={holidays}
           renderCustomUnavailableItem={renderCustomUnavailableItem}
+          renderHalfLineCustom={renderHalfLineCustom}
+          halfLineContainerStyle={halfLineContainerStyle}
         />
         {times(COLUMNS[viewMode], _renderTimelineColumn)}
       </Animated.View>

@@ -60,6 +60,12 @@ export interface TimelineProps {
 
   editEventGestureEnabled?: boolean;
   EditIndicatorComponent?: JSX.Element;
+
+  /** Custom line in the middle of the interval. */
+  renderHalfLineCustom?: (width: number) => JSX.Element;
+
+  /** Container style of the line in the middle of the interval. */
+  halfLineContainerStyle?: ViewStyle;
 }
 
 export interface UnavailableItemProps {

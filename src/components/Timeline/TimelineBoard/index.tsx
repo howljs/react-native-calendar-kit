@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   View,
+  ViewStyle,
 } from 'react-native';
 import { COLUMNS, SECONDS_IN_DAY } from '../../../constants';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
@@ -24,6 +25,8 @@ interface TimelineBoardProps {
   ) => void;
   holidays?: string[];
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
+  renderHalfLineCustom?: (width: number) => JSX.Element;
+  halfLineContainerStyle?: ViewStyle;
 }
 
 const TimelineBoard = ({
@@ -31,6 +34,8 @@ const TimelineBoard = ({
   startDate,
   onPressBackgroundHandler,
   renderCustomUnavailableItem,
+  renderHalfLineCustom,
+  halfLineContainerStyle,
 }: TimelineBoardProps) => {
   const {
     hours,
@@ -45,7 +50,13 @@ const TimelineBoard = ({
     return (
       <React.Fragment key={`line_${hourNumber}`}>
         <HorizontalLine hourIndex={index} />
-        {isShowHalfLine && <HorizontalLine hourIndex={index + 0.5} />}
+        {isShowHalfLine && (
+          <HorizontalLine
+            hourIndex={index + 0.5}
+            renderHalfLineCustom={renderHalfLineCustom}
+            containerStyle={halfLineContainerStyle}
+          />
+        )}
         {index === hours.length - 1 && <HorizontalLine hourIndex={index + 1} />}
       </React.Fragment>
     );

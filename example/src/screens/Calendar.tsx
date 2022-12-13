@@ -19,6 +19,7 @@ import React, {
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Line, Svg } from 'react-native-svg';
 import CustomUnavailableItem from './CustomUnavailableItem';
 
 interface CalendarProps {
@@ -200,6 +201,23 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
     }, 100);
   };
 
+  const _renderHalfLineCustom = useCallback(
+    (width) => (
+      <Svg>
+        <Line
+          x1="0"
+          y1="1"
+          x2={width}
+          y2="1"
+          stroke="#ececec"
+          strokeDasharray={5}
+          strokeWidth={2}
+        />
+      </Svg>
+    ),
+    []
+  );
+
   return (
     <View style={[styles.container, { paddingBottom: safeBottom }]}>
       <TimelineCalendar
@@ -243,6 +261,8 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
         locale="en"
         useHaptic
         timeZone="Asia/Tokyo"
+        renderHalfLineCustom={_renderHalfLineCustom}
+        halfLineContainerStyle={styles.halfLineContainer}
       />
       {!!selectedEvent && _renderEditFooter()}
     </View>
@@ -282,4 +302,5 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   btnText: { fontSize: 16, color: '#FFF', fontWeight: 'bold' },
+  halfLineContainer: { backgroundColor: 'transparent' },
 });
