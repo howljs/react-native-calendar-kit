@@ -162,6 +162,9 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       if (dragXPosition.value !== x || dragYPosition.value !== y) {
         dragXPosition.value = withTiming(x, { duration: 100 });
         dragYPosition.value = y;
+        if (useHaptic) {
+          runOnJS(triggerHaptic)();
+        }
       }
       runOnJS(_handleScroll)(event.x);
     }
