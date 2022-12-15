@@ -19,6 +19,7 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
   const zoomGesture = Gesture.Pinch()
     .enabled(enabled)
     .withRef(pinchRef)
+    .runOnJS(true)
     .onStart((event) => {
       const startY =
         offsetY.value + event.focalY - timeIntervalHeight.value * 2;

@@ -79,17 +79,15 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     };
   };
 
-  const _handleScroll = (
-    event: GestureUpdateEvent<PanGestureHandlerEventPayload>
-  ) => {
+  const _handleScroll = (x: number) => {
     const SPACE = 25;
-    if (event.x < SPACE) {
+    if (x < SPACE) {
       if (isScrolling.current) {
         return;
       }
       goToPrevPage(true);
     }
-    if (event.x > timelineWidth - SPACE) {
+    if (x > timelineWidth - SPACE) {
       if (isScrolling.current) {
         return;
       }
@@ -150,6 +148,26 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     });
   };
 
+  const gestureEvent = useSharedValue<
+    GestureUpdateEvent<PanGestureHandlerEventPayload> | undefined
+  >(undefined);
+  useAnimatedReaction(
+    () => gestureEvent.value,
+    (event) => {
+      if (!event) {
+        return;
+      }
+
+      const { x, y } = calcPosition(event.x, event.y, dragStep);
+      if (dragXPosition.value !== x || dragYPosition.value !== y) {
+        dragXPosition.value = withTiming(x, { duration: 100 });
+        dragYPosition.value = y;
+      }
+      runOnJS(_handleScroll)(event.x);
+    }
+  );
+
+  const isTouchesUp = useSharedValue(false);
   const dragCreateGesture = Gesture.Pan()
     .minPointers(1)
     .manualActivation(true)
@@ -168,26 +186,28 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       if (event.numberOfPointers > 1) {
         return;
       }
-      const { x, y } = calcPosition(event.x, event.y, dragStep);
-      if (dragXPosition.value !== x || dragYPosition.value !== y) {
-        dragXPosition.value = withTiming(x, { duration: 100 });
-        dragYPosition.value = y;
-        if (useHaptic) {
-          runOnJS(triggerHaptic)();
-        }
-      }
-
-      runOnJS(_handleScroll)(event);
+      gestureEvent.value = event;
     })
     .onTouchesUp(() => {
       if (isDragCreateActive.value) {
+        isTouchesUp.value = true;
+        isDragCreateActive.value = false;
+      }
+    });
+
+  useAnimatedReaction(
+    () => isTouchesUp.value,
+    (touchesUp) => {
+      if (touchesUp) {
         runOnJS(_onEnd)({
           x: dragXPosition.value,
           y: dragYPosition.value + offsetY.value - spaceFromTop,
         });
-        isDragCreateActive.value = false;
+        gestureEvent.value = undefined;
+        isTouchesUp.value = false;
       }
-    });
+    }
+  );
 
   useAnimatedReaction(
     () => isDragCreateActive.value,
