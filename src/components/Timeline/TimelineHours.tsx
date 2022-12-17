@@ -69,6 +69,7 @@ const HourItem = ({
 
   return (
     <Animated.Text
+      allowFontScaling={theme.allowFontScaling}
       key={`hourLabel_${hour.text}`}
       style={[styles.hourText, theme.hourText, hourLabelStyle]}
     >

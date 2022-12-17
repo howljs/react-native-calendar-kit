@@ -38,14 +38,24 @@ const MultipleDayBar = ({
         key={`${startDate}_${dayIndex}`}
         style={[styles.dayItem, { width: columnWidth }]}
       >
-        <Text style={[styles.dayName, dayName]}>{dayNameText}</Text>
+        <Text
+          allowFontScaling={theme.allowFontScaling}
+          style={[styles.dayName, dayName]}
+        >
+          {dayNameText}
+        </Text>
         <TouchableOpacity
           activeOpacity={0.6}
           disabled={!onPressDayNum}
           onPress={() => onPressDayNum?.(dateStr)}
           style={[styles.dayNumBtn, dayNumberContainer]}
         >
-          <Text style={[styles.dayNumber, dayNumber]}>{dayNum}</Text>
+          <Text
+            allowFontScaling={theme.allowFontScaling}
+            style={[styles.dayNumber, dayNumber]}
+          >
+            {dayNum}
+          </Text>
         </TouchableOpacity>
       </View>
     );

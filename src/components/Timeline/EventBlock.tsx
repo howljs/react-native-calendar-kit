@@ -82,7 +82,14 @@ const EventBlock = ({
   }, [event]);
 
   const _renderEventContent = () => {
-    return <Text style={[styles.title, theme.eventTitle]}>{event.title}</Text>;
+    return (
+      <Text
+        allowFontScaling={theme.allowFontScaling}
+        style={[styles.title, theme.eventTitle]}
+      >
+        {event.title}
+      </Text>
+    );
   };
 
   const eventOpacity = selectedEventId ? 0.5 : 1;

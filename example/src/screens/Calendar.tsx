@@ -102,7 +102,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
           });
         }}
       >
-        <Text>Now</Text>
+        <Text allowFontScaling={false}>Now</Text>
       </TouchableOpacity>
     );
   }, [selectedEvent]);
@@ -257,6 +257,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
           dayName: { color: 'black' },
           dayNumber: { color: 'black' },
           dayNumberContainer: { backgroundColor: 'white' },
+          allowFontScaling: false,
         }}
         locale="en"
         useHaptic

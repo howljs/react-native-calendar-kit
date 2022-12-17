@@ -396,7 +396,12 @@ const AnimatedHour = ({
         animatedTextStyles,
       ]}
     >
-      <Text style={[styles.hourText, theme.dragHourText]}>{time}</Text>
+      <Text
+        allowFontScaling={theme.allowFontScaling}
+        style={[styles.hourText, theme.dragHourText]}
+      >
+        {time}
+      </Text>
     </Animated.View>
   );
 };

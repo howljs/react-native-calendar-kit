@@ -58,7 +58,7 @@ export default function App() {
         <Drawer.Screen
           name="Calendar"
           component={Calendar}
-          options={{ title: 'Calendar' }}
+          options={{ title: 'Calendar', headerTitleAllowFontScaling: false }}
         />
       </Drawer.Navigator>
     </NavigationContainer>
