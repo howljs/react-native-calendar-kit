@@ -15,12 +15,12 @@ const MultipleDayBar = ({
   theme,
   locale,
   highlightDates,
-  tzOffset,
+  currentDate,
 }: DayBarItemProps) => {
   const _renderDay = (dayIndex: number) => {
-    const currentDate = dayjs(startDate).add(dayIndex, 'd');
-    const dateStr = currentDate.format('YYYY-MM-DD');
-    const [dayNameText, dayNum] = currentDate
+    const dateByIndex = dayjs(startDate).add(dayIndex, 'd');
+    const dateStr = dateByIndex.format('YYYY-MM-DD');
+    const [dayNameText, dayNum] = dateByIndex
       .locale(locale)
       .format('ddd,DD')
       .split(',');
@@ -28,9 +28,9 @@ const MultipleDayBar = ({
 
     const { dayName, dayNumber, dayNumberContainer } = getDayBarStyle(
       currentDate,
+      dateByIndex,
       theme,
-      highlightDate,
-      tzOffset
+      highlightDate
     );
 
     return (

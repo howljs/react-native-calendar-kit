@@ -1,6 +1,13 @@
 import type { FlashList } from '@shopify/flash-list';
 import dayjs from 'dayjs';
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { PixelRatio, ScrollView, useWindowDimensions } from 'react-native';
 import type { GestureType } from 'react-native-gesture-handler';
 import {
@@ -18,6 +25,7 @@ import type {
 import {
   calculateDates,
   calculateHours,
+  getCurrentDate,
   getTheme,
   getTimeZoneOffset,
 } from '../utils';
@@ -66,6 +74,8 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   pinchRef: React.MutableRefObject<GestureType | undefined>;
   hourFormat?: string;
   tzOffset: number;
+  currentDate: string;
+  updateCurrentDate: () => void;
 }
 
 const TimelineCalendarContext = React.createContext<
@@ -107,6 +117,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     eventAnimatedDuration = DEFAULT_PROPS.EVENT_ANIMATED_DURATION,
     useHaptic = false,
     timeZone,
+    nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -142,7 +153,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
 
   /** Animated value */
   const currentIndex = useSharedValue(pages[viewMode].index);
-  const currentDate = useDerivedValue(
+  const startDate = useDerivedValue(
     () => pages[viewMode].data[currentIndex.value] as string
   );
   const timeIntervalHeight = useSharedValue(initialTimeIntervalHeight);
@@ -165,6 +176,18 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       minTimeIntervalHeight.value = initialMinTimeIntervalHeight;
     }
   }, [initialMinTimeIntervalHeight, minTimeIntervalHeight]);
+
+  const [currentDate, setCurrentDate] = useState(() =>
+    getCurrentDate(tzOffset)
+  );
+
+  const updateCurrentDate = useCallback(() => {
+    const newDate = getCurrentDate(tzOffset);
+    if (newDate === currentDate) {
+      return;
+    }
+    setCurrentDate(newDate);
+  }, [currentDate, tzOffset]);
 
   const value = useMemo(() => {
     const totalPages = {
@@ -227,6 +250,9 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       eventAnimatedDuration,
       useHaptic,
       tzOffset,
+      currentDate,
+      updateCurrentDate,
+      nowIndicatorInterval,
     };
   }, [
     pages,
@@ -266,6 +292,9 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     eventAnimatedDuration,
     useHaptic,
     tzOffset,
+    currentDate,
+    updateCurrentDate,
+    nowIndicatorInterval,
   ]);
 
   const mountedRef = useRef(false);
@@ -278,7 +307,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     // Scroll to current date when viewMode is changed
     const numOfDays =
       viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-    const currentDay = dayjs(currentDate.value);
+    const currentDay = dayjs(startDate.value);
     const firstDateMoment = dayjs(firstDate.current[viewMode]);
     const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
     const pageIndex = Math.floor(diffDays / numOfDays);

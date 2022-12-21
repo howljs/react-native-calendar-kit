@@ -88,6 +88,7 @@ const TimelineSlots = ({
     isScrolling,
     allowDragToCreate,
     pinchRef,
+    currentDate,
   } = useTimelineCalendarContext();
 
   const contentContainerStyle = useAnimatedStyle(() => {
@@ -133,8 +134,16 @@ const TimelineSlots = ({
       holidays,
       events,
       selectedEventId: selectedEvent?.id,
+      currentDate,
     }),
-    [allowDragToCreate, isLoading, holidays, events, selectedEvent?.id]
+    [
+      allowDragToCreate,
+      isLoading,
+      holidays,
+      events,
+      selectedEvent?.id,
+      currentDate,
+    ]
   );
 
   const _renderPage = ({ item, extraData }: ListRenderItemInfo<string>) => {
@@ -146,6 +155,7 @@ const TimelineSlots = ({
         events={extraData?.events}
         selectedEventId={extraData?.selectedEventId}
         renderEventContent={renderEventContent}
+        currentDate={extraData.currentDate}
         {...other}
       />
     );

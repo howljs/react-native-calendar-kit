@@ -63,6 +63,7 @@ const Timeline: React.ForwardRefRenderFunction<
     currentIndex,
     pages,
     tzOffset,
+    updateCurrentDate,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -108,18 +109,20 @@ const Timeline: React.ForwardRefRenderFunction<
           (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
         goToOffsetY(Math.max(0, position - 8), animated);
       },
+      forceUpdateNowIndicator: updateCurrentDate,
     }),
     [
-      firstDate,
       goToNextPage,
-      goToOffsetY,
       goToPrevPage,
-      spaceFromTop,
-      timeIntervalHeight.value,
-      timelineHorizontalListRef,
-      totalPages,
       viewMode,
       tzOffset,
+      firstDate,
+      totalPages,
+      timelineHorizontalListRef,
+      timeIntervalHeight.value,
+      spaceFromTop,
+      goToOffsetY,
+      updateCurrentDate,
     ]
   );
 
@@ -195,13 +198,13 @@ const Timeline: React.ForwardRefRenderFunction<
       if (!onChange) {
         return;
       }
-      const currentDate = pages[viewMode].data[index];
-      if (currentDate) {
+      const startDate = pages[viewMode].data[index];
+      if (startDate) {
         runOnJS(onChange)({
           length: pages[viewMode].data.length,
           index,
           prevIndex,
-          date: currentDate,
+          date: startDate,
         });
       }
     },

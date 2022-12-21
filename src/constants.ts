@@ -31,6 +31,7 @@ export const DEFAULT_PROPS = {
   OVERLAP_EVENTS_SPACING: 1,
   BLACK_COLOR: '#000000',
   EVENT_ANIMATED_DURATION: 150,
+  NOW_INDICATOR_INTERVAL: 1000,
 };
 
 export const COLUMNS = { week: 7, threeDays: 3, workWeek: 5, day: 1 };

@@ -38,6 +38,7 @@ interface TimelinePageProps {
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
   renderHalfLineCustom?: (width: number) => JSX.Element;
   halfLineContainerStyle?: ViewStyle;
+  currentDate: string;
 }
 
 const TimelinePage = ({
@@ -55,6 +56,7 @@ const TimelinePage = ({
   renderCustomUnavailableItem,
   renderHalfLineCustom,
   halfLineContainerStyle,
+  currentDate,
 }: TimelinePageProps) => {
   const {
     rightSideWidth,
@@ -71,6 +73,8 @@ const TimelinePage = ({
     theme,
     eventAnimatedDuration,
     tzOffset,
+    updateCurrentDate,
+    nowIndicatorInterval,
   } = useTimelineCalendarContext();
 
   const eventsByColumns = useMemo(
@@ -151,11 +155,10 @@ const TimelinePage = ({
     );
   };
 
-  const currentDate = useMemo(() => dayjs().add(tzOffset, 'm'), [tzOffset]);
-
   const _renderTimelineColumn = (dayIndex: number) => {
-    const currentColumn = dayjs(startDate).add(dayIndex, 'd');
-    const isToday = currentColumn.isSame(currentDate, 'd');
+    const dateByColumn = dayjs(startDate).add(dayIndex, 'd');
+    const dateStr = dateByColumn.format('YYYY-MM-DD');
+    const isToday = dateStr === currentDate;
 
     return (
       <React.Fragment key={dayIndex}>
@@ -172,6 +175,8 @@ const TimelinePage = ({
             nowIndicatorColor={theme.nowIndicatorColor}
             tzOffset={tzOffset}
             start={start}
+            updateCurrentDate={updateCurrentDate}
+            nowIndicatorInterval={nowIndicatorInterval}
           />
         )}
       </React.Fragment>

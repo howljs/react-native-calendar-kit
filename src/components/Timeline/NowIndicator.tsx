@@ -15,13 +15,15 @@ interface NowIndicatorProps {
   nowIndicatorColor?: string;
   tzOffset: number;
   start: number;
+  updateCurrentDate: () => void;
+  nowIndicatorInterval: number;
 }
-
-const UPDATE_TIME = 60000;
 
 const getCurrentMinutes = (tzOffset: number) => {
   const now = dayjs().add(tzOffset, 'm');
-  return now.hour() * 60 + now.minute();
+  const date = now.format('YYYY-MM-DD');
+  const minutes = now.hour() * 60 + now.minute();
+  return { date, minutes };
 };
 
 const NowIndicator = ({
@@ -31,38 +33,60 @@ const NowIndicator = ({
   nowIndicatorColor,
   tzOffset,
   start,
+  updateCurrentDate,
+  nowIndicatorInterval,
 }: NowIndicatorProps) => {
-  const initialMinutes = useRef(getCurrentMinutes(tzOffset));
+  const initial = useRef(getCurrentMinutes(tzOffset));
   const translateY = useSharedValue(0);
   const intervalCallbackId = useRef<any>(null);
 
+  const prevMinutes = useRef(initial.current.minutes);
   const updateLinePosition = useCallback(() => {
-    const newMinutes = getCurrentMinutes(tzOffset);
+    const { date, minutes } = getCurrentMinutes(tzOffset);
+    console.log({ minutes });
+
+    if (prevMinutes.current === minutes) {
+      return;
+    }
+    if (initial.current.date !== date) {
+      updateCurrentDate();
+      return;
+    }
+    prevMinutes.current = minutes;
     const extraMinutes = start * 60;
     const subtractInitialMinutes =
-      newMinutes - (initialMinutes.current + extraMinutes);
+      minutes - (initial.current.minutes + extraMinutes);
     const newY = (subtractInitialMinutes / 60) * timeIntervalHeight.value;
     translateY.value = withTiming(newY, {
       duration: 500,
     });
-  }, [timeIntervalHeight.value, tzOffset, translateY, start]);
+  }, [
+    tzOffset,
+    start,
+    timeIntervalHeight.value,
+    translateY,
+    updateCurrentDate,
+  ]);
 
   useEffect(() => {
     updateLinePosition();
     if (intervalCallbackId.current) {
       clearInterval(intervalCallbackId.current);
     }
-    intervalCallbackId.current = setInterval(updateLinePosition, UPDATE_TIME);
+    intervalCallbackId.current = setInterval(
+      updateLinePosition,
+      nowIndicatorInterval
+    );
     return () => {
       if (intervalCallbackId.current) {
         clearInterval(intervalCallbackId.current);
       }
     };
-  }, [updateLinePosition]);
+  }, [nowIndicatorInterval, updateLinePosition]);
 
   const animStyle = useAnimatedStyle(() => {
     return {
-      top: (initialMinutes.current / 60) * timeIntervalHeight.value,
+      top: (initial.current.minutes / 60) * timeIntervalHeight.value,
       transform: [{ translateY: translateY.value }],
     };
   }, []);

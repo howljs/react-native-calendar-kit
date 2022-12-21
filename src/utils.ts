@@ -354,13 +354,13 @@ type DayBarStyle = {
 
 type StyleKey = 'day' | 'today' | 'sunday' | 'saturday';
 export const getDayBarStyle = (
+  currentDate: string,
   date: Dayjs,
   theme: ThemeProperties,
-  highlightDate: DayBarStyle = {},
-  tzOffset: number
+  highlightDate: DayBarStyle = {}
 ) => {
-  const currentDate = dayjs().add(tzOffset, 'm');
-  const isToday = date.isSame(currentDate, 'd');
+  const dateStr = date.format('YYYY-MM-DD');
+  const isToday = dateStr === currentDate;
   const weekDay = date.weekday();
   const isSunday = weekDay === 0;
   const isSaturday = weekDay === 6;
@@ -415,4 +415,8 @@ export const getTimeZoneOffset = (timeZone?: TimeZone) => {
   const timeZoneInfo = timeZoneData[timeZone];
   const defaultOffset = dayjs().utcOffset();
   return timeZoneInfo.offset - defaultOffset;
+};
+
+export const getCurrentDate = (tzOffset: number, date?: string) => {
+  return dayjs(date).add(tzOffset, 'm').format('YYYY-MM-DD');
 };

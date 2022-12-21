@@ -32,6 +32,7 @@ export interface TimelineCalendarHandle {
     countryName: string;
   };
   goToHour: (hour: number, animated?: boolean) => void;
+  forceUpdateNowIndicator: (customDate?: string) => void;
 }
 
 export interface TimelineCalendarProps
@@ -169,6 +170,9 @@ export interface TimelineProviderProps {
   useHaptic?: boolean;
 
   timeZone?: TimeZone;
+
+  // update indicator at specified intervals (in milliseconds). Default is **1000**
+  nowIndicatorInterval?: number;
 }
 
 export interface DayBarItemProps {
@@ -182,6 +186,7 @@ export interface DayBarItemProps {
   locale: LocaleType;
   highlightDates?: HighlightDates;
   tzOffset: number;
+  currentDate: string;
 }
 
 export interface ThemeProperties {

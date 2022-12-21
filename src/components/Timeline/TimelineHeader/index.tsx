@@ -1,4 +1,4 @@
-import { AnimatedFlashList } from '@shopify/flash-list';
+import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import React, { useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
@@ -37,6 +37,7 @@ const TimelineHeader = ({
     theme,
     locale,
     tzOffset,
+    currentDate,
   } = useTimelineCalendarContext();
 
   const [startDate, setStartDate] = useState(
@@ -45,7 +46,10 @@ const TimelineHeader = ({
 
   const dayBarIndex = useRef(pages.week.index);
 
-  const _renderSingleDayItem = ({ item }: { item: string }) => {
+  const _renderSingleDayItem = ({
+    item,
+    extraData,
+  }: ListRenderItemInfo<string>) => {
     const dayItemProps = {
       width: timelineWidth,
       startDate: item,
@@ -53,10 +57,11 @@ const TimelineHeader = ({
       hourWidth,
       viewMode,
       onPressDayNum,
-      theme,
-      locale,
-      highlightDates,
+      theme: extraData.theme,
+      locale: extraData.locale,
+      highlightDates: extraData.highlightDates,
       tzOffset,
+      currentDate: extraData.currentDate,
     };
 
     if (renderDayBarItem) {
@@ -66,7 +71,10 @@ const TimelineHeader = ({
     return <SingleDayBar {...dayItemProps} />;
   };
 
-  const _renderMultipleDayItem = ({ item }: { item: string }) => {
+  const _renderMultipleDayItem = ({
+    item,
+    extraData,
+  }: ListRenderItemInfo<string>) => {
     const dayItemProps = {
       width: rightSideWidth,
       startDate: item,
@@ -74,10 +82,11 @@ const TimelineHeader = ({
       hourWidth,
       viewMode,
       onPressDayNum,
-      theme,
-      locale,
-      highlightDates,
+      theme: extraData.theme,
+      locale: extraData.locale,
+      highlightDates: extraData.highlightDates,
       tzOffset,
+      currentDate: extraData.currentDate,
     };
 
     if (renderDayBarItem) {
@@ -88,8 +97,8 @@ const TimelineHeader = ({
   };
 
   const extraValues = useMemo(
-    () => ({ locale, highlightDates, theme }),
-    [locale, highlightDates, theme]
+    () => ({ locale, highlightDates, theme, currentDate }),
+    [locale, highlightDates, theme, currentDate]
   );
 
   const _renderDayBarList = () => {
@@ -159,9 +168,9 @@ const TimelineHeader = ({
         return;
       }
 
-      const currentDate = pages[viewMode].data[index];
-      if (currentDate) {
-        runOnJS(setStartDate)(currentDate);
+      const dateByIndex = pages[viewMode].data[index];
+      if (dateByIndex) {
+        runOnJS(setStartDate)(dateByIndex);
       }
     },
     [viewMode, syncedLists]
@@ -169,12 +178,22 @@ const TimelineHeader = ({
 
   const _renderDayBarView = () => {
     if (viewMode === 'day') {
-      return _renderSingleDayItem({ item: startDate });
+      return _renderSingleDayItem({
+        item: startDate,
+        extraData: extraValues,
+        index: 0,
+        target: 'Cell',
+      });
     }
     return (
       <View style={styles.multipleDayContainer}>
         <View style={{ width: hourWidth }} />
-        {_renderMultipleDayItem({ item: startDate })}
+        {_renderMultipleDayItem({
+          item: startDate,
+          extraData: extraValues,
+          index: 0,
+          target: 'Cell',
+        })}
       </View>
     );
   };
