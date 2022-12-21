@@ -200,3 +200,9 @@ Custom component rendered inside the line in the middle of the interval
 Container style of the line in the middle of the interval.
 
 <span style={{color: "grey"}}>function</span>
+
+### nowIndicatorInterval
+
+Update indicator at specified intervals (in milliseconds). Default is `1000`
+
+<span style={{color: "grey"}}>number</span>
