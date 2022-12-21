@@ -66,7 +66,9 @@ const DragEditItem = ({
 
   const eventWidth = useSharedValue(event.width);
   const eventLeft = useSharedValue(leftWithHourColumn + event.left);
-  const currentHour = useSharedValue(event.top / timeIntervalHeight.value);
+  const currentHour = useSharedValue(
+    event.top / timeIntervalHeight.value + start
+  );
 
   const startOffsetY = useSharedValue(0);
   const startXY = useSharedValue({ x: 0, y: 0 });
