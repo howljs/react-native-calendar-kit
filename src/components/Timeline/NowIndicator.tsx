@@ -43,8 +43,6 @@ const NowIndicator = ({
   const prevMinutes = useRef(initial.current.minutes);
   const updateLinePosition = useCallback(() => {
     const { date, minutes } = getCurrentMinutes(tzOffset);
-    console.log({ minutes });
-
     if (prevMinutes.current === minutes) {
       return;
     }
