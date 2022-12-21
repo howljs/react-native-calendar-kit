@@ -127,7 +127,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
 
   const _onEnd = (event: { x: number; y: number }) => {
     const time = event.y / timeIntervalHeight.value;
-    const positionIndex = Math.floor(event.x / columnWidth);
+    const positionIndex = Math.round(event.x / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
     const eventStart = dayjs(startDate)
       .add(positionIndex, 'd')
