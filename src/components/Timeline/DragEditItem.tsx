@@ -178,6 +178,7 @@ const DragEditItem = ({
 
   const dragPositionGesture = Gesture.Pan()
     .enabled(isEnabled)
+    .runOnJS(true)
     .maxPointers(1)
     .onStart(() => {
       startOffsetY.value = offsetY.value;
@@ -233,6 +234,7 @@ const DragEditItem = ({
 
   const dragDurationGesture = Gesture.Pan()
     .enabled(isEnabled)
+    .runOnJS(true)
     .maxPointers(1)
     .onStart(() => {
       startOffsetY.value = offsetY.value;
