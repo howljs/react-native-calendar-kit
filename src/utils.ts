@@ -413,8 +413,27 @@ export const getTimeZoneOffset = (timeZone?: TimeZone) => {
     return 0;
   }
   const timeZoneInfo = timeZoneData[timeZone];
-  const defaultOffset = dayjs().utcOffset();
+  const defaultOffset = getDefaultLocalOffset();
   return timeZoneInfo.offset - defaultOffset;
+};
+
+const getDefaultLocalOffset = () => {
+  const defaultOffset = dayjs().utcOffset();
+  const testDate = new Date();
+  const january = new Date(testDate.getFullYear(), 0, 1);
+  const july = new Date(testDate.getFullYear(), 6, 1);
+  const standardTimezoneOffset = Math.max(
+    january.getTimezoneOffset(),
+    july.getTimezoneOffset()
+  );
+
+  if (testDate.getTimezoneOffset() < standardTimezoneOffset) {
+    return (
+      defaultOffset - (standardTimezoneOffset - testDate.getTimezoneOffset())
+    );
+  }
+
+  return defaultOffset;
 };
 
 export const getCurrentDate = (tzOffset: number, date?: string) => {
