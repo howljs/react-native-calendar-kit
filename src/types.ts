@@ -33,6 +33,12 @@ export interface TimelineCalendarHandle {
   };
   goToHour: (hour: number, animated?: boolean) => void;
   forceUpdateNowIndicator: (customDate?: string) => void;
+  /**
+   * * scale: Change `timeIntervalHeight` by scale value
+   * * height: Change `timeIntervalHeight` to height value
+   * * props is `undefined`: Change `timeIntervalHeight` to initialTimeIntervalHeight
+   */
+  zoom: (props?: { scale?: number; height?: number }) => void;
 }
 
 export interface TimelineCalendarProps

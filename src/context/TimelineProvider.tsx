@@ -36,7 +36,6 @@ type CustomTimelineProviderProps = Required<
     | 'initialDate'
     | 'minTimeIntervalHeight'
     | 'maxTimeIntervalHeight'
-    | 'initialTimeIntervalHeight'
     | 'unavailableHours'
     | 'hourFormat'
     | 'timeZone'
@@ -273,6 +272,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       navigateDelay,
       numOfColumns,
       recheckTimezoneOffset,
+      initialTimeIntervalHeight,
     };
   }, [
     pages,
@@ -318,6 +318,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     isPinchActive,
     navigateDelay,
     recheckTimezoneOffset,
+    initialTimeIntervalHeight,
   ]);
 
   const mountedRef = useRef(false);

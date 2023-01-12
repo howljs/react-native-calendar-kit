@@ -16,7 +16,11 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
-import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
+import {
+  runOnJS,
+  useAnimatedReaction,
+  withTiming,
+} from 'react-native-reanimated';
 import { timeZoneData } from '../../assets/timeZone';
 import { COLUMNS, DEFAULT_PROPS, LOCALES } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
@@ -24,7 +28,7 @@ import useDragCreateGesture from '../../hooks/useDragCreateGesture';
 import useZoomGesture from '../../hooks/usePinchGesture';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
 import type { TimelineCalendarHandle, TimelineProps } from '../../types';
-import { groupEventsByDate } from '../../utils';
+import { clampValues, groupEventsByDate } from '../../utils';
 import DragCreateItem from './DragCreateItem';
 import TimelineHeader from './TimelineHeader';
 import TimelineSlots from './TimelineSlots';
@@ -67,7 +71,11 @@ const Timeline: React.ForwardRefRenderFunction<
     currentIndex,
     pages,
     tzOffset,
+    maxTimeIntervalHeight,
     updateCurrentDate,
+    offsetY,
+    timelineVerticalListRef,
+    initialTimeIntervalHeight,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -114,19 +122,40 @@ const Timeline: React.ForwardRefRenderFunction<
         goToOffsetY(Math.max(0, position - 8), animated);
       },
       forceUpdateNowIndicator: updateCurrentDate,
+      zoom: (props?: { scale?: number; height?: number }) => {
+        let newHeight = props?.height ?? initialTimeIntervalHeight;
+        if (props?.scale) {
+          newHeight = timeIntervalHeight.value * props.scale;
+        }
+        const clampedHeight = clampValues(
+          newHeight,
+          minTimeIntervalHeight.value,
+          maxTimeIntervalHeight
+        );
+        const pinchYNormalized = offsetY.value / timeIntervalHeight.value;
+        const pinchYScale = clampedHeight * pinchYNormalized;
+        const y = pinchYScale;
+        timelineVerticalListRef.current?.scrollTo({ x: 0, y, animated: true });
+        timeIntervalHeight.value = withTiming(clampedHeight);
+      },
     }),
     [
       goToNextPage,
       goToPrevPage,
+      updateCurrentDate,
       viewMode,
       tzOffset,
       firstDate,
       totalPages,
       timelineHorizontalListRef,
-      timeIntervalHeight.value,
+      timeIntervalHeight,
       spaceFromTop,
       goToOffsetY,
-      updateCurrentDate,
+      minTimeIntervalHeight.value,
+      maxTimeIntervalHeight,
+      offsetY.value,
+      timelineVerticalListRef,
+      initialTimeIntervalHeight,
     ]
   );
 

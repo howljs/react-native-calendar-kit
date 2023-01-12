@@ -120,3 +120,35 @@ const calendarRef = useRef<TimelineCalendarHandle>(null);
   <Text>Go to 07:30</Text>
 </TouchableOpacity>;
 ```
+
+## zoom
+
+Change `timeIntervalHeight`
+
+```tsx title="Example"
+const calendarRef = useRef<TimelineCalendarHandle>(null);
+
+//...
+<TimelineCalendar ref={calendarRef} viewMode="week" />;
+
+//...
+<TouchableOpacity
+  onPress={() => {
+    calendarRef.current?.zoom({ scale: 1.2 }); // Change `timeIntervalHeight` by scale value
+    // calendarRef.current?.zoom({ height: 100 }); // Change `timeIntervalHeight` to height value
+    // calendarRef.current?.zoom(); // Change `timeIntervalHeight` to initialTimeIntervalHeight
+  }}
+>
+  <Text>Zoom In</Text>
+</TouchableOpacity>;
+
+<TouchableOpacity
+  onPress={() => {
+    calendarRef.current?.zoom({ scale: 0.8 }); // Change `timeIntervalHeight` by scale value
+    // calendarRef.current?.zoom({ height: 40 }); // Change `timeIntervalHeight` to height value
+    // calendarRef.current?.zoom(); // Change `timeIntervalHeight` to initialTimeIntervalHeight
+  }}
+>
+  <Text>Zoom Out</Text>
+</TouchableOpacity>;
+```
