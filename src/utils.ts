@@ -25,8 +25,8 @@ export const calculateDates = (
   const maxDate = dayjs(maxDateStr);
   const minDateUnix = minDate.unix();
   const maxDateUnix = maxDate.unix();
-  const minWeekDay = minDate.weekday();
-  const maxWeekDay = maxDate.weekday();
+  const minWeekDay = minDate.day();
+  const maxWeekDay = maxDate.day();
 
   const fDow = (7 + initialFirstDay) % 7;
   const diffBefore = (minWeekDay + 7 - fDow) % 7;
@@ -361,7 +361,7 @@ export const getDayBarStyle = (
 ) => {
   const dateStr = date.format('YYYY-MM-DD');
   const isToday = dateStr === currentDate;
-  const weekDay = date.weekday();
+  const weekDay = date.day();
   const isSunday = weekDay === 0;
   const isSaturday = weekDay === 6;
 

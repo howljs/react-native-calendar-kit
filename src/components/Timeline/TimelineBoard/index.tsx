@@ -81,7 +81,7 @@ const TimelineBoard = ({
       } else {
         const current = dayjs.unix(currentUnix);
         const currentDateStr = current.format('YYYY-MM-DD');
-        const currentWeekDay = current.weekday();
+        const currentWeekDay = current.day();
         unavailableHour =
           unavailableHours?.[currentDateStr] ||
           unavailableHours?.[currentWeekDay];
