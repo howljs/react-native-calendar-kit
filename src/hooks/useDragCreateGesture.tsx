@@ -7,6 +7,7 @@ import {
   PanGestureHandlerEventPayload,
 } from 'react-native-gesture-handler';
 import {
+  Easing,
   runOnJS,
   useAnimatedReaction,
   useSharedValue,
@@ -43,6 +44,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     useHaptic,
     tzOffset,
     start,
+    navigateDelay,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -78,20 +80,27 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       y: calcY + spaceFromTop - offsetY.value,
     };
   };
-
+  const timeoutRef = useSharedValue<NodeJS.Timeout | null>(null);
   const _handleScroll = (x: number) => {
-    const SPACE = 25;
-    if (x < SPACE) {
-      if (isScrolling.current) {
-        return;
-      }
-      goToPrevPage(true);
+    if (timeoutRef.value && x > hourWidth && x < timelineWidth - 25) {
+      clearInterval(timeoutRef.value);
+      timeoutRef.value = null;
     }
-    if (x > timelineWidth - SPACE) {
-      if (isScrolling.current) {
+    if (x <= hourWidth) {
+      if (isScrolling.current || timeoutRef.value) {
         return;
       }
-      goToNextPage(true);
+      timeoutRef.value = setInterval(() => {
+        goToPrevPage(true);
+      }, navigateDelay);
+    }
+    if (x >= timelineWidth - 25) {
+      if (isScrolling.current || timeoutRef.value) {
+        return;
+      }
+      timeoutRef.value = setInterval(() => {
+        goToNextPage(true);
+      }, navigateDelay);
     }
 
     const scrollTargetDiff = Math.abs(startOffsetY.current - offsetY.value);
@@ -126,6 +135,10 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
   };
 
   const _onEnd = (event: { x: number; y: number }) => {
+    if (timeoutRef.value) {
+      clearInterval(timeoutRef.value);
+      timeoutRef.value = null;
+    }
     const time = event.y / timeIntervalHeight.value;
     const positionIndex = Math.round(event.x / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
@@ -160,8 +173,14 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
 
       const { x, y } = calcPosition(event.x, event.y, dragStep);
       if (dragXPosition.value !== x || dragYPosition.value !== y) {
-        dragXPosition.value = withTiming(x, { duration: 100 });
-        dragYPosition.value = y;
+        dragXPosition.value = withTiming(x, {
+          duration: 100,
+          easing: Easing.linear,
+        });
+        dragYPosition.value = withTiming(y, {
+          duration: 50,
+          easing: Easing.linear,
+        });
         if (useHaptic) {
           runOnJS(triggerHaptic)();
         }

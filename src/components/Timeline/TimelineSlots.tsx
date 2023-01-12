@@ -11,12 +11,7 @@ import {
   ViewabilityConfig,
   ViewToken,
 } from 'react-native';
-import {
-  ComposedGesture,
-  GestureDetector,
-  GestureType,
-  ScrollView,
-} from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -29,7 +24,6 @@ import TimelinePage from './TimelinePage';
 
 interface TimelineSlotsProps {
   isDragging: boolean;
-  gesture: ComposedGesture | GestureType;
   onPressBackground?: (date: string, event: GestureResponderEvent) => void;
   onLongPressBackground?: (date: string, event: GestureResponderEvent) => void;
   onPressOutBackground?: (date: string, event: GestureResponderEvent) => void;
@@ -55,7 +49,6 @@ interface TimelineSlotsProps {
 }
 
 const TimelineSlots = ({
-  gesture,
   onDateChanged,
   isDragging,
   isLoading,
@@ -248,38 +241,34 @@ const TimelineSlots = ({
   };
 
   return (
-    <GestureDetector gesture={gesture}>
-      <ScrollView
-        ref={timelineVerticalListRef}
-        waitFor={Platform.OS === 'android' ? pinchRef : undefined}
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={16}
-        style={styles.container}
-        onScroll={_onVerticalScroll}
-        scrollEnabled={!isDragging}
+    <ScrollView
+      ref={timelineVerticalListRef}
+      waitFor={Platform.OS === 'android' ? pinchRef : undefined}
+      showsVerticalScrollIndicator={false}
+      scrollEventThrottle={16}
+      style={styles.container}
+      onScroll={_onVerticalScroll}
+      scrollEnabled={!isDragging}
+    >
+      <Animated.View
+        style={[
+          styles.contentContainer,
+          { width: timelineWidth },
+          contentContainerStyle,
+        ]}
       >
-        <Animated.View
-          style={[
-            styles.contentContainer,
-            { width: timelineWidth },
-            contentContainerStyle,
-          ]}
-        >
-          {_renderSlots()}
-        </Animated.View>
-        {!!selectedEvent?.id && (
-          <DragEditItem
-            selectedEvent={selectedEvent}
-            onEndDragSelectedEvent={onEndDragSelectedEvent}
-            isEnabled={editEventGestureEnabled}
-            EditIndicatorComponent={EditIndicatorComponent}
-            renderEventContent={
-              renderSelectedEventContent || renderEventContent
-            }
-          />
-        )}
-      </ScrollView>
-    </GestureDetector>
+        {_renderSlots()}
+      </Animated.View>
+      {!!selectedEvent?.id && (
+        <DragEditItem
+          selectedEvent={selectedEvent}
+          onEndDragSelectedEvent={onEndDragSelectedEvent}
+          isEnabled={editEventGestureEnabled}
+          EditIndicatorComponent={EditIndicatorComponent}
+          renderEventContent={renderSelectedEventContent || renderEventContent}
+        />
+      )}
+    </ScrollView>
   );
 };
 

@@ -420,3 +420,33 @@ export const getTimeZoneOffset = (timeZone?: TimeZone) => {
 export const getCurrentDate = (tzOffset: number, date?: string) => {
   return dayjs(date).add(tzOffset, 'm').format('YYYY-MM-DD');
 };
+
+export const clampValues = (value: number, min: number, max: number) => {
+  'worklet';
+  return Math.max(min, Math.min(value, max));
+};
+
+export const shallowEqual = (object1: any, object2: any) => {
+  const keys1 = Object.keys(object1);
+  const keys2 = Object.keys(object2);
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+  for (let key of keys1) {
+    if (object1[key] !== object2[key]) {
+      return false;
+    }
+  }
+  return true;
+};
+
+export const roundTo = (hour: number, step: number, type: 'up' | 'down') => {
+  'worklet';
+  const totalMinutes = hour * 60;
+  if (type === 'up') {
+    const nextMinutes = Math.ceil(totalMinutes / step) * step;
+    return nextMinutes / 60;
+  }
+  const nextMinutes = Math.floor(totalMinutes / step) * step;
+  return nextMinutes / 60;
+};

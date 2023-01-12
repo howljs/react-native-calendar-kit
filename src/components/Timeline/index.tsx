@@ -11,7 +11,11 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 import { timeZoneData } from '../../assets/timeZone';
 import { COLUMNS, DEFAULT_PROPS, LOCALES } from '../../constants';
@@ -225,15 +229,16 @@ const Timeline: React.ForwardRefRenderFunction<
         />
       )}
       <View style={styles.content} onLayout={_onContentLayout}>
-        <TimelineSlots
-          {...other}
-          events={groupedEvents}
-          selectedEvent={selectedEvent}
-          isDragging={isDraggingCreate}
-          isLoading={isLoading}
-          gesture={Gesture.Race(dragCreateGesture, zoomGesture)}
-          onLongPressBackground={_onLongPressBackground}
-        />
+        <GestureDetector gesture={Gesture.Race(dragCreateGesture, zoomGesture)}>
+          <TimelineSlots
+            {...other}
+            events={groupedEvents}
+            selectedEvent={selectedEvent}
+            isDragging={isDraggingCreate}
+            isLoading={isLoading}
+            onLongPressBackground={_onLongPressBackground}
+          />
+        </GestureDetector>
         {isDraggingCreate && (
           <DragCreateItem
             offsetX={dragXPosition}

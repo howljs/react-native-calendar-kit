@@ -75,6 +75,7 @@ const TimelinePage = ({
     tzOffset,
     updateCurrentDate,
     nowIndicatorInterval,
+    isPinchActive,
   } = useTimelineCalendarContext();
 
   const eventsByColumns = useMemo(
@@ -151,6 +152,7 @@ const TimelinePage = ({
         selectedEventId={selectedEventId}
         theme={theme}
         eventAnimatedDuration={eventAnimatedDuration}
+        isPinchActive={isPinchActive}
       />
     );
   };

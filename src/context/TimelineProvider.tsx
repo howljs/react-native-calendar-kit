@@ -76,6 +76,8 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   tzOffset: number;
   currentDate: string;
   updateCurrentDate: () => void;
+  isPinchActive: SharedValue<boolean>;
+  numOfColumns: number;
 }
 
 const TimelineCalendarContext = React.createContext<
@@ -118,6 +120,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     useHaptic = false,
     timeZone,
     nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
+    navigateDelay = DEFAULT_PROPS.NAVIGATION_DELAY,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -189,6 +192,8 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     setCurrentDate(newDate);
   }, [currentDate, tzOffset]);
 
+  const isPinchActive = useSharedValue(false);
+
   const value = useMemo(() => {
     const totalPages = {
       week: pages.week.data.length,
@@ -198,7 +203,8 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     };
     const totalHours = hours.length;
     const rightSideWidth = timelineWidth - rHourWidth;
-    const columnWidth = rightSideWidth / COLUMNS[viewMode];
+    const numOfColumns = COLUMNS[viewMode];
+    const columnWidth = rightSideWidth / numOfColumns;
 
     return {
       pages,
@@ -253,6 +259,9 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       currentDate,
       updateCurrentDate,
       nowIndicatorInterval,
+      isPinchActive,
+      navigateDelay,
+      numOfColumns,
     };
   }, [
     pages,
@@ -295,6 +304,8 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     currentDate,
     updateCurrentDate,
     nowIndicatorInterval,
+    isPinchActive,
+    navigateDelay,
   ]);
 
   const mountedRef = useRef(false);

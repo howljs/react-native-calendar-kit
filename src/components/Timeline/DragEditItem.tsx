@@ -3,6 +3,7 @@ import React, { memo, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Easing,
   runOnJS,
   SharedValue,
   useAnimatedReaction,
@@ -57,6 +58,7 @@ const DragEditItem = ({
     useHaptic,
     tzOffset,
     start,
+    navigateDelay,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -99,6 +101,7 @@ const DragEditItem = ({
     rightEdgeSpacing,
   ]);
 
+  const timeoutRef = useSharedValue<NodeJS.Timeout | null>(null);
   const _handleScroll = ({
     x,
     y,
@@ -108,18 +111,25 @@ const DragEditItem = ({
     y: number;
     type: 'swipe_down' | 'swipe_up';
   }) => {
-    const SPACE = 25;
-    if (x < SPACE) {
-      if (isScrolling.current) {
-        return;
-      }
-      goToPrevPage(true);
+    if (timeoutRef.value && x > hourWidth && x < timelineWidth - 25) {
+      clearInterval(timeoutRef.value);
+      timeoutRef.value = null;
     }
-    if (x > timelineWidth - SPACE) {
-      if (isScrolling.current) {
+    if (x <= hourWidth) {
+      if (isScrolling.current || timeoutRef.value) {
         return;
       }
-      goToNextPage(true);
+      timeoutRef.value = setInterval(() => {
+        goToPrevPage(true);
+      }, navigateDelay);
+    }
+    if (x >= timelineWidth - 25) {
+      if (isScrolling.current || timeoutRef.value) {
+        return;
+      }
+      timeoutRef.value = setInterval(() => {
+        goToNextPage(true);
+      }, navigateDelay);
     }
 
     const scrollTargetDiff = Math.abs(startOffsetY.value - offsetY.value);
@@ -176,6 +186,13 @@ const DragEditItem = ({
     }
   };
 
+  const clearCurrentInterval = () => {
+    if (timeoutRef.value) {
+      clearInterval(timeoutRef.value);
+      timeoutRef.value = null;
+    }
+  };
+
   const dragPositionGesture = Gesture.Pan()
     .enabled(isEnabled)
     .runOnJS(true)
@@ -213,8 +230,12 @@ const DragEditItem = ({
       if (!isSameX || !isSameY) {
         translateX.value = withTiming(roundedTranslateX, {
           duration: 100,
+          easing: Easing.linear,
         });
-        eventTop.value = newTopPosition;
+        eventTop.value = withTiming(newTopPosition, {
+          duration: 100,
+          easing: Easing.linear,
+        });
         currentHour.value = roundedHour + start;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
@@ -228,6 +249,9 @@ const DragEditItem = ({
     })
     .onEnd(() => {
       runOnJS(recalculateEvent)();
+    })
+    .onTouchesUp(() => {
+      runOnJS(clearCurrentInterval)();
     });
 
   const startHeight = useSharedValue(0);
@@ -248,7 +272,10 @@ const DragEditItem = ({
       const clampedHeight = Math.max(roundedHeight, heightOfTenMinutes);
       const isSameHeight = eventHeight.value === clampedHeight;
       if (!isSameHeight) {
-        eventHeight.value = clampedHeight;
+        eventHeight.value = withTiming(clampedHeight, {
+          duration: 100,
+          easing: Easing.linear,
+        });
         if (useHaptic) {
           runOnJS(triggerHaptic)();
         }
@@ -256,6 +283,9 @@ const DragEditItem = ({
     })
     .onEnd(() => {
       runOnJS(recalculateEvent)();
+    })
+    .onTouchesUp(() => {
+      runOnJS(clearCurrentInterval)();
     });
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -440,8 +470,9 @@ const styles = StyleSheet.create({
   },
   indicator: {
     width: '100%',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    height: 24,
   },
   title: { paddingVertical: 4, paddingHorizontal: 2, fontSize: 10 },
   hourText: {

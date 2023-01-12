@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import type { PackedEvent, ThemeProperties } from '../../types';
+import { shallowEqual } from '../../utils';
 
 export interface EventBlockProps {
   event: PackedEvent;
@@ -22,6 +23,7 @@ export interface EventBlockProps {
   selectedEventId?: string;
   theme: ThemeProperties;
   eventAnimatedDuration?: number;
+  isPinchActive: SharedValue<boolean>;
 }
 
 const EVENT_DEFAULT_COLOR = '#FFFFFF';
@@ -37,6 +39,7 @@ const EventBlock = ({
   theme,
   selectedEventId,
   eventAnimatedDuration,
+  isPinchActive,
 }: EventBlockProps) => {
   const _onLongPress = () => {
     const eventParams = {
@@ -63,6 +66,15 @@ const EventBlock = ({
 
     if (theme.minimumEventHeight) {
       eventHeight = Math.max(theme.minimumEventHeight, eventHeight);
+    }
+
+    if (isPinchActive.value) {
+      return {
+        top: event.startHour * timeIntervalHeight.value,
+        height: eventHeight,
+        left: event.left + columnWidth * dayIndex,
+        width: event.width,
+      };
     }
 
     return {
@@ -123,18 +135,12 @@ const EventBlock = ({
 };
 
 const areEqual = (prev: EventBlockProps, next: EventBlockProps) => {
-  const isSameEvent = isEqual(prev.event, next.event);
-  const isSameSelectedId = prev.selectedEventId === next.selectedEventId;
-  const isSameColumnWidth = prev.columnWidth === next.columnWidth;
-  const isSameDayIndex = prev.dayIndex === next.dayIndex;
-  const isSameTheme = isEqual(prev.theme, next.theme);
-  return (
-    isSameEvent &&
-    isSameSelectedId &&
-    isSameColumnWidth &&
-    isSameDayIndex &&
-    isSameTheme
-  );
+  const { event: prevEvent, theme: prevTheme, ...prevOther } = prev;
+  const { event: nextEvent, theme: nextTheme, ...nextOther } = next;
+  const isSameEvent = isEqual(prevEvent, nextEvent);
+  const isSameTheme = isEqual(prevTheme, nextTheme);
+  const isSameOther = shallowEqual(prevOther, nextOther);
+  return isSameEvent && isSameTheme && isSameOther;
 };
 
 export default memo(EventBlock, areEqual);
