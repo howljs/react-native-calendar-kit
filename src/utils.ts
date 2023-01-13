@@ -19,8 +19,8 @@ export const calculateDates = (
     workWeek: DateData = { data: [], index: -1 };
 
   const initialDate = moment.tz(initialDateStr, tzOffset);
-  const minDate = moment(minDateStr);
-  const maxDate = moment(maxDateStr);
+  const minDate = moment.tz(minDateStr, tzOffset);
+  const maxDate = moment.tz(maxDateStr, tzOffset);
   const minDateUnix = minDate.unix();
   const maxDateUnix = maxDate.unix();
   const minWeekDay = minDate.day();
@@ -114,10 +114,11 @@ export const convertPositionToISOString = (
   locationY: number,
   startDate: string,
   hourHeight: number,
-  columnWidth: number
+  columnWidth: number,
+  tzOffset: string
 ) => {
   const dayIndex = Math.floor(locationX / columnWidth);
-  const dateMoment = moment(startDate).add(dayIndex, 'd');
+  const dateMoment = moment.tz(startDate, tzOffset).add(dayIndex, 'd');
   const hourFromY = locationY / hourHeight;
   dateMoment.add(hourFromY, 'h');
   return dateMoment.toISOString();
@@ -168,14 +169,16 @@ const buildEvent = (
   width: number,
   options: PopulateOptions
 ): PackedEvent => {
-  const eventStart = moment(event.start, options.tzOffset);
-  const eventEnd = moment(event.end, options.tzOffset);
+  const eventStart = moment.tz(event.start, options.tzOffset);
+  const eventEnd = moment.tz(event.end, options.tzOffset);
   const timeToHour = eventStart.hour() + eventStart.minute() / 60;
   let start = timeToHour - options.startHour;
   const diffHour = eventEnd.diff(eventStart, 'm') / 60;
   const isSameDate = eventStart.isSame(eventEnd, 'd');
   if (!isSameDate) {
-    const currentDate = moment(options.startDate).add(options.dayIndex, 'd');
+    const currentDate = moment
+      .tz(options.startDate, options.tzOffset)
+      .add(options.dayIndex, 'd');
     const diffCurrent = eventStart.diff(currentDate, 'm') / 60;
     if (diffCurrent < 0) {
       start = 0 + diffCurrent - options.startHour;

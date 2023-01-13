@@ -16,9 +16,10 @@ const MultipleDayBar = ({
   locale,
   highlightDates,
   currentDate,
+  tzOffset,
 }: DayBarItemProps) => {
   const _renderDay = (dayIndex: number) => {
-    const dateByIndex = moment(startDate).add(dayIndex, 'd');
+    const dateByIndex = moment.tz(startDate, tzOffset).add(dayIndex, 'd');
     const dateStr = dateByIndex.format('YYYY-MM-DD');
     const [dayNameText, dayNum] = dateByIndex
       .locale(locale)

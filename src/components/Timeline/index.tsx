@@ -90,8 +90,11 @@ const Timeline: React.ForwardRefRenderFunction<
       }) => {
         const numOfDays =
           viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-        const currentDay = moment(props?.date).tz(tzOffset);
-        const firstDateMoment = moment(firstDate.current[viewMode]);
+        const currentDay = moment.tz(props?.date, tzOffset);
+        const firstDateMoment = moment.tz(
+          firstDate.current[viewMode],
+          tzOffset
+        );
         const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
         const pageIndex = Math.floor(diffDays / numOfDays);
         if (pageIndex < 0 || pageIndex > totalPages[viewMode] - 1) {
@@ -165,7 +168,7 @@ const Timeline: React.ForwardRefRenderFunction<
 
   useEffect(() => {
     requestAnimationFrame(() => {
-      const current = moment().tz(tzOffset);
+      const current = moment.tz(tzOffset);
       const isSameDate = current.format('YYYY-MM-DD') === initialDate.current;
       if (scrollToNow && isSameDate) {
         const minutes = current.hour() * 60 + current.minute();

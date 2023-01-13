@@ -13,9 +13,10 @@ const SingleDayBar = ({
   highlightDates,
   onPressDayNum,
   currentDate,
+  tzOffset,
 }: DayBarItemProps) => {
   const _renderDay = () => {
-    const dateByIndex = moment(startDate);
+    const dateByIndex = moment.tz(startDate, tzOffset);
     const dateStr = dateByIndex.format('YYYY-MM-DD');
     const [dayNameText, dayNum] = dateByIndex
       .locale(locale)

@@ -318,8 +318,8 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     // Scroll to current date when viewMode is changed
     const numOfDays =
       viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-    const currentDay = moment(startDate.value);
-    const firstDateMoment = moment(firstDate.current[viewMode]);
+    const currentDay = moment.tz(startDate.value, timeZone);
+    const firstDateMoment = moment.tz(firstDate.current[viewMode], timeZone);
     const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
     const pageIndex = Math.floor(diffDays / numOfDays);
     setTimeout(() => {
@@ -329,7 +329,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode]);
+  }, [viewMode, timeZone]);
 
   return (
     <TimelineCalendarContext.Provider value={value}>
