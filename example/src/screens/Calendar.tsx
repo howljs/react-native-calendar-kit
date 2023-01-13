@@ -12,12 +12,19 @@ import type { NavigationProp, RouteProp } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import React, {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  AppState,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Line, Svg } from 'react-native-svg';
 import CustomUnavailableItem from './CustomUnavailableItem';
@@ -88,6 +95,25 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
   const calendarRef = useRef<TimelineCalendarHandle>(null);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<PackedEvent>();
+
+  const appState = useRef(AppState.currentState);
+  // if autoRefreshTimezoneOffset = true, you can remove this useEffect
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // Recheck timezone offset the app has come to the foreground
+        calendarRef.current?.recheckTimezoneOffset();
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   const _renderHeaderRight = useCallback(() => {
     return (

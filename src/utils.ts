@@ -412,9 +412,22 @@ export const getTimeZoneOffset = (timeZone?: TimeZone) => {
   if (!timeZone) {
     return 0;
   }
-  const timeZoneInfo = timeZoneData[timeZone];
+  let timeZoneOffset = timeZoneData[timeZone].offset;
+  if (isDST()) {
+    timeZoneOffset = timeZoneData[timeZone].dstOffset;
+  }
   const defaultOffset = dayjs().utcOffset();
-  return timeZoneInfo.offset - defaultOffset;
+  return timeZoneOffset - defaultOffset;
+};
+
+const isDST = () => {
+  const date = new Date();
+  const jan = new Date(date.getFullYear(), 0, 1);
+  const jul = new Date(date.getFullYear(), 6, 1);
+  const dst =
+    date.getTimezoneOffset() <
+    Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+  return dst;
 };
 
 export const getCurrentDate = (tzOffset: number, date?: string) => {

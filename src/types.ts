@@ -39,6 +39,9 @@ export interface TimelineCalendarHandle {
    * * props is `undefined`: Change `timeIntervalHeight` to initialTimeIntervalHeight
    */
   zoom: (props?: { scale?: number; height?: number }) => void;
+
+  /** Refresh timezone offset */
+  recheckTimezoneOffset: () => void;
 }
 
 export interface TimelineCalendarProps
@@ -314,6 +317,9 @@ export interface TimelineProviderProps {
    ** Default: **1000**
    */
   navigateDelay?: number;
+
+  /** Auto refresh timezone offset every seconds */
+  autoRefreshTimezoneOffset?: boolean;
 }
 
 export interface DayBarItemProps {
