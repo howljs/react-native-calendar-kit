@@ -1,5 +1,5 @@
 import type { FlashList } from '@shopify/flash-list';
-import dayjs from 'dayjs';
+import moment from 'moment-timezone';
 import React, {
   useCallback,
   useContext,
@@ -117,7 +117,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     hourFormat,
     eventAnimatedDuration = DEFAULT_PROPS.EVENT_ANIMATED_DURATION,
     useHaptic = false,
-    timeZone = dayjs.tz.guess(),
+    timeZone = moment.tz.guess(),
     nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
     navigateDelay = DEFAULT_PROPS.NAVIGATION_DELAY,
   } = props;
@@ -318,8 +318,8 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     // Scroll to current date when viewMode is changed
     const numOfDays =
       viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-    const currentDay = dayjs(startDate.value);
-    const firstDateMoment = dayjs(firstDate.current[viewMode]);
+    const currentDay = moment(startDate.value);
+    const firstDateMoment = moment(firstDate.current[viewMode]);
     const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
     const pageIndex = Math.floor(diffDays / numOfDays);
     setTimeout(() => {

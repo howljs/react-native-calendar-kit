@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import moment from 'moment-timezone';
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -21,7 +21,7 @@ interface NowIndicatorProps {
 }
 
 const getCurrentMinutes = (tzOffset: string) => {
-  const now = dayjs().tz(tzOffset);
+  const now = moment.tz(tzOffset);
   const date = now.format('YYYY-MM-DD');
   const minutes = now.hour() * 60 + now.minute();
   return { date, minutes };

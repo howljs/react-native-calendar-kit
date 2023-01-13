@@ -1,14 +1,8 @@
-import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import { merge } from 'lodash';
+import moment, { Moment } from 'moment-timezone';
 import { Platform } from 'react-native';
 import { DEFAULT_PROPS, SECONDS_IN_DAY } from './constants';
 import type { EventItem, PackedEvent, ThemeProperties } from './types';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 type DateData = { data: string[]; index: number };
 
@@ -24,9 +18,9 @@ export const calculateDates = (
     threeDays: DateData = { data: [], index: -1 },
     workWeek: DateData = { data: [], index: -1 };
 
-  const initialDate = dayjs(initialDateStr).tz(tzOffset);
-  const minDate = dayjs(minDateStr);
-  const maxDate = dayjs(maxDateStr);
+  const initialDate = moment.tz(initialDateStr, tzOffset);
+  const minDate = moment(minDateStr);
+  const maxDate = moment(maxDateStr);
   const minDateUnix = minDate.unix();
   const maxDateUnix = maxDate.unix();
   const minWeekDay = minDate.day();
@@ -54,7 +48,7 @@ export const calculateDates = (
     startDay = minDateUnix;
   for (let dayIndex = 0; dayIndex < totalDays; dayIndex++) {
     const currentUnix = minWeekDateUnix + dayIndex * SECONDS_IN_DAY;
-    const dateFromUnix = dayjs.unix(currentUnix);
+    const dateFromUnix = moment.unix(currentUnix);
     const dateStr = dateFromUnix.format('YYYY-MM-DD');
     if (startDay === currentUnix) {
       if (currentUnix <= maxDateUnix) {
@@ -100,9 +94,10 @@ export const calculateHours = (
     const minuteStr = ('0' + rMinutes).slice(-2);
     let time = `${hourStr}:${minuteStr}`;
     if (hourFormat) {
-      time = dayjs(`1970/1/1 ${hourStr}:${minuteStr}`, 'YYYY/M/D HH:mm').format(
-        hourFormat
-      );
+      time = moment(
+        `1970/1/1 ${hourStr}:${minuteStr}`,
+        'YYYY/M/D HH:mm'
+      ).format(hourFormat);
     }
 
     hours.push({
@@ -122,7 +117,7 @@ export const convertPositionToISOString = (
   columnWidth: number
 ) => {
   const dayIndex = Math.floor(locationX / columnWidth);
-  const dateMoment = dayjs(startDate).add(dayIndex, 'd');
+  const dateMoment = moment(startDate).add(dayIndex, 'd');
   const hourFromY = locationY / hourHeight;
   dateMoment.add(hourFromY, 'h');
   return dateMoment.toISOString();
@@ -134,8 +129,8 @@ export const groupEventsByDate = (
 ) => {
   let groupedEvents: Record<string, EventItem[]> = {};
   events.forEach((event) => {
-    const startEvent = dayjs(event.start).tz(tzOffset).startOf('d');
-    const endEvent = dayjs(event.end).tz(tzOffset).startOf('d');
+    const startEvent = moment.tz(event.start, tzOffset).startOf('d');
+    const endEvent = moment.tz(event.end, tzOffset).startOf('d');
     const diffDays = endEvent.diff(startEvent, 'd');
     for (let i = 0; i <= diffDays; i++) {
       const dateStr = startEvent.add(i, 'd').format('YYYY-MM-DD');
@@ -173,14 +168,14 @@ const buildEvent = (
   width: number,
   options: PopulateOptions
 ): PackedEvent => {
-  const eventStart = dayjs(event.start).tz(options.tzOffset);
-  const eventEnd = dayjs(event.end).tz(options.tzOffset);
+  const eventStart = moment(event.start, options.tzOffset);
+  const eventEnd = moment(event.end, options.tzOffset);
   const timeToHour = eventStart.hour() + eventStart.minute() / 60;
   let start = timeToHour - options.startHour;
   const diffHour = eventEnd.diff(eventStart, 'm') / 60;
   const isSameDate = eventStart.isSame(eventEnd, 'd');
   if (!isSameDate) {
-    const currentDate = dayjs(options.startDate).add(options.dayIndex, 'd');
+    const currentDate = moment(options.startDate).add(options.dayIndex, 'd');
     const diffCurrent = eventStart.diff(currentDate, 'm') / 60;
     if (diffCurrent < 0) {
       start = 0 + diffCurrent - options.startHour;
@@ -304,10 +299,10 @@ interface DivideEventsProps {
 export const divideEventsByColumns = (props: DivideEventsProps) => {
   const { events = {}, startDate, columns, ...other } = props;
   let eventsByColumns: EventItem[][] = [];
-  const startUnix = dayjs(startDate).unix();
+  const startUnix = moment(startDate).unix();
   for (let i = 0; i < columns; i++) {
     const currentUnix = startUnix + i * SECONDS_IN_DAY;
-    const dateStr = dayjs.unix(currentUnix).format('YYYY-MM-DD');
+    const dateStr = moment.unix(currentUnix).format('YYYY-MM-DD');
     let eventsInDate: EventItem[] = [];
     const eventInDate = events[dateStr];
     if (eventInDate) {
@@ -359,7 +354,7 @@ type DayBarStyle = {
 type StyleKey = 'day' | 'today' | 'sunday' | 'saturday';
 export const getDayBarStyle = (
   currentDate: string,
-  date: Dayjs,
+  date: Moment,
   theme: ThemeProperties,
   highlightDate: DayBarStyle = {}
 ) => {
@@ -413,7 +408,7 @@ export const triggerHaptic = () => {
 };
 
 export const getCurrentDate = (tzOffset: string, date?: string) => {
-  return dayjs(date).tz(tzOffset).format('YYYY-MM-DD');
+  return moment.tz(date, tzOffset).format('YYYY-MM-DD');
 };
 
 export const clampValues = (value: number, min: number, max: number) => {

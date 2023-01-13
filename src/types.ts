@@ -6,7 +6,6 @@ import type {
 } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import type { TimeZone, timeZoneData } from './assets/timeZone';
-import type { LOCALES } from './constants';
 
 export interface TimelineCalendarHandle {
   goToDate: (props?: {
@@ -414,7 +413,7 @@ export interface PackedEvent extends EventItem {
   leftByIndex?: number;
 }
 
-export type LocaleType = keyof typeof LOCALES;
+export type LocaleType = string;
 
 export type HighlightDates = {
   [date: string]: {

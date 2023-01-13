@@ -1,10 +1,5 @@
-import dayjs from 'dayjs';
-import isoWeek from 'dayjs/plugin/isoWeek';
-import weekday from 'dayjs/plugin/weekday';
 import { calculateDates, calculateHours, groupEventsByDate } from '../utils';
 import { expectHourData, sampleData } from '../__mocks__/data';
-dayjs.extend(weekday);
-dayjs.extend(isoWeek);
 
 describe('get date data', () => {
   it('2022-10-01 -> 2022-10-31', () => {

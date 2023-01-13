@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import moment from 'moment-timezone';
 import { useRef, useState } from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import {
@@ -142,13 +142,13 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const time = event.y / timeIntervalHeight.value;
     const positionIndex = Math.round(event.x / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
-    const eventStart = dayjs(startDate)
+    const eventStart = moment
+      .tz(startDate, tzOffset)
       .add(positionIndex, 'd')
       .add(time, 'h')
-      .add(start, 'h')
-      .tz(tzOffset);
-    const isBeforeMinDate = eventStart.isBefore(dayjs(minDate), 'd');
-    const isAfterMaxDate = eventStart.isAfter(dayjs(maxDate), 'd');
+      .add(start, 'h');
+    const isBeforeMinDate = eventStart.isBefore(moment(minDate), 'd');
+    const isAfterMaxDate = eventStart.isAfter(moment(maxDate), 'd');
 
     if (isBeforeMinDate || isAfterMaxDate) {
       return;
