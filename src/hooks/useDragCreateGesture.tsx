@@ -146,7 +146,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       .add(positionIndex, 'd')
       .add(time, 'h')
       .add(start, 'h')
-      .subtract(tzOffset, 'm');
+      .tz(tzOffset);
     const isBeforeMinDate = eventStart.isBefore(dayjs(minDate), 'd');
     const isAfterMaxDate = eventStart.isAfter(dayjs(maxDate), 'd');
 

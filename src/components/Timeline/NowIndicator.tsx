@@ -13,15 +13,15 @@ interface NowIndicatorProps {
   width: number;
   timeIntervalHeight: SharedValue<number>;
   nowIndicatorColor?: string;
-  tzOffset: number;
+  tzOffset: string;
   start: number;
   updateCurrentDate: () => void;
   recheckTimezoneOffset: () => void;
   nowIndicatorInterval: number;
 }
 
-const getCurrentMinutes = (tzOffset: number) => {
-  const now = dayjs().add(tzOffset, 'm');
+const getCurrentMinutes = (tzOffset: string) => {
+  const now = dayjs().tz(tzOffset);
   const date = now.format('YYYY-MM-DD');
   const minutes = now.hour() * 60 + now.minute();
   return { date, minutes };

@@ -326,7 +326,7 @@ export interface DayBarItemProps {
   theme: ThemeProperties;
   locale: LocaleType;
   highlightDates?: HighlightDates;
-  tzOffset: number;
+  tzOffset: string;
   currentDate: string;
 }
 

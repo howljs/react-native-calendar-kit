@@ -27,7 +27,6 @@ import {
   calculateHours,
   getCurrentDate,
   getTheme,
-  getTimeZoneOffset,
 } from '../utils';
 
 type CustomTimelineProviderProps = Required<
@@ -72,7 +71,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
   hourFormat?: string;
-  tzOffset: number;
+  tzOffset: string;
   currentDate: string;
   updateCurrentDate: () => void;
   isPinchActive: SharedValue<boolean>;
@@ -118,7 +117,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     hourFormat,
     eventAnimatedDuration = DEFAULT_PROPS.EVENT_ANIMATED_DURATION,
     useHaptic = false,
-    timeZone,
+    timeZone = dayjs.tz.guess(),
     nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
     navigateDelay = DEFAULT_PROPS.NAVIGATION_DELAY,
   } = props;
@@ -134,22 +133,11 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   const isScrolling = useRef(false);
   const pinchRef = useRef();
 
-  const [tzOffset, setTzOffset] = useState(() => getTimeZoneOffset(timeZone));
-
-  const recheckTimezoneOffset = useCallback(() => {
-    const newOffset = getTimeZoneOffset(timeZone);
-    setTzOffset(newOffset);
-  }, [timeZone]);
-
-  useEffect(() => {
-    recheckTimezoneOffset();
-  }, [recheckTimezoneOffset]);
-
   /** Prepare data*/
   const pages = useMemo(
     () =>
-      calculateDates(firstDay, minDate, maxDate, initialDate.current, tzOffset),
-    [firstDay, minDate, maxDate, tzOffset]
+      calculateDates(firstDay, minDate, maxDate, initialDate.current, timeZone),
+    [firstDay, minDate, maxDate, timeZone]
   );
   const firstDate = useRef({
     week: pages.week.data[0],
@@ -190,16 +178,16 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   }, [initialMinTimeIntervalHeight, minTimeIntervalHeight]);
 
   const [currentDate, setCurrentDate] = useState(() =>
-    getCurrentDate(tzOffset)
+    getCurrentDate(timeZone)
   );
 
   const updateCurrentDate = useCallback(() => {
-    const newDate = getCurrentDate(tzOffset);
+    const newDate = getCurrentDate(timeZone);
     if (newDate === currentDate) {
       return;
     }
     setCurrentDate(newDate);
-  }, [currentDate, tzOffset]);
+  }, [currentDate, timeZone]);
 
   const isPinchActive = useSharedValue(false);
 
@@ -264,14 +252,14 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       hourFormat,
       eventAnimatedDuration,
       useHaptic,
-      tzOffset,
+      tzOffset: timeZone,
       currentDate,
       updateCurrentDate,
       nowIndicatorInterval,
       isPinchActive,
       navigateDelay,
       numOfColumns,
-      recheckTimezoneOffset,
+      recheckTimezoneOffset: () => {},
       initialTimeIntervalHeight,
     };
   }, [
@@ -311,13 +299,12 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     hourFormat,
     eventAnimatedDuration,
     useHaptic,
-    tzOffset,
+    timeZone,
     currentDate,
     updateCurrentDate,
     nowIndicatorInterval,
     isPinchActive,
     navigateDelay,
-    recheckTimezoneOffset,
     initialTimeIntervalHeight,
   ]);
 

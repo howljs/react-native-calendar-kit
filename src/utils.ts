@@ -1,10 +1,14 @@
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { merge } from 'lodash';
 import { Platform } from 'react-native';
-import { TimeZone, timeZoneData } from './assets/timeZone';
 import { DEFAULT_PROPS, SECONDS_IN_DAY } from './constants';
 import type { EventItem, PackedEvent, ThemeProperties } from './types';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 type DateData = { data: string[]; index: number };
 
@@ -13,14 +17,14 @@ export const calculateDates = (
   minDateStr: string,
   maxDateStr: string,
   initialDateStr: string,
-  tzOffset: number
+  tzOffset: string
 ) => {
   let day: DateData = { data: [], index: -1 },
     week: DateData = { data: [], index: -1 },
     threeDays: DateData = { data: [], index: -1 },
     workWeek: DateData = { data: [], index: -1 };
 
-  const initialDate = dayjs(initialDateStr).add(tzOffset, 'm');
+  const initialDate = dayjs(initialDateStr).tz(tzOffset);
   const minDate = dayjs(minDateStr);
   const maxDate = dayjs(maxDateStr);
   const minDateUnix = minDate.unix();
@@ -126,12 +130,12 @@ export const convertPositionToISOString = (
 
 export const groupEventsByDate = (
   events: EventItem[] = [],
-  tzOffset: number
+  tzOffset: string
 ) => {
   let groupedEvents: Record<string, EventItem[]> = {};
   events.forEach((event) => {
-    const startEvent = dayjs(event.start).add(tzOffset, 'm').startOf('d');
-    const endEvent = dayjs(event.end).add(tzOffset, 'm').startOf('d');
+    const startEvent = dayjs(event.start).tz(tzOffset).startOf('d');
+    const endEvent = dayjs(event.end).tz(tzOffset).startOf('d');
     const diffDays = endEvent.diff(startEvent, 'd');
     for (let i = 0; i <= diffDays; i++) {
       const dateStr = startEvent.add(i, 'd').format('YYYY-MM-DD');
@@ -169,8 +173,8 @@ const buildEvent = (
   width: number,
   options: PopulateOptions
 ): PackedEvent => {
-  const eventStart = dayjs(event.start).add(options.tzOffset, 'm');
-  const eventEnd = dayjs(event.end).add(options.tzOffset, 'm');
+  const eventStart = dayjs(event.start).tz(options.tzOffset);
+  const eventEnd = dayjs(event.end).tz(options.tzOffset);
   const timeToHour = eventStart.hour() + eventStart.minute() / 60;
   let start = timeToHour - options.startHour;
   const diffHour = eventEnd.diff(eventStart, 'm') / 60;
@@ -225,7 +229,7 @@ type PopulateOptions = {
   startDate: string;
   overlapEventsSpacing: number;
   rightEdgeSpacing: number;
-  tzOffset: number;
+  tzOffset: string;
 };
 
 export const populateEvents = (
@@ -294,7 +298,7 @@ interface DivideEventsProps {
   startHour: number;
   overlapEventsSpacing: number;
   rightEdgeSpacing: number;
-  tzOffset: number;
+  tzOffset: string;
 }
 
 export const divideEventsByColumns = (props: DivideEventsProps) => {
@@ -408,36 +412,8 @@ export const triggerHaptic = () => {
   } catch (ex) {}
 };
 
-export const getTimeZoneOffset = (timeZone?: TimeZone) => {
-  if (!timeZone) {
-    return 0;
-  }
-  const timeZoneInfo = timeZoneData[timeZone];
-  const defaultOffset = getDefaultLocalOffset();
-  return timeZoneInfo.offset - defaultOffset;
-};
-
-const getDefaultLocalOffset = () => {
-  const defaultOffset = dayjs().utcOffset();
-  const testDate = new Date();
-  const january = new Date(testDate.getFullYear(), 0, 1);
-  const july = new Date(testDate.getFullYear(), 6, 1);
-  const standardTimezoneOffset = Math.max(
-    january.getTimezoneOffset(),
-    july.getTimezoneOffset()
-  );
-
-  if (testDate.getTimezoneOffset() < standardTimezoneOffset) {
-    return (
-      defaultOffset - (standardTimezoneOffset - testDate.getTimezoneOffset())
-    );
-  }
-
-  return defaultOffset;
-};
-
-export const getCurrentDate = (tzOffset: number, date?: string) => {
-  return dayjs(date).add(tzOffset, 'm').format('YYYY-MM-DD');
+export const getCurrentDate = (tzOffset: string, date?: string) => {
+  return dayjs(date).tz(tzOffset).format('YYYY-MM-DD');
 };
 
 export const clampValues = (value: number, min: number, max: number) => {

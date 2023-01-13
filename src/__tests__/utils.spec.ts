@@ -1,12 +1,7 @@
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import weekday from 'dayjs/plugin/weekday';
-import {
-  calculateDates,
-  calculateHours,
-  getTimeZoneOffset,
-  groupEventsByDate,
-} from '../utils';
+import { calculateDates, calculateHours, groupEventsByDate } from '../utils';
 import { expectHourData, sampleData } from '../__mocks__/data';
 dayjs.extend(weekday);
 dayjs.extend(isoWeek);
@@ -16,7 +11,7 @@ describe('get date data', () => {
     const fromDate = '2022-10-01';
     const toDate = '2022-10-31';
     const initialDate = '2022-10-10';
-    const tzOffset = 0;
+    const tzOffset = 'UTC';
     const dates = calculateDates(1, fromDate, toDate, initialDate, tzOffset);
 
     const expectData = {
@@ -77,7 +72,7 @@ describe('get hours from start/end', () => {
 
 describe('group events by date', () => {
   it('group with timezone +7', () => {
-    const tzOffset = getTimeZoneOffset('Asia/Ho_Chi_Minh');
+    const tzOffset = 'Asia/Ho_Chi_Minh';
     const events = groupEventsByDate(sampleData, tzOffset);
     const expectIds = ['2022-11-22', '2022-11-23', '2022-11-24'];
     const eventIds = Object.keys(events).sort((a, b) => a.localeCompare(b));
@@ -87,7 +82,7 @@ describe('group events by date', () => {
     expect(events['2022-11-24']?.length).toEqual(1);
   });
   it('group with timezone +9', () => {
-    const tzOffset = getTimeZoneOffset('Asia/Tokyo');
+    const tzOffset = 'Asia/Tokyo';
     const events = groupEventsByDate(sampleData, tzOffset);
     const expectIds = ['2022-11-22', '2022-11-23', '2022-11-24'];
     const eventIds = Object.keys(events).sort((a, b) => a.localeCompare(b));

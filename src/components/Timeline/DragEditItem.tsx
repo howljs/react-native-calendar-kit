@@ -167,7 +167,7 @@ const DragEditItem = ({
     const currentDateMoment = dayjs(startDate)
       .add(dayIndex, 'd')
       .add(currentHour.value, 'h')
-      .subtract(tzOffset, 'm');
+      .tz(tzOffset);
 
     const newEvent = {
       ...selectedEvent,
