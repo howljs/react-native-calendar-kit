@@ -121,6 +121,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     timeZone,
     nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
     navigateDelay = DEFAULT_PROPS.NAVIGATION_DELAY,
+    autoRefreshTimezoneOffset = false,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -273,6 +274,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       numOfColumns,
       recheckTimezoneOffset,
       initialTimeIntervalHeight,
+      autoRefreshTimezoneOffset,
     };
   }, [
     pages,
@@ -319,6 +321,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     navigateDelay,
     recheckTimezoneOffset,
     initialTimeIntervalHeight,
+    autoRefreshTimezoneOffset,
   ]);
 
   const mountedRef = useRef(false);
