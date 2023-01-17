@@ -123,6 +123,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
     navigateDelay = DEFAULT_PROPS.NAVIGATION_DELAY,
     autoRefreshTimezoneOffset = false,
+    dragBeforeEdit = false,
   } = props;
 
   const { width: timelineWidth } = useWindowDimensions();
@@ -278,6 +279,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       recheckTimezoneOffset,
       initialTimeIntervalHeight,
       autoRefreshTimezoneOffset,
+      dragBeforeEdit,
     };
   }, [
     pages,
@@ -326,6 +328,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     initialTimeIntervalHeight,
     autoRefreshTimezoneOffset,
     isDraggingEdit,
+    dragBeforeEdit,
   ]);
 
   const mountedRef = useRef(false);

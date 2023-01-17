@@ -222,7 +222,9 @@ const DragEditItem = ({
       const minutes = (originalTime - rHours) * 60;
       const rMinutes = Math.round(minutes);
       const extraPos = dragStep - (rMinutes % dragStep);
-      const roundedHour = (rMinutes + extraPos + rHours * 60) / 60;
+      let roundedHour = (rMinutes + extraPos + rHours * 60) / 60;
+      const maxHour = totalHours - dragStep / 60; // 23:50
+      roundedHour = Math.min(roundedHour, maxHour);
       const newTopPosition =
         roundedHour * timeIntervalHeight.value + spaceFromTop;
       const isSameX = translateX.value === roundedTranslateX;
@@ -232,10 +234,7 @@ const DragEditItem = ({
           duration: 100,
           easing: Easing.linear,
         });
-        eventTop.value = withTiming(newTopPosition, {
-          duration: 100,
-          easing: Easing.linear,
-        });
+        eventTop.value = newTopPosition;
         currentHour.value = roundedHour + start;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
@@ -272,10 +271,7 @@ const DragEditItem = ({
       const clampedHeight = Math.max(roundedHeight, heightOfTenMinutes);
       const isSameHeight = eventHeight.value === clampedHeight;
       if (!isSameHeight) {
-        eventHeight.value = withTiming(clampedHeight, {
-          duration: 100,
-          easing: Easing.linear,
-        });
+        eventHeight.value = clampedHeight;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
         }
@@ -396,7 +392,10 @@ const AnimatedHour = ({
 
   useAnimatedReaction(
     () => currentHour.value,
-    (hour) => {
+    (hour, prev) => {
+      if (prev === hour) {
+        return;
+      }
       let extra = 0;
       if (hour < 0) {
         extra = 24;

@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Gesture,
   GestureUpdateEvent,
@@ -53,25 +53,25 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
   const dragEditYPosition = useSharedValue(0);
   const startOffsetY = useRef(0);
 
-  const timeoutRef = useSharedValue<NodeJS.Timeout | null>(null);
+  const timeoutAnim = useSharedValue<NodeJS.Timeout | null>(null);
   const _handleScroll = (x: number) => {
-    if (timeoutRef.value && x > hourWidth && x < timelineWidth - 25) {
-      clearInterval(timeoutRef.value);
-      timeoutRef.value = null;
+    if (timeoutAnim.value && x > hourWidth && x < timelineWidth - 25) {
+      clearInterval(timeoutAnim.value);
+      timeoutAnim.value = null;
     }
     if (x <= hourWidth) {
-      if (isScrolling.current || timeoutRef.value) {
+      if (isScrolling.current || timeoutAnim.value) {
         return;
       }
-      timeoutRef.value = setInterval(() => {
+      timeoutAnim.value = setInterval(() => {
         goToPrevPage(true);
       }, navigateDelay);
     }
     if (x >= timelineWidth - 25) {
-      if (isScrolling.current || timeoutRef.value) {
+      if (isScrolling.current || timeoutAnim.value) {
         return;
       }
-      timeoutRef.value = setInterval(() => {
+      timeoutAnim.value = setInterval(() => {
         goToNextPage(true);
       }, navigateDelay);
     }
@@ -163,10 +163,7 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
           duration: 100,
           easing: Easing.linear,
         });
-        dragEditYPosition.value = withTiming(y, {
-          duration: 50,
-          easing: Easing.linear,
-        });
+        dragEditYPosition.value = y;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
         }
@@ -176,6 +173,7 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
   );
 
   const isTouchesUp = useSharedValue(false);
+  const yByStartHour = useSharedValue(0);
   const dragEditGesture = Gesture.Pan()
     .minPointers(1)
     .manualActivation(true)
@@ -191,9 +189,7 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
       }
     })
     .onStart((e) => {
-      const startHour = eventDraggingRef.current?.startHour ?? 0;
-      startY.value =
-        e.y - (startHour * timeIntervalHeight.value - offsetY.value);
+      startY.value = e.y - yByStartHour.value;
     })
     .onUpdate((event) => {
       if (event.numberOfPointers > 1) {
@@ -204,20 +200,16 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
     .onTouchesUp(() => {
       if (isDraggingEdit.value) {
         isTouchesUp.value = true;
-        isDraggingEdit.value = false;
       }
     });
 
   const _onEnd = (event: { x: number; y: number }) => {
-    if (timeoutRef.value) {
-      clearInterval(timeoutRef.value);
-      timeoutRef.value = null;
-    }
-    if (!eventDragging) {
+    if (!eventDraggingRef.current) {
+      isDraggingEdit.value = false;
       return;
     }
     const time = event.y / timeIntervalHeight.value;
-    const positionIndex = Math.floor(event.x / columnWidth);
+    const positionIndex = Math.floor((event.x - hourWidth) / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
     const eventStart = dayjs(startDate)
       .add(positionIndex, 'd')
@@ -225,17 +217,19 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
       .add(start, 'h')
       .subtract(tzOffset, 'm');
     const newEvent = {
-      ...eventDragging,
+      ...eventDraggingRef.current,
       left: 0,
       leftByIndex: positionIndex * columnWidth,
       top: event.y,
       width: columnWidth - rightEdgeSpacing,
       start: eventStart.toISOString(),
-      end: eventStart.clone().add(eventDragging.duration, 'h').toISOString(),
+      end: eventStart
+        .clone()
+        .add(eventDraggingRef.current.duration, 'h')
+        .toISOString(),
     };
     onDragBeforeEditEnd?.(newEvent);
-    setEventDragging(null);
-    eventDraggingRef.current = null;
+    isDraggingEdit.value = false;
   };
 
   useAnimatedReaction(
@@ -246,19 +240,38 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
           x: dragEditXPosition.value,
           y: dragEditYPosition.value + offsetY.value - spaceFromTop,
         });
-        gestureEvent.value = undefined;
         isTouchesUp.value = false;
       }
     }
   );
 
+  useAnimatedReaction(
+    () => isDraggingEdit.value,
+    (active, prev) => {
+      if (prev === active || active) {
+        return;
+      }
+      gestureEvent.value = undefined;
+      runOnJS(setEventDragging)(null);
+    }
+  );
+
+  useEffect(() => {
+    if (!eventDragging && timeoutAnim.value) {
+      clearInterval(timeoutAnim.value);
+      timeoutAnim.value = null;
+    }
+  }, [eventDragging, timeoutAnim]);
+
   const dragToEdit = useCallback(
     (event: PackedEvent) => {
-      isDraggingEdit.value = true;
       eventDraggingRef.current = event;
+      isDraggingEdit.value = true;
+      yByStartHour.value =
+        event.startHour * timeIntervalHeight.value - offsetY.value;
       const initX = event.leftByIndex || 0;
       const initY = event.top || 0;
-      const posX = initX + hourWidth;
+      const posX = initX;
       const posY = initY - offsetY.value + spaceFromTop;
       const { x, y } = calcPosition(posX, posY);
       dragEditXPosition.value = x;
@@ -271,7 +284,8 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
     },
     [
       isDraggingEdit,
-      hourWidth,
+      yByStartHour,
+      timeIntervalHeight,
       offsetY,
       spaceFromTop,
       calcPosition,

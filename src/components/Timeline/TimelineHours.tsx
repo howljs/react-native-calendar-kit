@@ -10,8 +10,14 @@ import type { ThemeProperties } from '../../types';
 export type HourItem = { text: string; hourNumber: number };
 
 const TimelineHours = () => {
-  const { hours, hourWidth, timeIntervalHeight, spaceFromTop, theme } =
-    useTimelineCalendarContext();
+  const {
+    hours,
+    hourWidth,
+    timeIntervalHeight,
+    spaceFromTop,
+    theme,
+    totalHours,
+  } = useTimelineCalendarContext();
 
   const _renderHour = (hour: HourItem, index: number) => {
     return (
@@ -26,6 +32,10 @@ const TimelineHours = () => {
     );
   };
 
+  const animLine = useAnimatedStyle(() => ({
+    height: totalHours * timeIntervalHeight.value,
+  }));
+
   return (
     <View
       style={[
@@ -38,10 +48,11 @@ const TimelineHours = () => {
       ]}
     >
       {hours.map(_renderHour)}
-      <View
+      <Animated.View
         style={[
           styles.verticalLine,
           { top: spaceFromTop, backgroundColor: theme.cellBorderColor },
+          animLine,
         ]}
       />
     </View>

@@ -71,7 +71,9 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const minutes = (originalTime - rHours) * 60;
     const rMinutes = Math.round(minutes);
     const extraPos = nearestMinutes - (rMinutes % nearestMinutes);
-    const roundedHour = (rMinutes + extraPos + rHours * 60) / 60;
+    let roundedHour = (rMinutes + extraPos + rHours * 60) / 60;
+    const maxHour = totalHours - dragStep / 60; // 23:50
+    roundedHour = Math.min(roundedHour, maxHour);
     const calcY = roundedHour * timeIntervalHeight.value;
     currentHour.value = roundedHour + start;
 
@@ -177,10 +179,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
           duration: 100,
           easing: Easing.linear,
         });
-        dragYPosition.value = withTiming(y, {
-          duration: 50,
-          easing: Easing.linear,
-        });
+        dragYPosition.value = y;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
         }

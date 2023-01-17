@@ -29,7 +29,10 @@ interface TimelinePageProps {
   holidays?: string[];
   events?: { [date: string]: EventItem[] };
   onPressEvent?: (eventItem: PackedEvent) => void;
-  onLongPressEvent?: (eventItem: PackedEvent) => void;
+  onLongPressEvent?: (
+    eventItem: PackedEvent,
+    isSkipDragToEdit?: boolean
+  ) => void;
   renderEventContent?: (
     event: PackedEvent,
     timeIntervalHeight: SharedValue<number>

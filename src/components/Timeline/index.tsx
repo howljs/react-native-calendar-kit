@@ -86,6 +86,7 @@ const Timeline: React.ForwardRefRenderFunction<
     timelineVerticalListRef,
     initialTimeIntervalHeight,
     recheckTimezoneOffset,
+    dragBeforeEdit,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -241,11 +242,13 @@ const Timeline: React.ForwardRefRenderFunction<
   } = useDragToEdit({ onDragBeforeEditEnd: onDragBeforeEditEnd });
 
   const _onLongPressEvent = useCallback(
-    (eventItem: PackedEvent) => {
-      dragToEdit(eventItem);
+    (eventItem: PackedEvent, isSkipDragToEdit?: boolean) => {
+      if (dragBeforeEdit && !isSkipDragToEdit) {
+        dragToEdit(eventItem);
+      }
       onLongPressEvent?.(eventItem);
     },
-    [onLongPressEvent, dragToEdit]
+    [dragBeforeEdit, onLongPressEvent, dragToEdit]
   );
 
   const groupedEvents = useMemo(

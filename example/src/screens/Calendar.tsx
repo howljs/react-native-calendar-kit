@@ -256,6 +256,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
         holidays={['2022-11-05', '2022-11-02']}
         onDragCreateEnd={_onDragCreateEnd}
         onDragBeforeEditEnd={_onDragBeforeEditEnd}
+        dragBeforeEdit
         selectedEvent={selectedEvent}
         onEndDragSelectedEvent={setSelectedEvent}
         renderCustomUnavailableItem={_renderCustomUnavailableItem}
@@ -290,6 +291,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
         timeZone="Asia/Tokyo"
         renderHalfLineCustom={_renderHalfLineCustom}
         halfLineContainerStyle={styles.halfLineContainer}
+        spaceFromBottom={90}
       />
       {!!selectedEvent && _renderEditFooter()}
     </View>

@@ -322,6 +322,8 @@ export interface TimelineProviderProps {
 
   /** Auto refresh timezone offset every seconds */
   autoRefreshTimezoneOffset?: boolean;
+
+  dragBeforeEdit?: boolean;
 }
 
 export interface DayBarItemProps {
@@ -411,6 +413,9 @@ export interface EventItem {
   color?: string;
   /** Container style of the event */
   containerStyle?: StyleProp<ViewStyle>;
+
+  isSkipDragToEdit?: boolean;
+
   [key: string]: any;
 }
 

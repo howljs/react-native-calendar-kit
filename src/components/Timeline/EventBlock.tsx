@@ -14,7 +14,10 @@ export interface EventBlockProps {
   dayIndex: number;
   columnWidth: number;
   onPressEvent?: (eventItem: PackedEvent) => void;
-  onLongPressEvent?: (eventItem: PackedEvent) => void;
+  onLongPressEvent?: (
+    eventItem: PackedEvent,
+    isSkipDragToEdit?: boolean
+  ) => void;
   timeIntervalHeight: SharedValue<number>;
   renderEventContent?: (
     event: PackedEvent,
@@ -50,7 +53,7 @@ const EventBlock = ({
       height: event.duration * timeIntervalHeight.value,
       leftByIndex: columnWidth * dayIndex,
     };
-    onLongPressEvent?.(eventParams);
+    onLongPressEvent?.(eventParams, event.isSkipDragToEdit);
   };
 
   const _onPress = () => {
