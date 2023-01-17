@@ -90,6 +90,8 @@ export interface TimelineProps {
   selectedEvent?: PackedEvent;
   /** Callback function will be called when the selected event item is dropped*/
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
+  /** Callback function will be called when drag before edit ended*/
+  onDragBeforeEditEnd?: (events: PackedEvent) => void;
   /** Custom Unavailable Item */
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
   /** Custom style of day bar by date ([#Example](https://howljs.github.io/react-native-calendar-kit/docs/guides/custom-header#highlightdates)) */

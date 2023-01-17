@@ -37,6 +37,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     EditIndicatorComponent,
     renderHalfLineCustom,
     halfLineContainerStyle,
+    onDragBeforeEditEnd,
     ...timelineProviderProps
   },
   ref
@@ -65,6 +66,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
     EditIndicatorComponent,
     renderHalfLineCustom,
     halfLineContainerStyle,
+    onDragBeforeEditEnd,
   };
 
   return (

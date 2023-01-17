@@ -39,6 +39,7 @@ interface TimelinePageProps {
   renderHalfLineCustom?: (width: number) => JSX.Element;
   halfLineContainerStyle?: ViewStyle;
   currentDate: string;
+  draggingId?: string;
 }
 
 const TimelinePage = ({
@@ -57,6 +58,7 @@ const TimelinePage = ({
   renderHalfLineCustom,
   halfLineContainerStyle,
   currentDate,
+  draggingId,
 }: TimelinePageProps) => {
   const {
     rightSideWidth,
@@ -155,6 +157,7 @@ const TimelinePage = ({
         theme={theme}
         eventAnimatedDuration={eventAnimatedDuration}
         isPinchActive={isPinchActive}
+        isDisabled={draggingId === event.id}
       />
     );
   };

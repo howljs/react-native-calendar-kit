@@ -76,6 +76,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   currentDate: string;
   updateCurrentDate: () => void;
   isPinchActive: SharedValue<boolean>;
+  isDraggingEdit: SharedValue<boolean>;
   numOfColumns: number;
   recheckTimezoneOffset: () => void;
 }
@@ -203,6 +204,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   }, [currentDate, tzOffset]);
 
   const isPinchActive = useSharedValue(false);
+  const isDraggingEdit = useSharedValue(false);
 
   const value = useMemo(() => {
     const totalPages = {
@@ -271,6 +273,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       nowIndicatorInterval,
       isPinchActive,
       navigateDelay,
+      isDraggingEdit,
       numOfColumns,
       recheckTimezoneOffset,
       initialTimeIntervalHeight,
@@ -322,6 +325,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     recheckTimezoneOffset,
     initialTimeIntervalHeight,
     autoRefreshTimezoneOffset,
+    isDraggingEdit,
   ]);
 
   const mountedRef = useRef(false);

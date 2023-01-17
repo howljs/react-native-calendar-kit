@@ -46,6 +46,7 @@ interface TimelineSlotsProps {
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
   editEventGestureEnabled?: boolean;
   EditIndicatorComponent?: JSX.Element;
+  draggingId?: string;
 }
 
 const TimelineSlots = ({
@@ -60,6 +61,7 @@ const TimelineSlots = ({
   renderEventContent,
   renderSelectedEventContent,
   EditIndicatorComponent,
+  draggingId,
   ...other
 }: TimelineSlotsProps) => {
   const {
@@ -128,6 +130,7 @@ const TimelineSlots = ({
       events,
       selectedEventId: selectedEvent?.id,
       currentDate,
+      draggingId,
     }),
     [
       allowDragToCreate,
@@ -136,6 +139,7 @@ const TimelineSlots = ({
       events,
       selectedEvent?.id,
       currentDate,
+      draggingId,
     ]
   );
 
@@ -149,6 +153,7 @@ const TimelineSlots = ({
         selectedEventId={extraData?.selectedEventId}
         renderEventContent={renderEventContent}
         currentDate={extraData.currentDate}
+        draggingId={extraData.draggingId}
         {...other}
       />
     );

@@ -24,6 +24,7 @@ export interface EventBlockProps {
   theme: ThemeProperties;
   eventAnimatedDuration?: number;
   isPinchActive: SharedValue<boolean>;
+  isDisabled: boolean;
 }
 
 const EVENT_DEFAULT_COLOR = '#FFFFFF';
@@ -40,6 +41,7 @@ const EventBlock = ({
   selectedEventId,
   eventAnimatedDuration,
   isPinchActive,
+  isDisabled,
 }: EventBlockProps) => {
   const _onLongPress = () => {
     const eventParams = {
@@ -104,7 +106,7 @@ const EventBlock = ({
     );
   };
 
-  const eventOpacity = selectedEventId ? 0.5 : 1;
+  const eventOpacity = selectedEventId || isDisabled ? 0.5 : 1;
 
   return (
     <Animated.View
@@ -116,7 +118,7 @@ const EventBlock = ({
       ]}
     >
       <TouchableOpacity
-        disabled={!!selectedEventId}
+        disabled={!!selectedEventId || isDisabled}
         delayLongPress={300}
         onPress={_onPress}
         onLongPress={_onLongPress}

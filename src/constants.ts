@@ -33,7 +33,6 @@ export const DEFAULT_PROPS = {
   EVENT_ANIMATED_DURATION: 150,
   NOW_INDICATOR_INTERVAL: 1000,
   NAVIGATION_DELAY: 1000,
-  EDIT_SAVE_MODE: 'manual' as const,
 };
 
 export const COLUMNS = { week: 7, threeDays: 3, workWeek: 5, day: 1 };

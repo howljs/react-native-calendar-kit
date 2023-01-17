@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -25,11 +26,17 @@ import { timeZoneData } from '../../assets/timeZone';
 import { COLUMNS, DEFAULT_PROPS, LOCALES } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useDragCreateGesture from '../../hooks/useDragCreateGesture';
+import useDragToEdit from '../../hooks/useDragToEdit';
 import useZoomGesture from '../../hooks/usePinchGesture';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
-import type { TimelineCalendarHandle, TimelineProps } from '../../types';
+import type {
+  PackedEvent,
+  TimelineCalendarHandle,
+  TimelineProps,
+} from '../../types';
 import { clampValues, groupEventsByDate } from '../../utils';
 import DragCreateItem from './DragCreateItem';
+import DragDropToEdit from './DragDropToEdit';
 import TimelineHeader from './TimelineHeader';
 import TimelineSlots from './TimelineSlots';
 
@@ -47,6 +54,8 @@ const Timeline: React.ForwardRefRenderFunction<
     selectedEvent,
     highlightDates,
     onChange,
+    onLongPressEvent,
+    onDragBeforeEditEnd,
     ...other
   },
   ref
@@ -223,6 +232,22 @@ const Timeline: React.ForwardRefRenderFunction<
     onLongPressBackground?.(date, event);
   };
 
+  const {
+    dragEditGesture,
+    dragToEdit,
+    eventDragging,
+    dragEditXPosition,
+    dragEditYPosition,
+  } = useDragToEdit({ onDragBeforeEditEnd: onDragBeforeEditEnd });
+
+  const _onLongPressEvent = useCallback(
+    (eventItem: PackedEvent) => {
+      dragToEdit(eventItem);
+      onLongPressEvent?.(eventItem);
+    },
+    [onLongPressEvent, dragToEdit]
+  );
+
   const groupedEvents = useMemo(
     () => groupEventsByDate(events, tzOffset),
     [events, tzOffset]
@@ -261,7 +286,13 @@ const Timeline: React.ForwardRefRenderFunction<
         />
       )}
       <View style={styles.content} onLayout={_onContentLayout}>
-        <GestureDetector gesture={Gesture.Race(dragCreateGesture, zoomGesture)}>
+        <GestureDetector
+          gesture={Gesture.Race(
+            dragEditGesture,
+            dragCreateGesture,
+            zoomGesture
+          )}
+        >
           <TimelineSlots
             {...other}
             events={groupedEvents}
@@ -269,6 +300,8 @@ const Timeline: React.ForwardRefRenderFunction<
             isDragging={isDraggingCreate}
             isLoading={isLoading}
             onLongPressBackground={_onLongPressBackground}
+            onLongPressEvent={_onLongPressEvent}
+            draggingId={eventDragging?.id}
           />
         </GestureDetector>
         {isDraggingCreate && (
@@ -276,6 +309,13 @@ const Timeline: React.ForwardRefRenderFunction<
             offsetX={dragXPosition}
             offsetY={dragYPosition}
             currentHour={currentHour}
+          />
+        )}
+        {eventDragging && (
+          <DragDropToEdit
+            eventItem={eventDragging}
+            translationX={dragEditXPosition}
+            translationY={dragEditYPosition}
           />
         )}
       </View>

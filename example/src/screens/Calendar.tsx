@@ -152,10 +152,6 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
     setEvents((prev) => [...prev, newEvent]);
   };
 
-  const _onLongPressEvent = (event: PackedEvent) => {
-    setSelectedEvent(event);
-  };
-
   const _onPressCancel = () => {
     setSelectedEvent(undefined);
   };
@@ -244,6 +240,10 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
     []
   );
 
+  const _onDragBeforeEditEnd = (event: PackedEvent) => {
+    setSelectedEvent(event);
+  };
+
   return (
     <View style={[styles.container, { paddingBottom: safeBottom }]}>
       <TimelineCalendar
@@ -255,7 +255,7 @@ const Calendar = ({ route, navigation }: CalendarProps) => {
         unavailableHours={unavailableHours}
         holidays={['2022-11-05', '2022-11-02']}
         onDragCreateEnd={_onDragCreateEnd}
-        onLongPressEvent={_onLongPressEvent}
+        onDragBeforeEditEnd={_onDragBeforeEditEnd}
         selectedEvent={selectedEvent}
         onEndDragSelectedEvent={setSelectedEvent}
         renderCustomUnavailableItem={_renderCustomUnavailableItem}
