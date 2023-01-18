@@ -6,8 +6,8 @@ sidebar_position: 1
 TimelineCalendar has 4 modes: **week**, **day**, **threeDays** and **workWeek**
 
 ```jsx title="Example"
-import { SafeAreaView, Text } from 'react-native';
 import React from 'react';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import { TimelineCalendar } from '@howljs/calendar-kit';
 
 const Calendar = () => {
@@ -20,7 +20,7 @@ const Calendar = () => {
 
 export default Calendar;
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF' },
 });
 ```
