@@ -232,10 +232,7 @@ const DragEditItem = ({
           duration: 100,
           easing: Easing.linear,
         });
-        eventTop.value = withTiming(newTopPosition, {
-          duration: 100,
-          easing: Easing.linear,
-        });
+        eventTop.value = newTopPosition;
         currentHour.value = roundedHour + start;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
@@ -272,10 +269,7 @@ const DragEditItem = ({
       const clampedHeight = Math.max(roundedHeight, heightOfTenMinutes);
       const isSameHeight = eventHeight.value === clampedHeight;
       if (!isSameHeight) {
-        eventHeight.value = withTiming(clampedHeight, {
-          duration: 100,
-          easing: Easing.linear,
-        });
+        eventHeight.value = clampedHeight;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
         }

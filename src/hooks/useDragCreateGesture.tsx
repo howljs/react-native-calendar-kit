@@ -177,10 +177,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
           duration: 100,
           easing: Easing.linear,
         });
-        dragYPosition.value = withTiming(y, {
-          duration: 50,
-          easing: Easing.linear,
-        });
+        dragYPosition.value = y;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
         }
