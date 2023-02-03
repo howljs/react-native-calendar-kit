@@ -31,6 +31,8 @@ export interface TimelineCalendarHandle {
     raw: string;
     countryName: string;
   };
+  getHour: () => number;
+  getDate: () => string;
   goToHour: (hour: number, animated?: boolean) => void;
   forceUpdateNowIndicator: (customDate?: string) => void;
   /**
