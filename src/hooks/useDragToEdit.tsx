@@ -52,6 +52,7 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
   const dragEditXPosition = useSharedValue(0);
   const dragEditYPosition = useSharedValue(0);
   const startOffsetY = useRef(0);
+  const isAnimationFinished = useSharedValue<boolean>(false);
 
   const timeoutAnim = useSharedValue<NodeJS.Timeout | null>(null);
   const _handleScroll = (x: number) => {
@@ -152,17 +153,25 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
       if (!event) {
         return;
       }
-
       const { x, y } = calcPosition(
         event.x - hourWidth,
         event.y - startY.value + spaceFromTop,
         dragStep
       );
       if (dragEditXPosition.value !== x || dragEditYPosition.value !== y) {
-        dragEditXPosition.value = withTiming(x, {
-          duration: 100,
-          easing: Easing.linear,
-        });
+        isAnimationFinished.value = false;
+        dragEditXPosition.value = withTiming(
+          x,
+          {
+            duration: 100,
+            easing: Easing.linear,
+          },
+          (finished) => {
+            if (finished) {
+              isAnimationFinished.value = true;
+            }
+          }
+        );
         dragEditYPosition.value = y;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
@@ -210,6 +219,7 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
     }
     const time = event.y / timeIntervalHeight.value;
     const positionIndex = Math.floor((event.x - hourWidth) / columnWidth);
+
     const startDate = pages[viewMode].data[currentIndex.value];
     const eventStart = dayjs(startDate)
       .add(positionIndex, 'd')
@@ -236,8 +246,15 @@ const useDragToEdit = ({ onDragBeforeEditEnd }: useDragToEdit) => {
     () => isTouchesUp.value,
     (touchesUp) => {
       if (touchesUp) {
+        let currentX = dragEditXPosition.value;
+        if (gestureEvent.value && !isAnimationFinished.value) {
+          const xPosition = gestureEvent.value.x - hourWidth;
+          const positionIndex = Math.floor(xPosition / columnWidth);
+          const calcX = positionIndex * columnWidth + hourWidth;
+          currentX = Math.max(hourWidth, calcX);
+        }
         runOnJS(_onEnd)({
-          x: dragEditXPosition.value,
+          x: currentX,
           y: dragEditYPosition.value + offsetY.value - spaceFromTop,
         });
         isTouchesUp.value = false;

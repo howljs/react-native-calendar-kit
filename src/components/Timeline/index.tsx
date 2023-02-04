@@ -319,6 +319,7 @@ const Timeline: React.ForwardRefRenderFunction<
             eventItem={eventDragging}
             translationX={dragEditXPosition}
             translationY={dragEditYPosition}
+            renderEventContent={other.renderEventContent}
           />
         )}
       </View>
