@@ -80,25 +80,25 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       y: calcY + spaceFromTop - offsetY.value,
     };
   };
-  const timeoutRef = useSharedValue<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const _handleScroll = (x: number) => {
-    if (timeoutRef.value && x > hourWidth && x < timelineWidth - 25) {
-      clearInterval(timeoutRef.value);
-      timeoutRef.value = null;
+    if (timeoutRef.current && x > hourWidth && x < timelineWidth - 25) {
+      clearInterval(timeoutRef.current);
+      timeoutRef.current = null;
     }
     if (x <= hourWidth) {
-      if (isScrolling.current || timeoutRef.value) {
+      if (isScrolling.current || timeoutRef.current) {
         return;
       }
-      timeoutRef.value = setInterval(() => {
+      timeoutRef.current = setInterval(() => {
         goToPrevPage(true);
       }, navigateDelay);
     }
     if (x >= timelineWidth - 25) {
-      if (isScrolling.current || timeoutRef.value) {
+      if (isScrolling.current || timeoutRef.current) {
         return;
       }
-      timeoutRef.value = setInterval(() => {
+      timeoutRef.current = setInterval(() => {
         goToNextPage(true);
       }, navigateDelay);
     }
@@ -135,9 +135,9 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
   };
 
   const _onEnd = (event: { x: number; y: number }) => {
-    if (timeoutRef.value) {
-      clearInterval(timeoutRef.value);
-      timeoutRef.value = null;
+    if (timeoutRef.current) {
+      clearInterval(timeoutRef.current);
+      timeoutRef.current = null;
     }
     const time = event.y / timeIntervalHeight.value;
     const positionIndex = Math.round(event.x / columnWidth);
