@@ -4,6 +4,7 @@ import Animated, {
   SharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import { DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { ThemeProperties } from '../../types';
 
@@ -83,10 +84,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
   },
-  hourText: { position: 'absolute', fontSize: 10 },
+  hourText: {
+    position: 'absolute',
+    fontSize: 10,
+    color: DEFAULT_PROPS.BLACK_COLOR,
+  },
   verticalLine: {
     width: 1,
-    backgroundColor: '#E8E9ED',
+    backgroundColor: DEFAULT_PROPS.CELL_BORDER_COLOR,
     position: 'absolute',
     right: 0,
     height: '100%',

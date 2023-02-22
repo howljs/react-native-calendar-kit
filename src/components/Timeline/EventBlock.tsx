@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import { DEFAULT_PROPS } from '../../constants';
 import type { PackedEvent, ThemeProperties } from '../../types';
 import { shallowEqual } from '../../utils';
 
@@ -151,5 +152,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     overflow: 'hidden',
   },
-  title: { paddingVertical: 4, paddingHorizontal: 2, fontSize: 10 },
+  title: {
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 10,
+    color: DEFAULT_PROPS.BLACK_COLOR,
+  },
 });

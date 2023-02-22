@@ -468,7 +468,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 24,
   },
-  title: { paddingVertical: 4, paddingHorizontal: 2, fontSize: 10 },
+  title: {
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 10,
+    color: DEFAULT_PROPS.BLACK_COLOR,
+  },
   hourText: {
     color: DEFAULT_PROPS.PRIMARY_COLOR,
     fontSize: 10,
