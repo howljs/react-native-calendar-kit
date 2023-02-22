@@ -322,6 +322,9 @@ export interface TimelineProviderProps {
 
   /** Auto refresh timezone offset every seconds */
   autoRefreshTimezoneOffset?: boolean;
+
+  /** Width of calendar */
+  calendarWidth?: number;
 }
 
 export interface DayBarItemProps {
