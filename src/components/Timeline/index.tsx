@@ -129,11 +129,12 @@ const Timeline: React.ForwardRefRenderFunction<
       getDate: () => {
         const numOfDays =
           viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-        const firstDateMoment = dayjs(firstDate.current[viewMode]);
+        const firstDateMoment = moment.tz(
+          firstDate.current[viewMode],
+          tzOffset
+        );
         const pageIndex = currentIndex.value;
-        const currentDay = firstDateMoment
-          .add(pageIndex * numOfDays, 'd')
-          .add(tzOffset, 'm');
+        const currentDay = firstDateMoment.add(pageIndex * numOfDays, 'd');
         return currentDay.toISOString();
       },
       goToHour: (hour: number, animated?: boolean) => {
