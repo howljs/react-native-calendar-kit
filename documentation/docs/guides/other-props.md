@@ -188,7 +188,6 @@ Use calendar in different time zones
 
 <span style={{color: "grey"}}>string</span>
 
-
 ### renderHalfLineCustom
 
 Custom component rendered inside the line in the middle of the interval
@@ -204,5 +203,11 @@ Container style of the line in the middle of the interval.
 ### nowIndicatorInterval
 
 Update indicator at specified intervals (in milliseconds). Default is `1000`
+
+<span style={{color: "grey"}}>number</span>
+
+### calendarWidth
+
+Width of calendar. Default is `window width`
 
 <span style={{color: "grey"}}>number</span>

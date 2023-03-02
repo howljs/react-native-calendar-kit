@@ -118,9 +118,8 @@ export const convertPositionToISOString = (
   tzOffset: string
 ) => {
   const dayIndex = Math.floor(locationX / columnWidth);
-  const dateMoment = moment.tz(startDate, tzOffset).add(dayIndex, 'd');
   const hourFromY = locationY / hourHeight;
-  dateMoment.add(hourFromY, 'h');
+  const dateMoment = moment.tz(startDate, tzOffset).add(dayIndex, 'd').add(hourFromY, 'hour');
   return dateMoment.toISOString();
 };
 

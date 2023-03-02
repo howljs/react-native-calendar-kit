@@ -38,6 +38,7 @@ type CustomTimelineProviderProps = Required<
     | 'unavailableHours'
     | 'hourFormat'
     | 'timeZone'
+    | 'calendarWidth'
   >
 >;
 
@@ -120,9 +121,13 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     timeZone = moment.tz.guess(),
     nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
     navigateDelay = DEFAULT_PROPS.NAVIGATION_DELAY,
+    autoRefreshTimezoneOffset = false,
+    calendarWidth,
   } = props;
 
-  const { width: timelineWidth } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
+
+  const timelineWidth = calendarWidth || windowWidth;
 
   /** Refs */
   const dayBarListRef = useRef<FlashList<string>>(null);
@@ -261,6 +266,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       numOfColumns,
       recheckTimezoneOffset: () => {},
       initialTimeIntervalHeight,
+      autoRefreshTimezoneOffset,
     };
   }, [
     pages,
@@ -306,6 +312,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     isPinchActive,
     navigateDelay,
     initialTimeIntervalHeight,
+    autoRefreshTimezoneOffset,
   ]);
 
   const mountedRef = useRef(false);

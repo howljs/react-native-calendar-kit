@@ -76,6 +76,7 @@ const Timeline: React.ForwardRefRenderFunction<
     offsetY,
     timelineVerticalListRef,
     initialTimeIntervalHeight,
+    recheckTimezoneOffset,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -118,6 +119,23 @@ const Timeline: React.ForwardRefRenderFunction<
       goToPrevPage: goToPrevPage,
       getZones: () => Object.values(timeZoneData),
       getZone: (key: keyof typeof timeZoneData) => timeZoneData[key],
+      getHour: () => {
+        const position = offsetY.value + 8;
+        const minutes =
+          ((position - spaceFromTop) * 60) / timeIntervalHeight.value;
+        const hour = minutes / 60;
+        return Math.max(0, hour);
+      },
+      getDate: () => {
+        const numOfDays =
+          viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
+        const firstDateMoment = dayjs(firstDate.current[viewMode]);
+        const pageIndex = currentIndex.value;
+        const currentDay = firstDateMoment
+          .add(pageIndex * numOfDays, 'd')
+          .add(tzOffset, 'm');
+        return currentDay.toISOString();
+      },
       goToHour: (hour: number, animated?: boolean) => {
         const minutes = hour * 60;
         const position =
@@ -125,6 +143,7 @@ const Timeline: React.ForwardRefRenderFunction<
         goToOffsetY(Math.max(0, position - 8), animated);
       },
       forceUpdateNowIndicator: updateCurrentDate,
+      recheckTimezoneOffset: recheckTimezoneOffset,
       zoom: (props?: { scale?: number; height?: number }) => {
         let newHeight = props?.height ?? initialTimeIntervalHeight;
         if (props?.scale) {
@@ -152,6 +171,7 @@ const Timeline: React.ForwardRefRenderFunction<
       totalPages,
       timelineHorizontalListRef,
       timeIntervalHeight,
+      currentIndex.value,
       spaceFromTop,
       goToOffsetY,
       minTimeIntervalHeight.value,
@@ -159,6 +179,7 @@ const Timeline: React.ForwardRefRenderFunction<
       offsetY.value,
       timelineVerticalListRef,
       initialTimeIntervalHeight,
+      recheckTimezoneOffset,
     ]
   );
 

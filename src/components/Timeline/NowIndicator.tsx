@@ -16,7 +16,7 @@ interface NowIndicatorProps {
   tzOffset: string;
   start: number;
   updateCurrentDate: () => void;
-  recheckTimezoneOffset: () => void;
+  recheckTimezoneOffset?: () => void;
   nowIndicatorInterval: number;
 }
 
@@ -44,7 +44,7 @@ const NowIndicator = ({
 
   const prevMinutes = useRef(initial.current.minutes);
   const updateLinePosition = useCallback(() => {
-    recheckTimezoneOffset();
+    recheckTimezoneOffset?.();
     const { date, minutes } = getCurrentMinutes(tzOffset);
     if (prevMinutes.current === minutes) {
       return;

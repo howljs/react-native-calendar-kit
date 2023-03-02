@@ -77,6 +77,7 @@ const TimelinePage = ({
     nowIndicatorInterval,
     isPinchActive,
     recheckTimezoneOffset,
+    autoRefreshTimezoneOffset,
   } = useTimelineCalendarContext();
 
   const eventsByColumns = useMemo(
@@ -180,7 +181,9 @@ const TimelinePage = ({
             tzOffset={tzOffset}
             start={start}
             updateCurrentDate={updateCurrentDate}
-            recheckTimezoneOffset={recheckTimezoneOffset}
+            recheckTimezoneOffset={
+              autoRefreshTimezoneOffset ? recheckTimezoneOffset : undefined
+            }
             nowIndicatorInterval={nowIndicatorInterval}
           />
         )}

@@ -101,7 +101,7 @@ const DragEditItem = ({
     rightEdgeSpacing,
   ]);
 
-  const timeoutRef = useSharedValue<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const _handleScroll = ({
     x,
     y,
@@ -111,23 +111,23 @@ const DragEditItem = ({
     y: number;
     type: 'swipe_down' | 'swipe_up';
   }) => {
-    if (timeoutRef.value && x > hourWidth && x < timelineWidth - 25) {
-      clearInterval(timeoutRef.value);
-      timeoutRef.value = null;
+    if (timeoutRef.current && x > hourWidth && x < timelineWidth - 25) {
+      clearInterval(timeoutRef.current);
+      timeoutRef.current = null;
     }
     if (x <= hourWidth) {
-      if (isScrolling.current || timeoutRef.value) {
+      if (isScrolling.current || timeoutRef.current) {
         return;
       }
-      timeoutRef.value = setInterval(() => {
+      timeoutRef.current = setInterval(() => {
         goToPrevPage(true);
       }, navigateDelay);
     }
     if (x >= timelineWidth - 25) {
-      if (isScrolling.current || timeoutRef.value) {
+      if (isScrolling.current || timeoutRef.current) {
         return;
       }
-      timeoutRef.value = setInterval(() => {
+      timeoutRef.current = setInterval(() => {
         goToNextPage(true);
       }, navigateDelay);
     }
@@ -187,9 +187,9 @@ const DragEditItem = ({
   };
 
   const clearCurrentInterval = () => {
-    if (timeoutRef.value) {
-      clearInterval(timeoutRef.value);
-      timeoutRef.value = null;
+    if (timeoutRef.current) {
+      clearInterval(timeoutRef.current);
+      timeoutRef.current = null;
     }
   };
 
@@ -232,10 +232,7 @@ const DragEditItem = ({
           duration: 100,
           easing: Easing.linear,
         });
-        eventTop.value = withTiming(newTopPosition, {
-          duration: 100,
-          easing: Easing.linear,
-        });
+        eventTop.value = newTopPosition;
         currentHour.value = roundedHour + start;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
@@ -272,10 +269,7 @@ const DragEditItem = ({
       const clampedHeight = Math.max(roundedHeight, heightOfTenMinutes);
       const isSameHeight = eventHeight.value === clampedHeight;
       if (!isSameHeight) {
-        eventHeight.value = withTiming(clampedHeight, {
-          duration: 100,
-          easing: Easing.linear,
-        });
+        eventHeight.value = clampedHeight;
         if (useHaptic) {
           runOnJS(triggerHaptic)();
         }
@@ -474,7 +468,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 24,
   },
-  title: { paddingVertical: 4, paddingHorizontal: 2, fontSize: 10 },
+  title: {
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 10,
+    color: DEFAULT_PROPS.BLACK_COLOR,
+  },
   hourText: {
     color: DEFAULT_PROPS.PRIMARY_COLOR,
     fontSize: 10,
