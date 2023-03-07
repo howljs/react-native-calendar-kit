@@ -33,7 +33,8 @@ const TimelineHours = () => {
         styles.hours,
         {
           width: hourWidth,
-          backgroundColor: theme.backgroundColor,
+          backgroundColor:
+            theme.hourColumnBackgroundColor ?? theme.backgroundColor,
           marginBottom: spaceFromTop,
         },
       ]}
