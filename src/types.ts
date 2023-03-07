@@ -275,6 +275,16 @@ export interface TimelineProviderProps {
   /** Changing locale globally
    *
    ** Default: `en`
+   *
+   If you want to use a custom locale, please use it with `MomentConfig`
+
+   Example:
+   ```javascript
+    import {MomentConfig} from '@howljs/calendar-kit';
+    MomentConfig.updateLocale('ja', {
+        weekdaysShort: '日_月_火_水_木_金_土'.split('_'),
+    });
+   ```
    */
   locale?: LocaleType;
 

@@ -1,3 +1,6 @@
+---
+sidebar_position: 11
+---
 # Other Props
 
 Some other properties of TimelineCalendar
