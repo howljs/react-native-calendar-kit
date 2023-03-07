@@ -107,6 +107,9 @@ export interface TimelineProps {
 
   /** Container style of the line in the middle of the interval. */
   halfLineContainerStyle?: ViewStyle;
+
+  /** Callback function will be called when the time interval height is changed */
+  onTimeIntervalHeightChange?: (height: number) => void;
 }
 
 export interface UnavailableItemProps {

@@ -1,6 +1,7 @@
 ---
 sidebar_position: 11
 ---
+
 # Other Props
 
 Some other properties of TimelineCalendar
@@ -129,8 +130,6 @@ Callback function will be called when time slots view is pressed
 
 Callback function will be called when time slots view is long pressed
 
-<span style={{color: "grey"}}>function</span>
-
 ### onPressOutBackground
 
 Callback function will be called when time slots view is pressed out
@@ -214,3 +213,9 @@ Update indicator at specified intervals (in milliseconds). Default is `1000`
 Width of calendar. Default is `window width`
 
 <span style={{color: "grey"}}>number</span>
+
+### onTimeIntervalHeightChange
+
+Callback function will be called when the time interval height is changed
+
+<span style={{color: "grey"}}>function</span>

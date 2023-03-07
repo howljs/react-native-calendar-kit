@@ -47,6 +47,7 @@ const Timeline: React.ForwardRefRenderFunction<
     selectedEvent,
     highlightDates,
     onChange,
+    onTimeIntervalHeightChange,
     ...other
   },
   ref
@@ -178,6 +179,17 @@ const Timeline: React.ForwardRefRenderFunction<
       timelineVerticalListRef,
       initialTimeIntervalHeight,
     ]
+  );
+
+  useAnimatedReaction(
+    () => timeIntervalHeight.value,
+    (next, prev) => {
+      if (next === prev || !onTimeIntervalHeightChange) {
+        return;
+      }
+      runOnJS(onTimeIntervalHeightChange)(next);
+    },
+    [onTimeIntervalHeightChange]
   );
 
   useEffect(() => {
