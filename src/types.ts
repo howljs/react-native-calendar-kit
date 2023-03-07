@@ -18,14 +18,12 @@ export interface TimelineCalendarHandle {
   goToPrevPage: (animated?: boolean) => void;
   getZones: () => {
     name: string;
-    offset: number;
     alternativeName: string;
     raw: string;
     countryName: string;
   }[];
   getZone: (zoneName: keyof typeof timeZoneData) => {
     name: string;
-    offset: number;
     alternativeName: string;
     raw: string;
     countryName: string;
