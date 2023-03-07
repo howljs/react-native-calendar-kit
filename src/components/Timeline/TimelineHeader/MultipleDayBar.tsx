@@ -1,5 +1,5 @@
-import dayjs from 'dayjs';
 import times from 'lodash/times';
+import moment from 'moment-timezone';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { COLUMNS, DEFAULT_PROPS } from '../../../constants';
@@ -16,9 +16,10 @@ const MultipleDayBar = ({
   locale,
   highlightDates,
   currentDate,
+  tzOffset,
 }: DayBarItemProps) => {
   const _renderDay = (dayIndex: number) => {
-    const dateByIndex = dayjs(startDate).add(dayIndex, 'd');
+    const dateByIndex = moment.tz(startDate, tzOffset).add(dayIndex, 'd');
     const dateStr = dateByIndex.format('YYYY-MM-DD');
     const [dayNameText, dayNum] = dateByIndex
       .locale(locale)

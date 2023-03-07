@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import moment from 'moment-timezone';
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -13,15 +13,15 @@ interface NowIndicatorProps {
   width: number;
   timeIntervalHeight: SharedValue<number>;
   nowIndicatorColor?: string;
-  tzOffset: number;
+  tzOffset: string;
   start: number;
   updateCurrentDate: () => void;
   recheckTimezoneOffset?: () => void;
   nowIndicatorInterval: number;
 }
 
-const getCurrentMinutes = (tzOffset: number) => {
-  const now = dayjs().add(tzOffset, 'm');
+const getCurrentMinutes = (tzOffset: string) => {
+  const now = moment.tz(tzOffset);
   const date = now.format('YYYY-MM-DD');
   const minutes = now.hour() * 60 + now.minute();
   return { date, minutes };

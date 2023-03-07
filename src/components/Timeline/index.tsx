@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import moment from 'moment-timezone';
 import React, {
   forwardRef,
   useEffect,
@@ -22,7 +22,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { timeZoneData } from '../../assets/timeZone';
-import { COLUMNS, DEFAULT_PROPS, LOCALES } from '../../constants';
+import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useDragCreateGesture from '../../hooks/useDragCreateGesture';
 import useZoomGesture from '../../hooks/usePinchGesture';
@@ -91,8 +91,11 @@ const Timeline: React.ForwardRefRenderFunction<
       }) => {
         const numOfDays =
           viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-        const currentDay = dayjs(props?.date).add(tzOffset, 'm');
-        const firstDateMoment = dayjs(firstDate.current[viewMode]);
+        const currentDay = moment.tz(props?.date, tzOffset);
+        const firstDateMoment = moment.tz(
+          firstDate.current[viewMode],
+          tzOffset
+        );
         const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
         const pageIndex = Math.floor(diffDays / numOfDays);
         if (pageIndex < 0 || pageIndex > totalPages[viewMode] - 1) {
@@ -126,11 +129,12 @@ const Timeline: React.ForwardRefRenderFunction<
       getDate: () => {
         const numOfDays =
           viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-        const firstDateMoment = dayjs(firstDate.current[viewMode]);
+        const firstDateMoment = moment.tz(
+          firstDate.current[viewMode],
+          tzOffset
+        );
         const pageIndex = currentIndex.value;
-        const currentDay = firstDateMoment
-          .add(pageIndex * numOfDays, 'd')
-          .add(tzOffset, 'm');
+        const currentDay = firstDateMoment.add(pageIndex * numOfDays, 'd');
         return currentDay.toISOString();
       },
       goToHour: (hour: number, animated?: boolean) => {
@@ -181,15 +185,12 @@ const Timeline: React.ForwardRefRenderFunction<
   );
 
   useEffect(() => {
-    const localeFn = LOCALES[locale];
-    if (localeFn) {
-      localeFn().then(() => dayjs.locale(locale));
-    }
+    moment.locale(locale);
   }, [locale]);
 
   useEffect(() => {
     requestAnimationFrame(() => {
-      const current = dayjs().add(tzOffset, 'm');
+      const current = moment.tz(tzOffset);
       const isSameDate = current.format('YYYY-MM-DD') === initialDate.current;
       if (scrollToNow && isSameDate) {
         const minutes = current.hour() * 60 + current.minute();

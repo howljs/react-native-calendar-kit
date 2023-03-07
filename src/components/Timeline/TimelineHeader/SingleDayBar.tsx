@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import moment from 'moment-timezone';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { DEFAULT_PROPS } from '../../../constants';
@@ -13,9 +13,10 @@ const SingleDayBar = ({
   highlightDates,
   onPressDayNum,
   currentDate,
+  tzOffset,
 }: DayBarItemProps) => {
   const _renderDay = () => {
-    const dateByIndex = dayjs(startDate);
+    const dateByIndex = moment.tz(startDate, tzOffset);
     const dateStr = dateByIndex.format('YYYY-MM-DD');
     const [dayNameText, dayNum] = dateByIndex
       .locale(locale)

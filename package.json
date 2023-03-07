@@ -162,7 +162,7 @@
     ]
   },
   "dependencies": {
-    "dayjs": "^1.11.6",
+    "moment-timezone": "^0.5.40",
     "lodash": "^4.17.21"
   }
 }

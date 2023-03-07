@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import moment from 'moment-timezone';
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -164,10 +164,10 @@ const DragEditItem = ({
     const newLeftPosition = event.leftByIndex! + translateX.value;
     const dayIndex = Math.round(newLeftPosition / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
-    const currentDateMoment = dayjs(startDate)
+    const currentDateMoment = moment
+      .tz(startDate, tzOffset)
       .add(dayIndex, 'd')
-      .add(currentHour.value, 'h')
-      .subtract(tzOffset, 'm');
+      .add(currentHour.value, 'h');
 
     const newEvent = {
       ...selectedEvent,
@@ -380,7 +380,7 @@ const AnimatedHour = ({
   ) => {
     let newTime = `${hourStr}:${minutesStr}`;
     if (hourFormat) {
-      newTime = dayjs(
+      newTime = moment(
         `1970/1/1 ${hourStr}:${minutesStr}`,
         'YYYY/M/D HH:mm'
       ).format(hourFormat);

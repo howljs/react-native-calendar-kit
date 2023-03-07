@@ -1,5 +1,5 @@
-import dayjs from 'dayjs';
 import times from 'lodash/times';
+import moment from 'moment-timezone';
 import React, { memo, useMemo } from 'react';
 import {
   GestureResponderEvent,
@@ -62,9 +62,9 @@ const TimelineBoard = ({
     );
   };
 
-  const minDayUnix = useMemo(() => dayjs(minDate).unix(), [minDate]);
-  const maxDayUnix = useMemo(() => dayjs(maxDate).unix(), [maxDate]);
-  const startDayUnix = useMemo(() => dayjs(startDate).unix(), [startDate]);
+  const minDayUnix = useMemo(() => moment(minDate).unix(), [minDate]);
+  const maxDayUnix = useMemo(() => moment(maxDate).unix(), [maxDate]);
+  const startDayUnix = useMemo(() => moment(startDate).unix(), [startDate]);
 
   const _renderVerticalBlock = (dayIndex: number) => {
     if (!unavailableHours && !holidays) {
@@ -79,7 +79,7 @@ const TimelineBoard = ({
       if (Array.isArray(unavailableHours)) {
         unavailableHour = unavailableHours;
       } else {
-        const current = dayjs.unix(currentUnix);
+        const current = moment.unix(currentUnix);
         const currentDateStr = current.format('YYYY-MM-DD');
         const currentWeekDay = current.day();
         unavailableHour =
@@ -90,7 +90,7 @@ const TimelineBoard = ({
 
     let isDayDisabled = false;
     if (holidays?.length) {
-      const dateStr = dayjs.unix(currentUnix).format('YYYY-MM-DD');
+      const dateStr = moment.unix(currentUnix).format('YYYY-MM-DD');
       isDayDisabled = holidays.includes(dateStr);
     }
 

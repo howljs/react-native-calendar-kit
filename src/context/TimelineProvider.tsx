@@ -1,5 +1,5 @@
 import type { FlashList } from '@shopify/flash-list';
-import dayjs from 'dayjs';
+import moment from 'moment-timezone';
 import React, {
   useCallback,
   useContext,
@@ -27,7 +27,6 @@ import {
   calculateHours,
   getCurrentDate,
   getTheme,
-  getTimeZoneOffset,
 } from '../utils';
 
 type CustomTimelineProviderProps = Required<
@@ -73,7 +72,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
   hourFormat?: string;
-  tzOffset: number;
+  tzOffset: string;
   currentDate: string;
   updateCurrentDate: () => void;
   isPinchActive: SharedValue<boolean>;
@@ -119,7 +118,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     hourFormat,
     eventAnimatedDuration = DEFAULT_PROPS.EVENT_ANIMATED_DURATION,
     useHaptic = false,
-    timeZone,
+    timeZone = moment.tz.guess(),
     nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
     navigateDelay = DEFAULT_PROPS.NAVIGATION_DELAY,
     autoRefreshTimezoneOffset = false,
@@ -139,22 +138,11 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   const isScrolling = useRef(false);
   const pinchRef = useRef();
 
-  const [tzOffset, setTzOffset] = useState(() => getTimeZoneOffset(timeZone));
-
-  const recheckTimezoneOffset = useCallback(() => {
-    const newOffset = getTimeZoneOffset(timeZone);
-    setTzOffset(newOffset);
-  }, [timeZone]);
-
-  useEffect(() => {
-    recheckTimezoneOffset();
-  }, [recheckTimezoneOffset]);
-
   /** Prepare data*/
   const pages = useMemo(
     () =>
-      calculateDates(firstDay, minDate, maxDate, initialDate.current, tzOffset),
-    [firstDay, minDate, maxDate, tzOffset]
+      calculateDates(firstDay, minDate, maxDate, initialDate.current, timeZone),
+    [firstDay, minDate, maxDate, timeZone]
   );
   const firstDate = useRef({
     week: pages.week.data[0],
@@ -195,16 +183,16 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   }, [initialMinTimeIntervalHeight, minTimeIntervalHeight]);
 
   const [currentDate, setCurrentDate] = useState(() =>
-    getCurrentDate(tzOffset)
+    getCurrentDate(timeZone)
   );
 
   const updateCurrentDate = useCallback(() => {
-    const newDate = getCurrentDate(tzOffset);
+    const newDate = getCurrentDate(timeZone);
     if (newDate === currentDate) {
       return;
     }
     setCurrentDate(newDate);
-  }, [currentDate, tzOffset]);
+  }, [currentDate, timeZone]);
 
   const isPinchActive = useSharedValue(false);
 
@@ -269,14 +257,14 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       hourFormat,
       eventAnimatedDuration,
       useHaptic,
-      tzOffset,
+      tzOffset: timeZone,
       currentDate,
       updateCurrentDate,
       nowIndicatorInterval,
       isPinchActive,
       navigateDelay,
       numOfColumns,
-      recheckTimezoneOffset,
+      recheckTimezoneOffset: () => {},
       initialTimeIntervalHeight,
       autoRefreshTimezoneOffset,
     };
@@ -317,13 +305,12 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     hourFormat,
     eventAnimatedDuration,
     useHaptic,
-    tzOffset,
+    timeZone,
     currentDate,
     updateCurrentDate,
     nowIndicatorInterval,
     isPinchActive,
     navigateDelay,
-    recheckTimezoneOffset,
     initialTimeIntervalHeight,
     autoRefreshTimezoneOffset,
   ]);
@@ -338,8 +325,8 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     // Scroll to current date when viewMode is changed
     const numOfDays =
       viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-    const currentDay = dayjs(startDate.value);
-    const firstDateMoment = dayjs(firstDate.current[viewMode]);
+    const currentDay = moment.tz(startDate.value, timeZone);
+    const firstDateMoment = moment.tz(firstDate.current[viewMode], timeZone);
     const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
     const pageIndex = Math.floor(diffDays / numOfDays);
     setTimeout(() => {
@@ -349,7 +336,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode]);
+  }, [viewMode, timeZone]);
 
   return (
     <TimelineCalendarContext.Provider value={value}>

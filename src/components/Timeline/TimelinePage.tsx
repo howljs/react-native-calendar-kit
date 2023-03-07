@@ -1,5 +1,5 @@
-import dayjs from 'dayjs';
 import times from 'lodash/times';
+import moment from 'moment-timezone';
 import React, { useMemo } from 'react';
 import {
   GestureResponderEvent,
@@ -122,7 +122,8 @@ const TimelinePage = ({
       event.nativeEvent.locationY,
       startDate,
       timeIntervalHeight.value,
-      columnWidth
+      columnWidth,
+      tzOffset
     );
 
     switch (type) {
@@ -160,7 +161,7 @@ const TimelinePage = ({
   };
 
   const _renderTimelineColumn = (dayIndex: number) => {
-    const dateByColumn = dayjs(startDate).add(dayIndex, 'd');
+    const dateByColumn = moment.tz(startDate, tzOffset).add(dayIndex, 'd');
     const dateStr = dateByColumn.format('YYYY-MM-DD');
     const isToday = dateStr === currentDate;
 
