@@ -195,6 +195,9 @@ export interface TimelineProviderProps {
    */
   maxTimeIntervalHeight?: number;
 
+  /** Callback function will be called when time interval height changed */
+  onTimeIntervalHeightChange?: (height: number) => void;
+
   /** Auto scroll header when scroll time slots view.
    *
    ** Default: `true`
