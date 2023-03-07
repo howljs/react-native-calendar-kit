@@ -82,6 +82,7 @@ const TimelineSlots = ({
     allowDragToCreate,
     pinchRef,
     currentDate,
+    theme,
   } = useTimelineCalendarContext();
 
   const contentContainerStyle = useAnimatedStyle(() => {
@@ -255,6 +256,7 @@ const TimelineSlots = ({
           styles.contentContainer,
           { width: timelineWidth },
           contentContainerStyle,
+          { backgroundColor: theme.cellBackgroundColor },
         ]}
       >
         {_renderSlots()}

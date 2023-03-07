@@ -47,6 +47,8 @@ export interface TimelineCalendarProps
 export interface TimelineProps {
   /** Custom header component */
   renderDayBarItem?: (props: DayBarItemProps) => JSX.Element;
+  /* Height of the day bar to be used when syncedLists = true */
+  dayBarItemHeight?: number;
   /** Callback function will be called when day in header is pressed */
   onPressDayNum?: (date: string) => void;
   /** Callback function will be called when the create box is dropped */
@@ -348,6 +350,8 @@ export interface DayBarItemProps {
 export interface ThemeProperties {
   /** Border color of the calendar */
   cellBorderColor?: string;
+  /** Cell background color  */
+  cellBackgroundColor?: string;
   /** Background color of the calendar */
   backgroundColor?: string;
   /** Background color of the create box when dragging to create */
@@ -362,6 +366,7 @@ export interface ThemeProperties {
   nowIndicatorColor?: string;
 
   // Hour Column
+  hourColumnBackgroundColor?: string;
   hourText?: TextStyle;
   dragHourContainer?: ViewStyle;
   dragHourText?: TextStyle;

@@ -11,6 +11,7 @@ import SingleDayBar from './SingleDayBar';
 
 interface TimelineHeaderProps {
   renderDayBarItem?: (props: DayBarItemProps) => JSX.Element;
+  dayBarItemHeight?: number;
   onPressDayNum?: (date: string) => void;
   isLoading?: boolean;
   highlightDates?: HighlightDates;
@@ -19,6 +20,7 @@ interface TimelineHeaderProps {
 
 const TimelineHeader = ({
   renderDayBarItem,
+  dayBarItemHeight,
   onPressDayNum,
   isLoading,
   highlightDates,
@@ -117,7 +119,7 @@ const TimelineHeader = ({
 
     if (viewMode === 'day') {
       return (
-        <View style={{ width: timelineWidth }}>
+        <View style={{ width: timelineWidth, height: dayBarItemHeight }}>
           <AnimatedFlashList
             {...listProps}
             data={pages[viewMode].data}
@@ -125,7 +127,7 @@ const TimelineHeader = ({
             estimatedItemSize={timelineWidth}
             estimatedListSize={{
               width: timelineWidth,
-              height: DEFAULT_PROPS.DAY_BAR_HEIGHT,
+              height: dayBarItemHeight ?? DEFAULT_PROPS.DAY_BAR_HEIGHT,
             }}
             renderItem={_renderSingleDayItem}
             onScroll={(e) => {
@@ -144,7 +146,7 @@ const TimelineHeader = ({
     return (
       <View style={styles.multipleDayContainer}>
         <View style={{ width: hourWidth }} />
-        <View style={{ width: rightSideWidth }}>
+        <View style={{ width: rightSideWidth, height: dayBarItemHeight }}>
           <AnimatedFlashList
             {...listProps}
             data={pages[viewMode].data}
@@ -152,7 +154,7 @@ const TimelineHeader = ({
             estimatedItemSize={rightSideWidth}
             estimatedListSize={{
               width: rightSideWidth,
-              height: DEFAULT_PROPS.DAY_BAR_HEIGHT,
+              height: dayBarItemHeight ?? DEFAULT_PROPS.DAY_BAR_HEIGHT,
             }}
             renderItem={_renderMultipleDayItem}
           />

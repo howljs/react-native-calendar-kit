@@ -9,6 +9,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
 > = (
   {
     renderDayBarItem,
+    dayBarItemHeight,
     onPressDayNum,
     onDragCreateEnd,
     onLongPressBackground,
@@ -38,6 +39,7 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
 ) => {
   const timelineProps = {
     renderDayBarItem,
+    dayBarItemHeight,
     onPressDayNum,
     onDragCreateEnd,
     onLongPressBackground,

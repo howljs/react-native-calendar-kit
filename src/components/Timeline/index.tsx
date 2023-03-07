@@ -39,6 +39,7 @@ const Timeline: React.ForwardRefRenderFunction<
 > = (
   {
     renderDayBarItem,
+    dayBarItemHeight,
     onPressDayNum,
     onDragCreateEnd,
     onLongPressBackground,
@@ -289,6 +290,7 @@ const Timeline: React.ForwardRefRenderFunction<
       {isShowHeader && (
         <TimelineHeader
           renderDayBarItem={renderDayBarItem}
+          dayBarItemHeight={dayBarItemHeight}
           onPressDayNum={onPressDayNum}
           isLoading={isLoading}
           highlightDates={highlightDates}
