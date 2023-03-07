@@ -16,7 +16,6 @@ interface NowIndicatorProps {
   tzOffset: string;
   start: number;
   updateCurrentDate: () => void;
-  recheckTimezoneOffset?: () => void;
   nowIndicatorInterval: number;
 }
 
@@ -36,7 +35,6 @@ const NowIndicator = ({
   start,
   updateCurrentDate,
   nowIndicatorInterval,
-  recheckTimezoneOffset,
 }: NowIndicatorProps) => {
   const initial = useRef(getCurrentMinutes(tzOffset));
   const translateY = useSharedValue(0);
@@ -44,7 +42,6 @@ const NowIndicator = ({
 
   const prevMinutes = useRef(initial.current.minutes);
   const updateLinePosition = useCallback(() => {
-    recheckTimezoneOffset?.();
     const { date, minutes } = getCurrentMinutes(tzOffset);
     if (prevMinutes.current === minutes) {
       return;
@@ -62,7 +59,6 @@ const NowIndicator = ({
       duration: 500,
     });
   }, [
-    recheckTimezoneOffset,
     tzOffset,
     start,
     timeIntervalHeight.value,

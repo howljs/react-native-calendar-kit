@@ -77,7 +77,6 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   updateCurrentDate: () => void;
   isPinchActive: SharedValue<boolean>;
   numOfColumns: number;
-  recheckTimezoneOffset: () => void;
 }
 
 const TimelineCalendarContext = React.createContext<
@@ -121,7 +120,6 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     timeZone = moment.tz.guess(),
     nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
     navigateDelay = DEFAULT_PROPS.NAVIGATION_DELAY,
-    autoRefreshTimezoneOffset = false,
     calendarWidth,
   } = props;
 
@@ -264,9 +262,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       isPinchActive,
       navigateDelay,
       numOfColumns,
-      recheckTimezoneOffset: () => {},
       initialTimeIntervalHeight,
-      autoRefreshTimezoneOffset,
     };
   }, [
     pages,
@@ -312,7 +308,6 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     isPinchActive,
     navigateDelay,
     initialTimeIntervalHeight,
-    autoRefreshTimezoneOffset,
   ]);
 
   const mountedRef = useRef(false);

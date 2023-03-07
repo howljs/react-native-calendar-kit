@@ -75,7 +75,6 @@ const Timeline: React.ForwardRefRenderFunction<
     offsetY,
     timelineVerticalListRef,
     initialTimeIntervalHeight,
-    recheckTimezoneOffset,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -143,7 +142,6 @@ const Timeline: React.ForwardRefRenderFunction<
         goToOffsetY(Math.max(0, position - 8), animated);
       },
       forceUpdateNowIndicator: updateCurrentDate,
-      recheckTimezoneOffset: recheckTimezoneOffset,
       zoom: (props?: { scale?: number; height?: number }) => {
         let newHeight = props?.height ?? initialTimeIntervalHeight;
         if (props?.scale) {
@@ -179,7 +177,6 @@ const Timeline: React.ForwardRefRenderFunction<
       offsetY.value,
       timelineVerticalListRef,
       initialTimeIntervalHeight,
-      recheckTimezoneOffset,
     ]
   );
 
