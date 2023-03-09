@@ -76,7 +76,11 @@ const DragEditItem = ({
   const startXY = useSharedValue({ x: 0, y: 0 });
   const translateX = useSharedValue(0);
   const eventTop = useSharedValue(defaultTopPosition);
-  const eventHeight = useSharedValue<number>(event.height);
+  const eventHeight = useSharedValue<number>(
+    theme.minimumEventHeight
+      ? Math.max(theme.minimumEventHeight, event.height)
+      : event.height
+  );
 
   useEffect(() => {
     if (useHaptic) {
@@ -266,7 +270,12 @@ const DragEditItem = ({
       const nextHeight = startHeight.value + e.translationY;
       const roundedHeight =
         Math.ceil(nextHeight / heightOfTenMinutes) * heightOfTenMinutes;
-      const clampedHeight = Math.max(roundedHeight, heightOfTenMinutes);
+      const clampedHeight = theme.minimumEventHeight
+        ? Math.max(
+            theme.minimumEventHeight,
+            Math.max(roundedHeight, heightOfTenMinutes)
+          )
+        : Math.max(roundedHeight, heightOfTenMinutes);
       const isSameHeight = eventHeight.value === clampedHeight;
       if (!isSameHeight) {
         eventHeight.value = clampedHeight;
