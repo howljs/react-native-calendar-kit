@@ -4,29 +4,15 @@ import { StyleSheet, View } from 'react-native';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 import { DEFAULT_PROPS } from '../../../constants';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
-import type { DayBarItemProps, HighlightDates } from '../../../types';
-import AllDayBar from '../AllDayBar';
 import MultipleDayBar from './MultipleDayBar';
-import ProgressBar from './ProgressBar';
 import SingleDayBar from './SingleDayBar';
 
-interface TimelineHeaderProps {
-  renderDayBarItem?: (props: DayBarItemProps) => JSX.Element;
-  dayBarItemHeight?: number;
+interface AllDayBarProps {
+  height?: number;
   onPressDayNum?: (date: string) => void;
-  isLoading?: boolean;
-  highlightDates?: HighlightDates;
-  selectedEventId?: string;
 }
 
-const TimelineHeader = ({
-  renderDayBarItem,
-  dayBarItemHeight,
-  onPressDayNum,
-  isLoading,
-  highlightDates,
-  selectedEventId,
-}: TimelineHeaderProps) => {
+const AllDayBar = ({ height, onPressDayNum }: AllDayBarProps) => {
   const {
     syncedLists,
     viewMode,
@@ -67,10 +53,6 @@ const TimelineHeader = ({
       currentDate: extraData.currentDate,
     };
 
-    if (renderDayBarItem) {
-      return renderDayBarItem(dayItemProps);
-    }
-
     return <SingleDayBar {...dayItemProps} />;
   };
 
@@ -80,6 +62,7 @@ const TimelineHeader = ({
   }: ListRenderItemInfo<string>) => {
     const dayItemProps = {
       width: rightSideWidth,
+      height: height ?? 40,
       startDate: item,
       columnWidth,
       hourWidth,
@@ -92,16 +75,12 @@ const TimelineHeader = ({
       currentDate: extraData.currentDate,
     };
 
-    if (renderDayBarItem) {
-      return renderDayBarItem(dayItemProps);
-    }
-
     return <MultipleDayBar {...dayItemProps} />;
   };
 
   const extraValues = useMemo(
-    () => ({ locale, highlightDates, theme, currentDate }),
-    [locale, highlightDates, theme, currentDate]
+    () => ({ locale, theme, currentDate }),
+    [locale, theme, currentDate]
   );
 
   const _renderDayBarList = () => {
@@ -120,7 +99,7 @@ const TimelineHeader = ({
 
     if (viewMode === 'day') {
       return (
-        <View style={{ width: timelineWidth, height: dayBarItemHeight }}>
+        <View style={{ width: timelineWidth, height: height }}>
           <AnimatedFlashList
             {...listProps}
             data={pages[viewMode].data}
@@ -128,7 +107,7 @@ const TimelineHeader = ({
             estimatedItemSize={timelineWidth}
             estimatedListSize={{
               width: timelineWidth,
-              height: dayBarItemHeight ?? DEFAULT_PROPS.DAY_BAR_HEIGHT,
+              height: height ?? DEFAULT_PROPS.DAY_BAR_HEIGHT,
             }}
             renderItem={_renderSingleDayItem}
             onScroll={(e) => {
@@ -147,7 +126,7 @@ const TimelineHeader = ({
     return (
       <View style={styles.multipleDayContainer}>
         <View style={{ width: hourWidth }} />
-        <View style={{ width: rightSideWidth, height: dayBarItemHeight }}>
+        <View style={{ width: rightSideWidth, height: height }}>
           <AnimatedFlashList
             {...listProps}
             data={pages[viewMode].data}
@@ -155,7 +134,7 @@ const TimelineHeader = ({
             estimatedItemSize={rightSideWidth}
             estimatedListSize={{
               width: rightSideWidth,
-              height: dayBarItemHeight ?? DEFAULT_PROPS.DAY_BAR_HEIGHT,
+              height: height ?? DEFAULT_PROPS.DAY_BAR_HEIGHT,
             }}
             renderItem={_renderMultipleDayItem}
           />
@@ -206,14 +185,11 @@ const TimelineHeader = ({
       style={[styles.container, { backgroundColor: theme.backgroundColor }]}
     >
       {syncedLists ? _renderDayBarList() : _renderDayBarView()}
-      {selectedEventId && <View style={styles.disabledFrame} />}
-      <AllDayBar height={40} />
-      {isLoading && <ProgressBar barColor={theme.loadingBarColor} />}
     </View>
   );
 };
 
-export default TimelineHeader;
+export default AllDayBar;
 
 const styles = StyleSheet.create({
   container: {
