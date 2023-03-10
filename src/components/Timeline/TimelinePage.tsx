@@ -120,8 +120,7 @@ const TimelinePage = ({
       event.nativeEvent.locationY,
       startDate,
       timeIntervalHeight.value,
-      columnWidth,
-      tzOffset
+      columnWidth
     );
 
     switch (type) {
