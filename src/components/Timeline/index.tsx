@@ -95,7 +95,10 @@ const Timeline: React.ForwardRefRenderFunction<
           firstDate.current[viewMode],
           tzOffset
         );
-        const diffDays = currentDay.startOf('D').diff(firstDateMoment, 'd');
+        const diffDays = currentDay
+          .clone()
+          .startOf('D')
+          .diff(firstDateMoment, 'd');
         const pageIndex = Math.floor(diffDays / numOfDays);
         if (pageIndex < 0 || pageIndex > totalPages[viewMode] - 1) {
           return;
@@ -110,7 +113,8 @@ const Timeline: React.ForwardRefRenderFunction<
           const minutes = currentDay.hour() * 60 + currentDay.minute();
           const position =
             (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
-          const offset = timeIntervalHeight.value * 5;
+          const offset = timelineLayoutRef.current.height / 2;
+          console.log(offset, position);
           goToOffsetY(Math.max(0, position - offset), props?.animatedHour);
         }
       },
@@ -170,14 +174,15 @@ const Timeline: React.ForwardRefRenderFunction<
       totalPages,
       timelineHorizontalListRef,
       timeIntervalHeight,
-      currentIndex.value,
       spaceFromTop,
+      timelineLayoutRef,
       goToOffsetY,
+      offsetY.value,
+      currentIndex.value,
+      initialTimeIntervalHeight,
       minTimeIntervalHeight.value,
       maxTimeIntervalHeight,
-      offsetY.value,
       timelineVerticalListRef,
-      initialTimeIntervalHeight,
     ]
   );
 
@@ -200,7 +205,7 @@ const Timeline: React.ForwardRefRenderFunction<
         const minutes = current.hour() * 60 + current.minute();
         const position =
           (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
-        const offset = timeIntervalHeight.value * 5;
+        const offset = timelineLayoutRef.current.height / 2;
         goToOffsetY(Math.max(0, position - offset), true);
       }
     });
