@@ -88,9 +88,11 @@ const Calendar = () => {
         // Optional
         dragStep={20}
         theme={{
-          dragHourColor: '#001253',
-          dragHourBorderColor: '#001253',
-          dragHourBackgroundColor: '#FFF',
+          dragHourContainer: {
+            backgroundColor: '#FFF',
+            borderColor: '#001253',
+          },
+          dragHourText: { color: '#001253' },
           editIndicatorColor: '#FFF',
         }}
         // End Optional
@@ -173,11 +175,9 @@ Handle the navigation time when navigating to next/previous view while dragging.
 
 - `editIndicatorColor`
 
-- `dragHourColor`
+- `dragHourContainer`
 
-- `dragHourBorderColor`
-
-- `dragHourBackgroundColor`
+- `dragHourText`
 
 <span style={{ color: 'grey' }}>object</span>
 

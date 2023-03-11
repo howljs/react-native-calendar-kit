@@ -43,10 +43,12 @@ const Calendar = () => {
         dragCreateInterval={120}
         dragStep={20}
         theme={{
+          dragHourContainer: {
+            backgroundColor: '#FFF',
+            borderColor: '#001253',
+          },
+          dragHourText: { color: '#001253' },
           dragCreateItemBackgroundColor: 'rgba(0, 18, 83, 0.2)',
-          dragHourColor: '#001253',
-          dragHourBorderColor: '#001253',
-          dragHourBackgroundColor: '#FFF',
         }}
         // End Optional
       />
@@ -88,12 +90,8 @@ Handle the navigation time when navigating to next/previous view while dragging.
 
 <img src={customCreateBlock} style={{ height: '250px' }} />
 
-- `dragCreateItemBackgroundColor`
+- `dragHourContainer`
 
-- `dragHourColor`
-
-- `dragHourBorderColor`
-
-- `dragHourBackgroundColor`
+- `dragHourText`
 
 <span style={{ color: 'grey' }}>object</span>
