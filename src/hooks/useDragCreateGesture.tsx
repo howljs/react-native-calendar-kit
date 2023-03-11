@@ -14,7 +14,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../context/TimelineProvider';
-import { triggerHaptic } from '../utils';
+import { roundTo, triggerHaptic } from '../utils';
 import useTimelineScroll from './useTimelineScroll';
 
 interface useDragCreateGesture {
@@ -67,11 +67,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const startY = yPosition + offsetY.value - spaceFromTop;
     const subtractHour = (dragCreateInterval / 60) * timeIntervalHeight.value;
     const originalTime = (startY - subtractHour) / timeIntervalHeight.value;
-    const rHours = Math.floor(originalTime);
-    const minutes = (originalTime - rHours) * 60;
-    const rMinutes = Math.round(minutes);
-    const extraPos = nearestMinutes - (rMinutes % nearestMinutes);
-    const roundedHour = (rMinutes + extraPos + rHours * 60) / 60;
+    const roundedHour = roundTo(originalTime, nearestMinutes, 'up');
     const calcY = roundedHour * timeIntervalHeight.value;
     currentHour.value = roundedHour + start;
 

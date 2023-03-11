@@ -15,7 +15,7 @@ import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
 import type { PackedEvent, ThemeProperties } from '../../types';
-import { triggerHaptic } from '../../utils';
+import { roundTo, triggerHaptic } from '../../utils';
 
 interface DragEditItemProps {
   selectedEvent: PackedEvent;
@@ -218,11 +218,7 @@ const DragEditItem = ({
       const offset = offsetY.value - spaceFromTop;
       const originalY = startXY.value.y + offset + translationY;
       const originalTime = originalY / timeIntervalHeight.value;
-      const rHours = Math.floor(originalTime);
-      const minutes = (originalTime - rHours) * 60;
-      const rMinutes = Math.round(minutes);
-      const extraPos = dragStep - (rMinutes % dragStep);
-      const roundedHour = (rMinutes + extraPos + rHours * 60) / 60;
+      const roundedHour = roundTo(originalTime, dragStep, 'up');
       const newTopPosition =
         roundedHour * timeIntervalHeight.value + spaceFromTop;
       const isSameX = translateX.value === roundedTranslateX;
