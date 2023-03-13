@@ -75,6 +75,7 @@ const TimelineSlots = ({
     pages,
     syncedLists,
     dayBarListRef,
+    allDayBarListRef,
     currentIndex,
     rightSideWidth,
     offsetY,
@@ -100,6 +101,10 @@ const TimelineSlots = ({
     }
     scrollX.addListener((ev) => {
       dayBarListRef.current?.scrollToOffset({
+        offset: ev.value,
+        animated: false,
+      });
+      allDayBarListRef.current?.scrollToOffset({
         offset: ev.value,
         animated: false,
       });

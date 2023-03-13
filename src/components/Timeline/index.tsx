@@ -45,6 +45,7 @@ const Timeline: React.ForwardRefRenderFunction<
     onLongPressBackground,
     isLoading,
     events,
+    allDayEvents,
     selectedEvent,
     highlightDates,
     onChange,
@@ -247,6 +248,11 @@ const Timeline: React.ForwardRefRenderFunction<
     [events, tzOffset]
   );
 
+  const groupedAllDayEvents = useMemo(
+    () => groupEventsByDate(allDayEvents, tzOffset),
+    [allDayEvents, tzOffset]
+  );
+
   useAnimatedReaction(
     () => currentIndex.value,
     (index, prevIndex) => {
@@ -272,12 +278,14 @@ const Timeline: React.ForwardRefRenderFunction<
     >
       {isShowHeader && (
         <TimelineHeader
+          renderEventContent={other.renderEventContent}
           renderDayBarItem={renderDayBarItem}
           dayBarItemHeight={dayBarItemHeight}
           onPressDayNum={onPressDayNum}
           isLoading={isLoading}
           highlightDates={highlightDates}
           selectedEventId={selectedEvent?.id}
+          events={groupedAllDayEvents}
         />
       )}
       <View style={styles.content} onLayout={_onContentLayout}>

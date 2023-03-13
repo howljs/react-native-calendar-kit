@@ -1,14 +1,9 @@
 import times from 'lodash/times';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { COLUMNS, DEFAULT_PROPS } from '../../../constants';
-import type {
-  CalendarViewMode,
-  HighlightDates,
-  LocaleType,
-  ThemeProperties,
-} from '../../../types';
-// import { getDayBarStyle } from '../../../utils';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SharedValue, useSharedValue } from 'react-native-reanimated';
+import { COLUMNS } from '../../../constants';
+import type { CalendarViewMode, PackedEvent } from '../../../types';
 
 const MultipleDayBar = ({
   width,
@@ -16,46 +11,43 @@ const MultipleDayBar = ({
   columnWidth,
   viewMode,
   startDate,
+  events,
+  renderEventContent,
 }: {
   width: number;
   height: number;
   startDate: string;
   columnWidth: number;
   viewMode: CalendarViewMode;
-  hourWidth: number;
-  onPressDayNum?: (date: string) => void;
-  theme: ThemeProperties;
-  locale: LocaleType;
-  highlightDates?: HighlightDates;
-  tzOffset: number;
-  currentDate: string;
+  events: PackedEvent[][];
+  renderEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => JSX.Element;
 }) => {
+  const eventHeight = useSharedValue(height);
+
   const _renderDay = (dayIndex: number) => {
-    // const dateByIndex = dayjs(startDate).add(dayIndex, 'd');
-    // const dateStr = dateByIndex.format('YYYY-MM-DD');
-    // const [dayNameText, dayNum] = dateByIndex
-    //   .locale(locale)
-    //   .format('ddd,DD')
-    //   .split(',');
-    // const highlightDate = highlightDates?.[dateStr];
-
-    // const { dayName, dayNumber, dayNumberContainer } = getDayBarStyle(
-    //   currentDate,
-    //   dateByIndex,
-    //   theme,
-    //   highlightDate
-    // );
-
     return (
       <View
         key={`${startDate}_${dayIndex}`}
         style={{
           width: columnWidth,
-          flex: 1,
-          backgroundColor: 'pink',
         }}
       >
-        <View />
+        {!!events?.[dayIndex]?.length && (
+          <ScrollView scrollEnabled horizontal={false}>
+            {events?.[dayIndex]?.map((event) => (
+              <View key={event.id} style={styles.defaultEventWrapper}>
+                {renderEventContent ? (
+                  renderEventContent?.(event, eventHeight)
+                ) : (
+                  <DefaultAllDayEvent event={event} />
+                )}
+              </View>
+            ))}
+          </ScrollView>
+        )}
       </View>
     );
   };
@@ -67,23 +59,41 @@ const MultipleDayBar = ({
   );
 };
 
+const DefaultAllDayEvent: React.FC<{
+  event: PackedEvent;
+}> = ({ event }) => (
+  <View
+    style={[
+      styles.allDayEventContentContainer,
+      { backgroundColor: event.color },
+    ]}
+  >
+    <Text style={styles.allDayEventText} numberOfLines={1}>
+      {event.title}
+    </Text>
+  </View>
+);
+
 export default MultipleDayBar;
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
   },
-  dayItem: { alignItems: 'center' },
-  dayNumBtn: {
-    alignItems: 'center',
+  defaultEventWrapper: {
+    height: 18,
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  allDayEventContentContainer: {
+    height: 18,
+    borderRadius: 4,
+    marginRight: 4,
     justifyContent: 'center',
-    marginTop: 2,
-    borderRadius: 14,
-    width: 28,
-    height: 28,
-    backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
+    paddingHorizontal: 4,
   },
-  dayName: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 12 },
-  dayNumber: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 16 },
+  allDayEventText: {
+    fontSize: 12,
+    lineHeight: 12,
+  },
 });

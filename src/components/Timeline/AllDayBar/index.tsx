@@ -1,24 +1,38 @@
 import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
-import React, { useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
-import { DEFAULT_PROPS } from '../../../constants';
+import React, { useMemo, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import {
+  runOnJS,
+  SharedValue,
+  useAnimatedReaction,
+} from 'react-native-reanimated';
+import { COLUMNS, DEFAULT_PROPS } from '../../../constants';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
+import type { EventItem, PackedEvent } from '../../../types';
+import { divideEventsByColumns } from '../../../utils';
 import MultipleDayBar from './MultipleDayBar';
-import SingleDayBar from './SingleDayBar';
 
 interface AllDayBarProps {
+  events?: Record<string, EventItem[]>;
   height?: number;
+  renderEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => JSX.Element;
   onPressDayNum?: (date: string) => void;
 }
 
-const AllDayBar = ({ height, onPressDayNum }: AllDayBarProps) => {
+const AllDayBar = ({
+  events,
+  height,
+  renderEventContent,
+  onPressDayNum,
+}: AllDayBarProps) => {
   const {
     syncedLists,
     viewMode,
-    dayBarListRef,
+    allDayBarListRef,
     pages,
-    timelineWidth,
     rightSideWidth,
     currentIndex,
     hourWidth,
@@ -27,39 +41,30 @@ const AllDayBar = ({ height, onPressDayNum }: AllDayBarProps) => {
     locale,
     tzOffset,
     currentDate,
+    overlapEventsSpacing,
+    rightEdgeSpacing,
+    start,
   } = useTimelineCalendarContext();
 
   const [startDate, setStartDate] = useState(
     pages[viewMode].data[pages[viewMode].index] || ''
   );
 
-  const dayBarIndex = useRef(pages.week.index);
-
-  const _renderSingleDayItem = ({
-    item,
-    extraData,
-  }: ListRenderItemInfo<string>) => {
-    const dayItemProps = {
-      width: timelineWidth,
-      startDate: item,
-      columnWidth,
-      hourWidth,
-      viewMode,
-      onPressDayNum,
-      theme: extraData.theme,
-      locale: extraData.locale,
-      highlightDates: extraData.highlightDates,
-      tzOffset,
-      currentDate: extraData.currentDate,
-    };
-
-    return <SingleDayBar {...dayItemProps} />;
-  };
-
   const _renderMultipleDayItem = ({
     item,
     extraData,
   }: ListRenderItemInfo<string>) => {
+    const eventsByColumns = divideEventsByColumns({
+      events: extraValues.events,
+      columns: COLUMNS[viewMode],
+      columnWidth,
+      startHour: start,
+      startDate: item,
+      overlapEventsSpacing,
+      rightEdgeSpacing,
+      tzOffset,
+    });
+
     const dayItemProps = {
       width: rightSideWidth,
       height: height ?? 40,
@@ -67,11 +72,13 @@ const AllDayBar = ({ height, onPressDayNum }: AllDayBarProps) => {
       columnWidth,
       hourWidth,
       viewMode,
+      renderEventContent,
       onPressDayNum,
       theme: extraData.theme,
       locale: extraData.locale,
       highlightDates: extraData.highlightDates,
       tzOffset,
+      events: eventsByColumns ?? {},
       currentDate: extraData.currentDate,
     };
 
@@ -79,13 +86,20 @@ const AllDayBar = ({ height, onPressDayNum }: AllDayBarProps) => {
   };
 
   const extraValues = useMemo(
-    () => ({ locale, theme, currentDate }),
-    [locale, theme, currentDate]
+    () => ({
+      locale,
+      theme,
+      currentDate,
+      events: events,
+      start,
+      renderEventContent,
+    }),
+    [locale, theme, currentDate, events, start, renderEventContent]
   );
 
   const _renderDayBarList = () => {
     const listProps = {
-      ref: dayBarListRef,
+      ref: allDayBarListRef,
       keyExtractor: (item: string) => item,
       scrollEnabled: false,
       disableHorizontalListHeightMeasurement: true,
@@ -97,35 +111,18 @@ const AllDayBar = ({ height, onPressDayNum }: AllDayBarProps) => {
       extraData: extraValues,
     };
 
-    if (viewMode === 'day') {
-      return (
-        <View style={{ width: timelineWidth, height: height }}>
-          <AnimatedFlashList
-            {...listProps}
-            data={pages[viewMode].data}
-            initialScrollIndex={pages[viewMode].index}
-            estimatedItemSize={timelineWidth}
-            estimatedListSize={{
-              width: timelineWidth,
-              height: height ?? DEFAULT_PROPS.DAY_BAR_HEIGHT,
-            }}
-            renderItem={_renderSingleDayItem}
-            onScroll={(e) => {
-              const x = e.nativeEvent.contentOffset.x;
-              const width = e.nativeEvent.layoutMeasurement.width;
-              const pageIndex = Math.round(x / width);
-              if (dayBarIndex.current !== pageIndex) {
-                dayBarIndex.current = pageIndex;
-              }
-            }}
-          />
-        </View>
-      );
-    }
-
     return (
       <View style={styles.multipleDayContainer}>
-        <View style={{ width: hourWidth }} />
+        <View
+          style={[
+            styles.allDayLabelContainer,
+            {
+              width: hourWidth,
+            },
+          ]}
+        >
+          <Text style={theme.allDayBarLabel}>All Day</Text>
+        </View>
         <View style={{ width: rightSideWidth, height: height }}>
           <AnimatedFlashList
             {...listProps}
@@ -159,14 +156,6 @@ const AllDayBar = ({ height, onPressDayNum }: AllDayBarProps) => {
   );
 
   const _renderDayBarView = () => {
-    if (viewMode === 'day') {
-      return _renderSingleDayItem({
-        item: startDate,
-        extraData: extraValues,
-        index: 0,
-        target: 'Cell',
-      });
-    }
     return (
       <View style={styles.multipleDayContainer}>
         <View style={{ width: hourWidth }} />
@@ -181,9 +170,7 @@ const AllDayBar = ({ height, onPressDayNum }: AllDayBarProps) => {
   };
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-    >
+    <View style={{ backgroundColor: theme.backgroundColor }}>
       {syncedLists ? _renderDayBarList() : _renderDayBarView()}
     </View>
   );
@@ -192,16 +179,9 @@ const AllDayBar = ({ height, onPressDayNum }: AllDayBarProps) => {
 export default AllDayBar;
 
 const styles = StyleSheet.create({
-  container: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
-    zIndex: 99,
+  allDayLabelContainer: {
+    alignItems: 'center',
+    paddingTop: 4,
   },
   multipleDayContainer: { flexDirection: 'row' },
   disabledFrame: {
