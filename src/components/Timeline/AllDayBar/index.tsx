@@ -170,7 +170,12 @@ const AllDayBar = ({
   };
 
   return (
-    <View style={{ backgroundColor: theme.backgroundColor }}>
+    <View
+      style={[
+        { backgroundColor: theme.backgroundColor },
+        theme.allDayBarContainer,
+      ]}
+    >
       {syncedLists ? _renderDayBarList() : _renderDayBarView()}
     </View>
   );

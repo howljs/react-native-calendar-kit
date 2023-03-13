@@ -364,6 +364,7 @@ export interface ThemeProperties {
   nowIndicatorColor?: string;
 
   // All day bar
+  allDayBarContainer?: ViewStyle;
   allDayBarLabel?: TextStyle;
 
   // Hour Column
