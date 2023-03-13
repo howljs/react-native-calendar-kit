@@ -5,6 +5,8 @@ import { SharedValue, useSharedValue } from 'react-native-reanimated';
 import { COLUMNS } from '../../../constants';
 import type { CalendarViewMode, PackedEvent } from '../../../types';
 
+const EVENT_HEIGHT = 18;
+
 const MultipleDayBar = ({
   width,
   height,
@@ -25,7 +27,7 @@ const MultipleDayBar = ({
     timeIntervalHeight: SharedValue<number>
   ) => JSX.Element;
 }) => {
-  const eventHeight = useSharedValue(height);
+  const eventHeight = useSharedValue(EVENT_HEIGHT);
 
   const _renderDay = (dayIndex: number) => {
     return (
@@ -81,12 +83,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   defaultEventWrapper: {
-    height: 18,
+    height: EVENT_HEIGHT,
     marginRight: 8,
     marginBottom: 4,
   },
   allDayEventContentContainer: {
-    height: 18,
+    height: EVENT_HEIGHT,
     borderRadius: 4,
     marginRight: 4,
     justifyContent: 'center',
