@@ -70,6 +70,8 @@ export interface TimelineProps {
   holidays?: string[];
   /** Events will be displayed in the timeline view. events is a array of {@link EventItem}*/
   events?: EventItem[];
+  /** All Events will be displayed in the timeline header. events is a array of {@link EventItem}*/
+  allDayEvents?: EventItem[];
   /** Callback function will be called when the event item is pressed */
   onPressEvent?: (eventItem: PackedEvent) => void;
   /** Callback function will be called when the event item is long pressed */
@@ -364,6 +366,10 @@ export interface ThemeProperties {
   editIndicatorColor?: string;
   /** Color of the now indicator */
   nowIndicatorColor?: string;
+
+  // All day bar
+  allDayBarContainer?: ViewStyle;
+  allDayBarLabel?: TextStyle;
 
   // Hour Column
   hourColumnBackgroundColor?: string;

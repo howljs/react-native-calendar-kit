@@ -4,27 +4,37 @@ import { StyleSheet, View } from 'react-native';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 import { DEFAULT_PROPS } from '../../../constants';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
-import type { DayBarItemProps, HighlightDates } from '../../../types';
+import type {
+  DayBarItemProps,
+  EventItem,
+  HighlightDates,
+  TimelineProps,
+} from '../../../types';
+import AllDayBar from '../AllDayBar';
 import MultipleDayBar from './MultipleDayBar';
 import ProgressBar from './ProgressBar';
 import SingleDayBar from './SingleDayBar';
 
 interface TimelineHeaderProps {
+  renderEventContent?: TimelineProps['renderEventContent'];
   renderDayBarItem?: (props: DayBarItemProps) => JSX.Element;
   dayBarItemHeight?: number;
   onPressDayNum?: (date: string) => void;
   isLoading?: boolean;
   highlightDates?: HighlightDates;
   selectedEventId?: string;
+  events?: Record<string, EventItem[]>;
 }
 
 const TimelineHeader = ({
+  renderEventContent,
   renderDayBarItem,
   dayBarItemHeight,
   onPressDayNum,
   isLoading,
   highlightDates,
   selectedEventId,
+  events,
 }: TimelineHeaderProps) => {
   const {
     syncedLists,
@@ -206,6 +216,13 @@ const TimelineHeader = ({
     >
       {syncedLists ? _renderDayBarList() : _renderDayBarView()}
       {selectedEventId && <View style={styles.disabledFrame} />}
+      {viewMode !== 'day' && events && Object.keys(events).length > 0 && (
+        <AllDayBar
+          height={40}
+          events={events}
+          renderEventContent={renderEventContent}
+        />
+      )}
       {isLoading && <ProgressBar barColor={theme.loadingBarColor} />}
     </View>
   );
