@@ -20,6 +20,7 @@ interface AllDayBarProps {
     timeIntervalHeight: SharedValue<number>
   ) => JSX.Element;
   onPressDayNum?: (date: string) => void;
+  onPressEvent?: (event: PackedEvent) => void;
 }
 
 const AllDayBar = ({
@@ -27,6 +28,7 @@ const AllDayBar = ({
   height,
   renderEventContent,
   onPressDayNum,
+  onPressEvent,
 }: AllDayBarProps) => {
   const {
     syncedLists,
@@ -74,6 +76,7 @@ const AllDayBar = ({
       viewMode,
       renderEventContent,
       onPressDayNum,
+      onPressEvent: onPressEvent,
       theme: extraData.theme,
       locale: extraData.locale,
       highlightDates: extraData.highlightDates,

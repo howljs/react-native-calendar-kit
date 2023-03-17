@@ -303,6 +303,7 @@ const Timeline: React.ForwardRefRenderFunction<
           highlightDates={highlightDates}
           selectedEventId={selectedEvent?.id}
           events={groupedAllDayEvents}
+          onPressEvent={other.onPressEvent}
         />
       )}
       <View style={styles.content} onLayout={_onContentLayout}>

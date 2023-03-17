@@ -1,6 +1,12 @@
 import times from 'lodash/times';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SharedValue, useSharedValue } from 'react-native-reanimated';
 import { COLUMNS } from '../../../constants';
 import type { CalendarViewMode, PackedEvent } from '../../../types';
@@ -14,6 +20,7 @@ const MultipleDayBar = ({
   viewMode,
   startDate,
   events,
+  onPressEvent,
   renderEventContent,
 }: {
   width: number;
@@ -22,6 +29,7 @@ const MultipleDayBar = ({
   columnWidth: number;
   viewMode: CalendarViewMode;
   events: PackedEvent[][];
+  onPressEvent?: (event: PackedEvent) => void;
   renderEventContent?: (
     event: PackedEvent,
     timeIntervalHeight: SharedValue<number>
@@ -39,14 +47,21 @@ const MultipleDayBar = ({
       >
         {!!events?.[dayIndex]?.length && (
           <ScrollView scrollEnabled horizontal={false}>
-            {events?.[dayIndex]?.map((event) => (
-              <View key={event.id} style={styles.defaultEventWrapper}>
-                {renderEventContent ? (
-                  renderEventContent?.(event, eventHeight)
-                ) : (
-                  <DefaultAllDayEvent event={event} />
-                )}
-              </View>
+            {events?.[dayIndex]?.map((event, index, list) => (
+              <React.Fragment key={event.id}>
+                <TouchableOpacity
+                  activeOpacity={0.6}
+                  style={styles.defaultEventWrapper}
+                  onPress={() => onPressEvent?.(event)}
+                >
+                  {renderEventContent ? (
+                    renderEventContent?.(event, eventHeight)
+                  ) : (
+                    <DefaultAllDayEvent event={event} />
+                  )}
+                </TouchableOpacity>
+                {index !== list.length - 1 && <View style={styles.separator} />}
+              </React.Fragment>
             ))}
           </ScrollView>
         )}
@@ -85,7 +100,9 @@ const styles = StyleSheet.create({
   defaultEventWrapper: {
     height: EVENT_HEIGHT,
     marginRight: 8,
-    marginBottom: 4,
+  },
+  separator: {
+    height: 2,
   },
   allDayEventContentContainer: {
     height: EVENT_HEIGHT,

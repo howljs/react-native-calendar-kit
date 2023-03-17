@@ -8,6 +8,7 @@ import type {
   DayBarItemProps,
   EventItem,
   HighlightDates,
+  PackedEvent,
   TimelineProps,
 } from '../../../types';
 import AllDayBar from '../AllDayBar';
@@ -24,6 +25,7 @@ interface TimelineHeaderProps {
   highlightDates?: HighlightDates;
   selectedEventId?: string;
   events?: Record<string, EventItem[]>;
+  onPressEvent?: (event: PackedEvent) => void;
 }
 
 const TimelineHeader = ({
@@ -35,6 +37,7 @@ const TimelineHeader = ({
   highlightDates,
   selectedEventId,
   events,
+  onPressEvent,
 }: TimelineHeaderProps) => {
   const {
     syncedLists,
@@ -218,9 +221,10 @@ const TimelineHeader = ({
       {selectedEventId && <View style={styles.disabledFrame} />}
       {viewMode !== 'day' && events && Object.keys(events).length > 0 && (
         <AllDayBar
-          height={40}
+          height={46}
           events={events}
           renderEventContent={renderEventContent}
+          onPressEvent={onPressEvent}
         />
       )}
       {isLoading && <ProgressBar barColor={theme.loadingBarColor} />}
