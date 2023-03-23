@@ -14,14 +14,19 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../context/TimelineProvider';
+import type { PackedEvent } from '../types';
 import { roundTo, triggerHaptic } from '../utils';
 import useTimelineScroll from './useTimelineScroll';
 
 interface useDragCreateGesture {
   onDragCreateEnd?: (data: { start: string; end: string }) => void;
+  onDragEditEnd?: (event: PackedEvent) => void;
 }
 
-const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
+const useDragCreateGesture = ({
+  onDragCreateEnd,
+  onDragEditEnd,
+}: useDragCreateGesture) => {
   const {
     timeIntervalHeight,
     spaceFromTop,
@@ -50,6 +55,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
   const [isDraggingCreate, setIsDraggingCreate] = useState(false);
+  const [draggingEvent, setDraggingEvent] = useState<PackedEvent>();
 
   const currentHour = useSharedValue(0);
   const dragXPosition = useSharedValue(0);
@@ -152,10 +158,26 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     }
 
     const eventEnd = eventStart.clone().add(dragCreateInterval, 'm');
-    onDragCreateEnd?.({
-      start: eventStart.toISOString(),
-      end: eventEnd.toISOString(),
-    });
+
+    if (draggingEvent) {
+      onDragEditEnd?.({
+        ...draggingEvent,
+        left: 0,
+        leftByIndex: event.x,
+        width: columnWidth,
+        startHour: time,
+        start: eventStart.toISOString(),
+        end: eventStart
+          .clone()
+          .add(draggingEvent.duration * 60, 'm')
+          .toISOString(),
+      });
+    } else {
+      onDragCreateEnd?.({
+        start: eventStart.toISOString(),
+        end: eventEnd.toISOString(),
+      });
+    }
   };
 
   const gestureEvent = useSharedValue<
@@ -228,6 +250,10 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
   useAnimatedReaction(
     () => isDragCreateActive.value,
     (active) => {
+      if (!active) {
+        runOnJS(setDraggingEvent)(undefined);
+      }
+
       runOnJS(setIsDraggingCreate)(active);
     }
   );
@@ -245,13 +271,33 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     }
   };
 
+  const onLongEditEvent = (event: PackedEvent) => {
+    isDragCreateActive.value = true;
+    currentHour.value = event.startHour;
+    setDraggingEvent(event);
+    const leftWithHourColumn = event.leftByIndex!;
+    const defaultTopPosition = event.top + spaceFromTop - offsetY.value;
+
+    const posX = leftWithHourColumn;
+    const posY = defaultTopPosition;
+
+    dragXPosition.value = posX;
+    dragYPosition.value = posY;
+    startOffsetY.current = offsetY.value;
+    if (useHaptic) {
+      triggerHaptic();
+    }
+  };
+
   return {
     dragCreateGesture,
     dragXPosition,
     dragYPosition,
     isDraggingCreate,
+    draggingEvent,
     currentHour,
     onLongPress,
+    onLongEditEvent,
   };
 };
 

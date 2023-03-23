@@ -82,13 +82,14 @@ const HourItem = ({
 
 const styles = StyleSheet.create({
   hours: {
-    alignItems: 'center',
     overflow: 'hidden',
   },
   hourText: {
     position: 'absolute',
     fontSize: 10,
     color: DEFAULT_PROPS.BLACK_COLOR,
+    textAlign: 'right',
+    width: '100%',
   },
   verticalLine: {
     width: 1,

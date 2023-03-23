@@ -47,6 +47,13 @@ export interface TimelineCalendarProps
 export interface TimelineProps {
   /** Custom header component */
   renderDayBarItem?: (props: DayBarItemProps) => JSX.Element;
+
+  /** Custom day bar left section component */
+  renderDayBarLeftSection?: () => JSX.Element;
+
+  /** Custom all day bar left section component */
+  renderAllDayBarLeftSection?: () => JSX.Element;
+
   /* Height of the day bar to be used when syncedLists = true */
   dayBarItemHeight?: number;
   /** Callback function will be called when day in header is pressed */
@@ -225,6 +232,9 @@ export interface TimelineProviderProps {
 
   /** Enable drag and drop to create event */
   allowDragToCreate?: boolean;
+
+  /** Enable long press to enable drag and drop to edit an event */
+  allowEventHoldToDragEvent?: boolean;
 
   /** Enable pinch to scale height of the calendar */
   allowPinchToZoom?: boolean;

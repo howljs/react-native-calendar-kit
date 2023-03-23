@@ -27,7 +27,11 @@ import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useDragCreateGesture from '../../hooks/useDragCreateGesture';
 import useZoomGesture from '../../hooks/usePinchGesture';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
-import type { TimelineCalendarHandle, TimelineProps } from '../../types';
+import type {
+  PackedEvent,
+  TimelineCalendarHandle,
+  TimelineProps,
+} from '../../types';
 import { clampValues, groupEventsByDate } from '../../utils';
 import DragCreateItem from './DragCreateItem';
 import TimelineHeader from './TimelineHeader';
@@ -39,6 +43,8 @@ const Timeline: React.ForwardRefRenderFunction<
 > = (
   {
     renderDayBarItem,
+    renderDayBarLeftSection,
+    renderAllDayBarLeftSection,
     dayBarItemHeight,
     onPressDayNum,
     onDragCreateEnd,
@@ -50,6 +56,7 @@ const Timeline: React.ForwardRefRenderFunction<
     highlightDates,
     onChange,
     onTimeIntervalHeightChange,
+    onLongPressEvent,
     ...other
   },
   ref
@@ -60,6 +67,7 @@ const Timeline: React.ForwardRefRenderFunction<
     theme,
     totalHours,
     allowDragToCreate,
+    allowEventHoldToDragEvent,
     firstDate,
     viewMode,
     totalPages,
@@ -242,12 +250,15 @@ const Timeline: React.ForwardRefRenderFunction<
   const {
     dragCreateGesture,
     isDraggingCreate,
+    draggingEvent,
     dragXPosition,
     dragYPosition,
     currentHour,
     onLongPress,
+    onLongEditEvent,
   } = useDragCreateGesture({
     onDragCreateEnd,
+    onDragEditEnd: other.onEndDragSelectedEvent,
   });
 
   const _onLongPressBackground = (
@@ -258,6 +269,14 @@ const Timeline: React.ForwardRefRenderFunction<
       onLongPress(event);
     }
     onLongPressBackground?.(date, event);
+  };
+
+  const _onLongPressEvent = (event: PackedEvent) => {
+    if (allowEventHoldToDragEvent) {
+      onLongEditEvent(event);
+    }
+
+    onLongPressEvent?.(event);
   };
 
   const groupedEvents = useMemo(
@@ -296,6 +315,8 @@ const Timeline: React.ForwardRefRenderFunction<
       {isShowHeader && (
         <TimelineHeader
           renderEventContent={other.renderEventContent}
+          renderDayBarLeftSection={renderDayBarLeftSection}
+          renderAllDayBarLeftSection={renderAllDayBarLeftSection}
           renderDayBarItem={renderDayBarItem}
           dayBarItemHeight={dayBarItemHeight}
           onPressDayNum={onPressDayNum}
@@ -314,14 +335,24 @@ const Timeline: React.ForwardRefRenderFunction<
             selectedEvent={selectedEvent}
             isDragging={isDraggingCreate}
             isLoading={isLoading}
+            onLongPressEvent={_onLongPressEvent}
             onLongPressBackground={_onLongPressBackground}
           />
         </GestureDetector>
-        {isDraggingCreate && (
+        {isDraggingCreate && !draggingEvent && (
           <DragCreateItem
             offsetX={dragXPosition}
             offsetY={dragYPosition}
             currentHour={currentHour}
+          />
+        )}
+        {isDraggingCreate && !!draggingEvent && (
+          <DragCreateItem
+            event={draggingEvent}
+            offsetX={dragXPosition}
+            offsetY={dragYPosition}
+            currentHour={currentHour}
+            renderEventContent={other.renderEventContent}
           />
         )}
       </View>

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SharedValue, useSharedValue } from 'react-native-reanimated';
 import { COLUMNS } from '../../../constants';
-import type { CalendarViewMode, PackedEvent } from '../../../types';
+import type { CalendarViewMode, PackedEvent, ThemeProperties } from '../../../types';
 
 const EVENT_HEIGHT = 18;
 
@@ -20,6 +20,7 @@ const MultipleDayBar = ({
   viewMode,
   startDate,
   events,
+  theme,
   onPressEvent,
   renderEventContent,
 }: {
@@ -29,6 +30,7 @@ const MultipleDayBar = ({
   columnWidth: number;
   viewMode: CalendarViewMode;
   events: PackedEvent[][];
+  theme: ThemeProperties;
   onPressEvent?: (event: PackedEvent) => void;
   renderEventContent?: (
     event: PackedEvent,
@@ -43,10 +45,20 @@ const MultipleDayBar = ({
         key={`${startDate}_${dayIndex}`}
         style={{
           width: columnWidth,
+          backgroundColor: theme.cellBackgroundColor,
+          borderRightColor: theme.cellBorderColor,
+          borderRightWidth: 1,
         }}
       >
         {!!events?.[dayIndex]?.length && (
-          <ScrollView scrollEnabled horizontal={false}>
+          <ScrollView
+            scrollEnabled
+            horizontal={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingTop: 2,
+            }}
+          >
             {events?.[dayIndex]?.map((event, index, list) => (
               <React.Fragment key={event.id}>
                 <TouchableOpacity

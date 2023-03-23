@@ -8,7 +8,7 @@ import {
 } from 'react-native-reanimated';
 import { COLUMNS, DEFAULT_PROPS } from '../../../constants';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
-import type { EventItem, PackedEvent } from '../../../types';
+import type { EventItem, PackedEvent, TimelineProps } from '../../../types';
 import { divideEventsByColumns } from '../../../utils';
 import MultipleDayBar from './MultipleDayBar';
 
@@ -19,6 +19,7 @@ interface AllDayBarProps {
     event: PackedEvent,
     timeIntervalHeight: SharedValue<number>
   ) => JSX.Element;
+  renderAllDayBarLeftSection?: TimelineProps['renderAllDayBarLeftSection'];
   onPressDayNum?: (date: string) => void;
   onPressEvent?: (event: PackedEvent) => void;
 }
@@ -27,6 +28,7 @@ const AllDayBar = ({
   events,
   height,
   renderEventContent,
+  renderAllDayBarLeftSection,
   onPressDayNum,
   onPressEvent,
 }: AllDayBarProps) => {
@@ -75,6 +77,7 @@ const AllDayBar = ({
       hourWidth,
       viewMode,
       renderEventContent,
+      renderAllDayBarLeftSection,
       onPressDayNum,
       onPressEvent: onPressEvent,
       theme: extraData.theme,
@@ -96,8 +99,17 @@ const AllDayBar = ({
       events: events,
       start,
       renderEventContent,
+      renderAllDayBarLeftSection,
     }),
-    [locale, theme, currentDate, events, start, renderEventContent]
+    [
+      locale,
+      theme,
+      currentDate,
+      events,
+      start,
+      renderEventContent,
+      renderAllDayBarLeftSection,
+    ]
   );
 
   const _renderDayBarList = () => {
@@ -116,16 +128,19 @@ const AllDayBar = ({
 
     return (
       <View style={styles.multipleDayContainer}>
-        <View
-          style={[
-            styles.allDayLabelContainer,
-            {
-              width: hourWidth,
-            },
-          ]}
-        >
-          <Text style={theme.allDayBarLabel}>All Day</Text>
-        </View>
+        {!!renderAllDayBarLeftSection && renderAllDayBarLeftSection()}
+        {!renderAllDayBarLeftSection && (
+          <View
+            style={[
+              styles.allDayLabelContainer,
+              {
+                width: hourWidth,
+              },
+            ]}
+          >
+            <Text style={theme.allDayBarLabel}>{'All Day'}</Text>
+          </View>
+        )}
         <View style={{ width: rightSideWidth, height: height }}>
           <AnimatedFlashList
             {...listProps}
@@ -161,7 +176,9 @@ const AllDayBar = ({
   const _renderDayBarView = () => {
     return (
       <View style={styles.multipleDayContainer}>
-        <View style={{ width: hourWidth }} />
+        <View style={{ width: hourWidth }}>
+          {!!renderAllDayBarLeftSection && renderAllDayBarLeftSection()}
+        </View>
         {_renderMultipleDayItem({
           item: startDate,
           extraData: extraValues,

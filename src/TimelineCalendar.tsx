@@ -9,6 +9,8 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
 > = (
   {
     renderDayBarItem,
+    renderAllDayBarLeftSection,
+    renderDayBarLeftSection,
     dayBarItemHeight,
     onPressDayNum,
     onDragCreateEnd,
@@ -40,6 +42,8 @@ const TimelineCalendar: React.ForwardRefRenderFunction<
 ) => {
   const timelineProps = {
     renderDayBarItem,
+    renderAllDayBarLeftSection,
+    renderDayBarLeftSection,
     dayBarItemHeight,
     onPressDayNum,
     onDragCreateEnd,

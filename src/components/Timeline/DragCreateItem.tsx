@@ -9,18 +9,25 @@ import Animated, {
 } from 'react-native-reanimated';
 import { DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
-import type { ThemeProperties } from '../../types';
+import type { PackedEvent, ThemeProperties } from '../../types';
 
 interface DragCreateItemProps {
   offsetX: SharedValue<number>;
   offsetY: SharedValue<number>;
   currentHour: SharedValue<number>;
+  event?: PackedEvent;
+  renderEventContent?: (
+    event: PackedEvent,
+    timeIntervalHeight: SharedValue<number>
+  ) => JSX.Element;
 }
 
-const DragCreateItem = ({
+export const DragCreateItem = ({
   offsetX,
   offsetY,
   currentHour,
+  event,
+  renderEventContent,
 }: DragCreateItemProps) => {
   const {
     columnWidth,
@@ -33,7 +40,9 @@ const DragCreateItem = ({
 
   const animatedStyles = useAnimatedStyle(() => {
     return {
-      height: (dragCreateInterval / 60) * heightByTimeInterval.value,
+      height:
+        (event ? event.duration : dragCreateInterval / 60) *
+        heightByTimeInterval.value,
       transform: [{ translateX: offsetX.value }, { translateY: offsetY.value }],
     };
   });
@@ -45,12 +54,26 @@ const DragCreateItem = ({
           styles.defaultStyle,
           {
             left: hourWidth,
-            backgroundColor: theme.dragCreateItemBackgroundColor,
             width: columnWidth,
+            ...(!event && {
+              backgroundColor: theme.dragCreateItemBackgroundColor,
+            }),
           },
           animatedStyles,
         ]}
-      />
+      >
+        {event && (
+          <>
+            {!!renderEventContent &&
+              renderEventContent(event, timeIntervalHeight)}
+            {!renderEventContent && (
+              <Text style={[styles.title, theme.eventTitle]}>
+                {event.title}
+              </Text>
+            )}
+          </>
+        )}
+      </Animated.View>
       <AnimatedHour
         currentHour={currentHour}
         offsetY={offsetY}
@@ -152,13 +175,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 4,
     top: -6,
-    alignItems: 'center',
+    alignItems: 'flex-end',
     left: 4,
     borderColor: DEFAULT_PROPS.PRIMARY_COLOR,
-    backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
   },
   hourText: {
     color: DEFAULT_PROPS.PRIMARY_COLOR,
     fontSize: 10,
+  },
+  title: {
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    fontSize: 10,
+    color: DEFAULT_PROPS.BLACK_COLOR,
   },
 });

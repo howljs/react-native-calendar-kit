@@ -18,6 +18,8 @@ import SingleDayBar from './SingleDayBar';
 
 interface TimelineHeaderProps {
   renderEventContent?: TimelineProps['renderEventContent'];
+  renderDayBarLeftSection?: TimelineProps['renderDayBarLeftSection'];
+  renderAllDayBarLeftSection?: TimelineProps['renderAllDayBarLeftSection'];
   renderDayBarItem?: (props: DayBarItemProps) => JSX.Element;
   dayBarItemHeight?: number;
   onPressDayNum?: (date: string) => void;
@@ -30,6 +32,8 @@ interface TimelineHeaderProps {
 
 const TimelineHeader = ({
   renderEventContent,
+  renderDayBarLeftSection,
+  renderAllDayBarLeftSection,
   renderDayBarItem,
   dayBarItemHeight,
   onPressDayNum,
@@ -158,7 +162,9 @@ const TimelineHeader = ({
 
     return (
       <View style={styles.multipleDayContainer}>
-        <View style={{ width: hourWidth }} />
+        <View style={{ width: hourWidth }}>
+          {renderDayBarLeftSection && renderDayBarLeftSection()}
+        </View>
         <View style={{ width: rightSideWidth, height: dayBarItemHeight }}>
           <AnimatedFlashList
             {...listProps}
@@ -202,7 +208,9 @@ const TimelineHeader = ({
     }
     return (
       <View style={styles.multipleDayContainer}>
-        <View style={{ width: hourWidth }} />
+        <View style={{ width: hourWidth }}>
+          {renderDayBarLeftSection && renderDayBarLeftSection()}
+        </View>
         {_renderMultipleDayItem({
           item: startDate,
           extraData: extraValues,
@@ -221,9 +229,10 @@ const TimelineHeader = ({
       {selectedEventId && <View style={styles.disabledFrame} />}
       {viewMode !== 'day' && events && Object.keys(events).length > 0 && (
         <AllDayBar
-          height={46}
+          height={36}
           events={events}
           renderEventContent={renderEventContent}
+          renderAllDayBarLeftSection={renderAllDayBarLeftSection}
           onPressEvent={onPressEvent}
         />
       )}
