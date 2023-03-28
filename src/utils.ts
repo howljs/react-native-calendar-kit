@@ -133,7 +133,7 @@ export const groupEventsByDate = (
     const endEvent = moment.tz(event.end, tzOffset).startOf('d');
     const diffDays = endEvent.diff(startEvent, 'd');
     for (let i = 0; i <= diffDays; i++) {
-      const dateStr = startEvent.add(i, 'd').format('YYYY-MM-DD');
+      const dateStr = startEvent.clone().add(i, 'd').format('YYYY-MM-DD');
       const prevEvents = groupedEvents[dateStr] || [];
       groupedEvents[dateStr] = [...prevEvents, event];
     }
