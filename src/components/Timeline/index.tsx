@@ -76,6 +76,8 @@ const Timeline: React.ForwardRefRenderFunction<
     offsetY,
     timelineVerticalListRef,
     initialTimeIntervalHeight,
+    heightByTimeInterval,
+    start,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -111,8 +113,9 @@ const Timeline: React.ForwardRefRenderFunction<
 
         if (props?.hourScroll) {
           const minutes = currentDay.hour() * 60 + currentDay.minute();
+          const subtractMinutes = minutes - start * 60;
           const position =
-            (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
+            (subtractMinutes * timeIntervalHeight.value) / 60 + spaceFromTop;
           const offset = timelineLayoutRef.current.height / 2;
           goToOffsetY(Math.max(0, position - offset), props?.animatedHour);
         }
@@ -122,10 +125,9 @@ const Timeline: React.ForwardRefRenderFunction<
       getZones: () => Object.values(timeZoneData),
       getZone: (key: keyof typeof timeZoneData) => timeZoneData[key],
       getHour: () => {
-        const position = offsetY.value + 8;
-        const minutes =
-          ((position - spaceFromTop) * 60) / timeIntervalHeight.value;
-        const hour = minutes / 60;
+        const position = Math.max(0, offsetY.value - spaceFromTop + 8);
+        const minutes = (position * 60) / heightByTimeInterval.value;
+        const hour = minutes / 60 + start;
         return Math.max(0, hour);
       },
       getDate: () => {
@@ -140,9 +142,9 @@ const Timeline: React.ForwardRefRenderFunction<
         return currentDay.toISOString();
       },
       goToHour: (hour: number, animated?: boolean) => {
-        const minutes = hour * 60;
+        const minutes = (hour - start) * 60;
         const position =
-          (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
+          (minutes * heightByTimeInterval.value) / 60 + spaceFromTop;
         goToOffsetY(Math.max(0, position - 8), animated);
       },
       forceUpdateNowIndicator: updateCurrentDate,
@@ -172,11 +174,13 @@ const Timeline: React.ForwardRefRenderFunction<
       firstDate,
       totalPages,
       timelineHorizontalListRef,
+      start,
       timeIntervalHeight,
       spaceFromTop,
       timelineLayoutRef,
       goToOffsetY,
       offsetY.value,
+      heightByTimeInterval.value,
       currentIndex.value,
       initialTimeIntervalHeight,
       minTimeIntervalHeight.value,
@@ -205,8 +209,9 @@ const Timeline: React.ForwardRefRenderFunction<
       const isSameDate = current.format('YYYY-MM-DD') === initialDate.current;
       if (scrollToNow && isSameDate) {
         const minutes = current.hour() * 60 + current.minute();
+        const subtractMinutes = minutes - start * 60;
         const position =
-          (minutes * timeIntervalHeight.value) / 60 + spaceFromTop;
+          (subtractMinutes * heightByTimeInterval.value) / 60 + spaceFromTop;
         const offset = timelineLayoutRef.current.height / 2;
         goToOffsetY(Math.max(0, position - offset), true);
       }

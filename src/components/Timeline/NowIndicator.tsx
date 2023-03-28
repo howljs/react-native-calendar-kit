@@ -51,20 +51,12 @@ const NowIndicator = ({
       return;
     }
     prevMinutes.current = minutes;
-    const extraMinutes = start * 60;
-    const subtractInitialMinutes =
-      minutes - (initial.current.minutes + extraMinutes);
+    const subtractInitialMinutes = minutes - initial.current.minutes;
     const newY = (subtractInitialMinutes / 60) * timeIntervalHeight.value;
     translateY.value = withTiming(newY, {
       duration: 500,
     });
-  }, [
-    tzOffset,
-    start,
-    timeIntervalHeight.value,
-    translateY,
-    updateCurrentDate,
-  ]);
+  }, [tzOffset, timeIntervalHeight.value, translateY, updateCurrentDate]);
 
   useEffect(() => {
     updateLinePosition();
@@ -84,7 +76,7 @@ const NowIndicator = ({
 
   const animStyle = useAnimatedStyle(() => {
     return {
-      top: (initial.current.minutes / 60) * timeIntervalHeight.value,
+      top: (initial.current.minutes / 60 - start) * timeIntervalHeight.value,
       transform: [{ translateY: translateY.value }],
     };
   }, []);

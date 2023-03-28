@@ -25,7 +25,7 @@ const DragCreateItem = ({
   const {
     columnWidth,
     hourWidth,
-    timeIntervalHeight,
+    heightByTimeInterval,
     dragCreateInterval,
     theme,
     hourFormat,
@@ -33,7 +33,7 @@ const DragCreateItem = ({
 
   const animatedStyles = useAnimatedStyle(() => {
     return {
-      height: (dragCreateInterval / 60) * timeIntervalHeight.value,
+      height: (dragCreateInterval / 60) * heightByTimeInterval.value,
       transform: [{ translateX: offsetX.value }, { translateY: offsetY.value }],
     };
   });

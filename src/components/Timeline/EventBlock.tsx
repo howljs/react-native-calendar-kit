@@ -25,6 +25,7 @@ export interface EventBlockProps {
   theme: ThemeProperties;
   eventAnimatedDuration?: number;
   isPinchActive: SharedValue<boolean>;
+  heightByTimeInterval: SharedValue<number>;
 }
 
 const EVENT_DEFAULT_COLOR = '#FFFFFF';
@@ -35,18 +36,19 @@ const EventBlock = ({
   columnWidth,
   onPressEvent,
   onLongPressEvent,
-  timeIntervalHeight,
   renderEventContent,
   theme,
   selectedEventId,
   eventAnimatedDuration,
   isPinchActive,
+  timeIntervalHeight,
+  heightByTimeInterval,
 }: EventBlockProps) => {
   const _onLongPress = () => {
     const eventParams = {
       ...event,
-      top: event.startHour * timeIntervalHeight.value,
-      height: event.duration * timeIntervalHeight.value,
+      top: event.startHour * heightByTimeInterval.value,
+      height: event.duration * heightByTimeInterval.value,
       leftByIndex: columnWidth * dayIndex,
     };
     onLongPressEvent?.(eventParams);
@@ -55,15 +57,15 @@ const EventBlock = ({
   const _onPress = () => {
     const eventParams = {
       ...event,
-      top: event.startHour * timeIntervalHeight.value,
-      height: event.duration * timeIntervalHeight.value,
+      top: event.startHour * heightByTimeInterval.value,
+      height: event.duration * heightByTimeInterval.value,
       leftByIndex: columnWidth * dayIndex,
     };
     onPressEvent?.(eventParams);
   };
 
   const eventStyle = useAnimatedStyle(() => {
-    let eventHeight = event.duration * timeIntervalHeight.value;
+    let eventHeight = event.duration * heightByTimeInterval.value;
 
     if (theme.minimumEventHeight) {
       eventHeight = Math.max(theme.minimumEventHeight, eventHeight);
@@ -71,7 +73,7 @@ const EventBlock = ({
 
     if (isPinchActive.value) {
       return {
-        top: event.startHour * timeIntervalHeight.value,
+        top: event.startHour * heightByTimeInterval.value,
         height: eventHeight,
         left: event.left + columnWidth * dayIndex,
         width: event.width,
@@ -79,7 +81,7 @@ const EventBlock = ({
     }
 
     return {
-      top: withTiming(event.startHour * timeIntervalHeight.value, {
+      top: withTiming(event.startHour * heightByTimeInterval.value, {
         duration: eventAnimatedDuration,
       }),
       height: withTiming(eventHeight, {

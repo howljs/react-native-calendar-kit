@@ -45,6 +45,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     tzOffset,
     start,
     navigateDelay,
+    heightByTimeInterval,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -65,10 +66,10 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const calcX = positionIndex * columnWidth;
 
     const startY = yPosition + offsetY.value - spaceFromTop;
-    const subtractHour = (dragCreateInterval / 60) * timeIntervalHeight.value;
-    const originalTime = (startY - subtractHour) / timeIntervalHeight.value;
+    const subtractHour = (dragCreateInterval / 60) * heightByTimeInterval.value;
+    const originalTime = (startY - subtractHour) / heightByTimeInterval.value;
     const roundedHour = roundTo(originalTime, nearestMinutes, 'up');
-    const calcY = roundedHour * timeIntervalHeight.value;
+    const calcY = roundedHour * heightByTimeInterval.value;
     currentHour.value = roundedHour + start;
 
     return {
@@ -135,7 +136,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       clearInterval(timeoutRef.current);
       timeoutRef.current = null;
     }
-    const time = event.y / timeIntervalHeight.value;
+    const time = event.y / heightByTimeInterval.value;
     const positionIndex = Math.round(event.x / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
     const eventStart = moment

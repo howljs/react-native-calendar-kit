@@ -76,6 +76,7 @@ const TimelinePage = ({
     updateCurrentDate,
     nowIndicatorInterval,
     isPinchActive,
+    heightByTimeInterval,
   } = useTimelineCalendarContext();
 
   const eventsByColumns = useMemo(
@@ -119,7 +120,7 @@ const TimelinePage = ({
       event.nativeEvent.locationX,
       event.nativeEvent.locationY,
       startDate,
-      timeIntervalHeight.value,
+      heightByTimeInterval.value,
       columnWidth
     );
 
@@ -153,6 +154,7 @@ const TimelinePage = ({
         theme={theme}
         eventAnimatedDuration={eventAnimatedDuration}
         isPinchActive={isPinchActive}
+        heightByTimeInterval={heightByTimeInterval}
       />
     );
   };
@@ -171,7 +173,7 @@ const TimelinePage = ({
         </View>
         {showNowIndicator && isToday && (
           <NowIndicator
-            timeIntervalHeight={timeIntervalHeight}
+            timeIntervalHeight={heightByTimeInterval}
             width={columnWidth}
             dayIndex={dayIndex}
             nowIndicatorColor={theme.nowIndicatorColor}

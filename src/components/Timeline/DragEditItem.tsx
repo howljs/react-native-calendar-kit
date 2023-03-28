@@ -22,7 +22,7 @@ interface DragEditItemProps {
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderEventContent?: (
     event: PackedEvent,
-    timeIntervalHeight: SharedValue<number>
+    heightByTimeInterval: SharedValue<number>
   ) => JSX.Element;
   isEnabled?: boolean;
   EditIndicatorComponent?: JSX.Element;
@@ -49,6 +49,7 @@ const DragEditItem = ({
     rightEdgeSpacing,
     spaceFromTop,
     timeIntervalHeight,
+    heightByTimeInterval,
     viewMode,
     spaceFromBottom,
     timelineLayoutRef,
@@ -69,7 +70,7 @@ const DragEditItem = ({
   const eventWidth = useSharedValue(event.width);
   const eventLeft = useSharedValue(leftWithHourColumn + event.left);
   const currentHour = useSharedValue(
-    event.top / timeIntervalHeight.value + start
+    event.top / heightByTimeInterval.value + start
   );
 
   const startOffsetY = useSharedValue(0);
@@ -177,7 +178,7 @@ const DragEditItem = ({
       start: currentDateMoment.toISOString(),
       end: currentDateMoment
         .clone()
-        .add(eventHeight.value / timeIntervalHeight.value, 'h')
+        .add(eventHeight.value / heightByTimeInterval.value, 'h')
         .toISOString(),
     };
 
@@ -217,10 +218,10 @@ const DragEditItem = ({
       const nextTranslateY = startXY.value.y + translationY;
       const offset = offsetY.value - spaceFromTop;
       const originalY = startXY.value.y + offset + translationY;
-      const originalTime = originalY / timeIntervalHeight.value;
+      const originalTime = originalY / heightByTimeInterval.value;
       const roundedHour = roundTo(originalTime, dragStep, 'up');
       const newTopPosition =
-        roundedHour * timeIntervalHeight.value + spaceFromTop;
+        roundedHour * heightByTimeInterval.value + spaceFromTop;
       const isSameX = translateX.value === roundedTranslateX;
       const isSameY = eventTop.value === newTopPosition;
       if (!isSameX || !isSameY) {
@@ -258,7 +259,7 @@ const DragEditItem = ({
       startHeight.value = eventHeight.value;
     })
     .onUpdate((e) => {
-      const heightOfTenMinutes = (dragStep / 60) * timeIntervalHeight.value;
+      const heightOfTenMinutes = (dragStep / 60) * heightByTimeInterval.value;
       const nextHeight = startHeight.value + e.translationY;
       const roundedHeight =
         Math.ceil(nextHeight / heightOfTenMinutes) * heightOfTenMinutes;
@@ -307,7 +308,7 @@ const DragEditItem = ({
           ]}
         >
           {renderEventContent
-            ? renderEventContent(event, timeIntervalHeight)
+            ? renderEventContent(event, heightByTimeInterval)
             : _renderEventContent()}
           <GestureDetector gesture={dragDurationGesture}>
             <View style={styles.indicatorContainer}>

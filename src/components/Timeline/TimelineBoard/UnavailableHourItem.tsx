@@ -15,12 +15,12 @@ const UnavailableHourItem = ({
   hour,
   renderCustomUnavailableItem,
 }: UnavailableHourProps) => {
-  const { timeIntervalHeight, theme, columnWidth } =
+  const { heightByTimeInterval, theme, columnWidth } =
     useTimelineCalendarContext();
   const unavailableHourStyle = useAnimatedStyle(() => {
     return {
-      top: top * timeIntervalHeight.value,
-      height: hour * timeIntervalHeight.value,
+      top: top * heightByTimeInterval.value,
+      height: hour * heightByTimeInterval.value,
     };
   });
 
@@ -35,7 +35,7 @@ const UnavailableHourItem = ({
     >
       {renderCustomUnavailableItem &&
         renderCustomUnavailableItem({
-          timeIntervalHeight: timeIntervalHeight,
+          timeIntervalHeight: heightByTimeInterval,
           hour,
           width: columnWidth,
         })}

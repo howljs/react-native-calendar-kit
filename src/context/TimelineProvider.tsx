@@ -77,6 +77,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   updateCurrentDate: () => void;
   isPinchActive: SharedValue<boolean>;
   numOfColumns: number;
+  heightByTimeInterval: Readonly<SharedValue<number>>;
 }
 
 const TimelineCalendarContext = React.createContext<
@@ -159,6 +160,9 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     () => pages[viewMode].data[currentIndex.value] as string
   );
   const timeIntervalHeight = useSharedValue(initialTimeIntervalHeight);
+  const heightByTimeInterval = useDerivedValue(
+    () => timeIntervalHeight.value * (60 / timeInterval)
+  );
   const minTimeIntervalHeight = useSharedValue(
     initialMinTimeIntervalHeight || 0
   );
@@ -262,6 +266,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       navigateDelay,
       numOfColumns,
       initialTimeIntervalHeight,
+      heightByTimeInterval,
     };
   }, [
     pages,
@@ -307,6 +312,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     isPinchActive,
     navigateDelay,
     initialTimeIntervalHeight,
+    heightByTimeInterval,
   ]);
 
   const mountedRef = useRef(false);
