@@ -6,8 +6,7 @@ describe('get date data', () => {
     const fromDate = '2022-10-01';
     const toDate = '2022-10-31';
     const initialDate = '2022-10-10';
-    const tzOffset = 'UTC';
-    const dates = calculateDates(1, fromDate, toDate, initialDate, tzOffset);
+    const dates = calculateDates(1, fromDate, toDate, initialDate);
 
     const expectData = {
       day: { length: 31, index: 9 },

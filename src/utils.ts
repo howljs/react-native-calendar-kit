@@ -10,17 +10,15 @@ export const calculateDates = (
   initialFirstDay: number,
   minDateStr: string,
   maxDateStr: string,
-  initialDateStr: string,
-  tzOffset: string
+  initialDate: string
 ) => {
   let day: DateData = { data: [], index: -1 },
     week: DateData = { data: [], index: -1 },
     threeDays: DateData = { data: [], index: -1 },
     workWeek: DateData = { data: [], index: -1 };
 
-  const initialDate = moment.tz(initialDateStr, tzOffset);
-  const minDate = moment.tz(minDateStr, tzOffset);
-  const maxDate = moment.tz(maxDateStr, tzOffset);
+  const minDate = moment(minDateStr);
+  const maxDate = moment(maxDateStr);
   const minDateUnix = minDate.unix();
   const maxDateUnix = maxDate.unix();
   const minWeekDay = minDate.day();
@@ -29,7 +27,8 @@ export const calculateDates = (
   const fDow = (7 + initialFirstDay) % 7;
   const diffBefore = (minWeekDay + 7 - fDow) % 7;
 
-  const minWeekDateUnix = minDateUnix - diffBefore * SECONDS_IN_DAY;
+  const minWeekDate = minDate.subtract(diffBefore, 'd');
+  const minWeekDateUnix = minWeekDate.unix();
   let minWorkWorkDateUnix = minWeekDateUnix;
   if (diffBefore === 5) {
     minWorkWorkDateUnix = minDateUnix + 2 * SECONDS_IN_DAY;
@@ -41,15 +40,14 @@ export const calculateDates = (
   const diffAfter = (lDow + 7 - maxWeekDay) % 7;
   const maxWeekDateUnix = maxDateUnix + diffAfter * SECONDS_IN_DAY;
 
-  const totalDays = (maxWeekDateUnix - minWeekDateUnix) / SECONDS_IN_DAY + 1;
+  const totalDays = (maxWeekDateUnix - minWeekDateUnix) / SECONDS_IN_DAY;
   let startWorkWeekDate = minWorkWorkDateUnix,
     startWeekDate = minWeekDateUnix,
     startThreeDays = minDateUnix,
     startDay = minDateUnix;
   for (let dayIndex = 0; dayIndex < totalDays; dayIndex++) {
     const currentUnix = minWeekDateUnix + dayIndex * SECONDS_IN_DAY;
-    const dateFromUnix = moment.unix(currentUnix).tz(tzOffset);
-    const dateStr = dateFromUnix.format('YYYY-MM-DD');
+    const dateStr = minWeekDate.clone().add(dayIndex, 'd').format('YYYY-MM-DD');
     if (startDay === currentUnix) {
       if (currentUnix <= maxDateUnix) {
         day.data.push(dateStr);
@@ -68,13 +66,14 @@ export const calculateDates = (
       threeDays.data.push(dateStr);
       startThreeDays = currentUnix + 3 * SECONDS_IN_DAY;
     }
-    if (dateFromUnix.isSame(initialDate, 'day')) {
+    if (dateStr === initialDate) {
       day.index = day.data.length - 1;
       threeDays.index = threeDays.data.length - 1;
       week.index = week.data.length - 1;
       workWeek.index = workWeek.data.length - 1;
     }
   }
+
   return { day, week, threeDays, workWeek };
 };
 
