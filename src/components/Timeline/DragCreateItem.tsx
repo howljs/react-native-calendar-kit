@@ -36,6 +36,7 @@ export const DragCreateItem = ({
     dragCreateInterval,
     theme,
     hourFormat,
+    dragHourFormat,
   } = useTimelineCalendarContext();
 
   const animatedStyles = useAnimatedStyle(() => {
@@ -65,7 +66,7 @@ export const DragCreateItem = ({
         {event && (
           <>
             {!!renderEventContent &&
-              renderEventContent(event, timeIntervalHeight)}
+              renderEventContent(event, heightByTimeInterval)}
             {!renderEventContent && (
               <Text style={[styles.title, theme.eventTitle]}>
                 {event.title}
@@ -79,7 +80,7 @@ export const DragCreateItem = ({
         offsetY={offsetY}
         hourWidth={hourWidth}
         theme={theme}
-        hourFormat={hourFormat}
+        hourFormat={dragHourFormat ?? hourFormat}
       />
     </View>
   );
@@ -148,7 +149,7 @@ const AnimatedHour = ({
     <Animated.View
       style={[
         styles.hourContainer,
-        { width: hourWidth - 8 },
+        { width: hourWidth },
         theme.dragHourContainer,
         animatedTextStyles,
       ]}

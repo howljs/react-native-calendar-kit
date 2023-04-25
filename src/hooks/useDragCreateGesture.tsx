@@ -72,7 +72,8 @@ const useDragCreateGesture = ({
     const calcX = positionIndex * columnWidth;
 
     const startY = yPosition + offsetY.value - spaceFromTop;
-    const subtractHour = (dragCreateInterval / 60) * heightByTimeInterval.value;
+    const subtractHour =
+      ((dragCreateInterval / 60) * timeIntervalHeight.value) / 2;
     const originalTime = (startY - subtractHour) / heightByTimeInterval.value;
     const roundedHour = roundTo(originalTime, nearestMinutes, 'up');
     const calcY = roundedHour * heightByTimeInterval.value;
@@ -230,6 +231,10 @@ const useDragCreateGesture = ({
       if (isDragCreateActive.value) {
         isTouchesUp.value = true;
         isDragCreateActive.value = false;
+
+        if (useHaptic) {
+          runOnJS(triggerHaptic)();
+        }
       }
     });
 

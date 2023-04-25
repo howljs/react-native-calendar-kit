@@ -312,6 +312,12 @@ export interface TimelineProviderProps {
    */
   hourFormat?: string;
 
+  /** Drag Hour format
+   *
+   ** Default: HH:mm
+   */
+  dragHourFormat?: string;
+
   /** How long the animation should last when the style of the event is changed.
    *
    ** Default: `250` */
@@ -364,6 +370,8 @@ export interface ThemeProperties {
   cellBorderColor?: string;
   /** Cell background color  */
   cellBackgroundColor?: string;
+  /** Today Cell background color  */
+  todayCellBackgroundColor?: string;
   /** Background color of the calendar */
   backgroundColor?: string;
   /** Background color of the create box when dragging to create */

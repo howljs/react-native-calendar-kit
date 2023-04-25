@@ -200,6 +200,7 @@ const TimelinePage = ({
       >
         <TimelineBoard
           startDate={startDate}
+          currentDate={currentDate}
           onPressBackgroundHandler={_onPressBackgroundHandler}
           holidays={holidays}
           renderCustomUnavailableItem={renderCustomUnavailableItem}

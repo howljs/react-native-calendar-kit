@@ -37,6 +37,7 @@ type CustomTimelineProviderProps = Required<
     | 'maxTimeIntervalHeight'
     | 'unavailableHours'
     | 'hourFormat'
+    | 'dragHourFormat'
     | 'timeZone'
     | 'calendarWidth'
   >
@@ -73,6 +74,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
   isDragCreateActive: SharedValue<boolean>;
   pinchRef: React.MutableRefObject<GestureType | undefined>;
   hourFormat?: string;
+  dragHourFormat?: string;
   tzOffset: string;
   currentDate: string;
   updateCurrentDate: () => void;
@@ -118,6 +120,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     locale = 'en',
     isShowHeader = true,
     hourFormat,
+    dragHourFormat,
     eventAnimatedDuration = DEFAULT_PROPS.EVENT_ANIMATED_DURATION,
     useHaptic = false,
     timeZone = moment.tz.guess(),
@@ -261,6 +264,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       locale,
       isShowHeader,
       hourFormat,
+      dragHourFormat,
       eventAnimatedDuration,
       useHaptic,
       tzOffset: timeZone,
@@ -309,6 +313,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     locale,
     isShowHeader,
     hourFormat,
+    dragHourFormat,
     eventAnimatedDuration,
     useHaptic,
     timeZone,

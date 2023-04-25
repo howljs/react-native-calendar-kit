@@ -7,6 +7,7 @@ import UnavailableHourItem from './UnavailableHourItem';
 interface VerticalBlockProps {
   dayIndex: number;
   isOutsideLimit: boolean;
+  isToday: boolean;
   unavailableHour?: UnavailableHour[];
   isDayDisabled?: boolean;
   renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
@@ -14,6 +15,7 @@ interface VerticalBlockProps {
 
 const VerticalBlock: React.FC<VerticalBlockProps> = ({
   dayIndex,
+  isToday,
   isOutsideLimit,
   unavailableHour,
   isDayDisabled,
@@ -63,6 +65,10 @@ const VerticalBlock: React.FC<VerticalBlockProps> = ({
         {
           left: columnWidth * dayIndex,
           width: columnWidth,
+          ...(isToday &&
+            !!theme.todayCellBackgroundColor && {
+              backgroundColor: theme.todayCellBackgroundColor,
+            }),
         },
       ]}
     >

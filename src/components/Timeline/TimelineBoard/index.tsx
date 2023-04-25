@@ -19,6 +19,7 @@ import VerticalLine from './VerticalLine';
 
 interface TimelineBoardProps {
   startDate: string;
+  currentDate: string;
   onPressBackgroundHandler: (
     type: 'longPress' | 'press' | 'pressOut',
     event: GestureResponderEvent
@@ -32,6 +33,7 @@ interface TimelineBoardProps {
 const TimelineBoard = ({
   holidays,
   startDate,
+  currentDate,
   onPressBackgroundHandler,
   renderCustomUnavailableItem,
   renderHalfLineCustom,
@@ -44,6 +46,7 @@ const TimelineBoard = ({
     unavailableHours,
     minDate,
     maxDate,
+    tzOffset,
   } = useTimelineCalendarContext();
 
   const _renderHorizontalLine = ({ hourNumber }: HourItem, index: number) => {
@@ -67,7 +70,10 @@ const TimelineBoard = ({
   const startDayUnix = useMemo(() => moment(startDate).unix(), [startDate]);
 
   const _renderVerticalBlock = (dayIndex: number) => {
-    if (!unavailableHours && !holidays) {
+    const dateByColumn = moment.tz(startDate, tzOffset).add(dayIndex, 'd');
+    const isToday = dateByColumn.format('YYYY-MM-DD') === currentDate;
+
+    if (!unavailableHours && !holidays && !isToday) {
       return <VerticalLine key={dayIndex} index={dayIndex} />;
     }
     const currentUnix = startDayUnix + dayIndex * SECONDS_IN_DAY;
@@ -98,6 +104,7 @@ const TimelineBoard = ({
       <VerticalBlock
         key={dayIndex}
         dayIndex={dayIndex}
+        isToday={isToday}
         isOutsideLimit={isLtMin || isGtMax}
         unavailableHour={unavailableHour}
         isDayDisabled={isDayDisabled}
