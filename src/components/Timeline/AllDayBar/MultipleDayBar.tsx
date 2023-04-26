@@ -9,7 +9,11 @@ import {
 } from 'react-native';
 import { SharedValue, useSharedValue } from 'react-native-reanimated';
 import { COLUMNS } from '../../../constants';
-import type { CalendarViewMode, PackedEvent, ThemeProperties } from '../../../types';
+import type {
+  CalendarViewMode,
+  PackedEvent,
+  ThemeProperties,
+} from '../../../types';
 
 const EVENT_HEIGHT = 18;
 
@@ -111,7 +115,7 @@ const styles = StyleSheet.create({
   },
   defaultEventWrapper: {
     height: EVENT_HEIGHT,
-    marginRight: 8,
+    marginRight: 4,
   },
   separator: {
     height: 2,
