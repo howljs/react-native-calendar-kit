@@ -245,6 +245,13 @@ export default TimelineHeader;
 
 const styles = StyleSheet.create({
   container: {
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2,
     elevation: 3,
     zIndex: 99,
   },
