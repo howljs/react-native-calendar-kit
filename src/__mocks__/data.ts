@@ -95,7 +95,7 @@ export const expectHourData = {
     { text: '22:00', hourNumber: 22 },
   ],
 
-  /** Start: 0h, End: 12h, Duration = 120 minutes */
+  /** Start: 0h, End: 12h, Duration = 30 minutes */
   case4: [
     { text: '00:00', hourNumber: 0 },
     { text: '00:30', hourNumber: 0.5 },
