@@ -15,26 +15,31 @@ interface DragCreateItemProps {
   offsetX: SharedValue<number>;
   offsetY: SharedValue<number>;
   currentHour: SharedValue<number>;
+  startHour: SharedValue<number>;
+  startHourCalculated: SharedValue<number>;
 }
 
 const DragCreateItem = ({
   offsetX,
   offsetY,
   currentHour,
+  startHour,
+  startHourCalculated,
 }: DragCreateItemProps) => {
   const {
     columnWidth,
     hourWidth,
     heightByTimeInterval,
     dragCreateInterval,
+    dragStep,
     theme,
     hourFormat,
   } = useTimelineCalendarContext();
 
   const animatedStyles = useAnimatedStyle(() => {
     return {
-      height: (dragCreateInterval / 60) * heightByTimeInterval.value,
-      transform: [{ translateX: offsetX.value }, { translateY: offsetY.value }],
+      height: ( (dragCreateInterval / 60) + (offsetY.value - startHour.value) / 60) * heightByTimeInterval.value,
+      transform: [{ translateX: offsetX.value }, { translateY: startHour.value }],
     };
   });
 
@@ -52,6 +57,8 @@ const DragCreateItem = ({
         ]}
       />
       <AnimatedHour
+        startHour={startHour}
+        startHourCalculated={startHourCalculated}
         currentHour={currentHour}
         offsetY={offsetY}
         hourWidth={hourWidth}
@@ -65,6 +72,8 @@ const DragCreateItem = ({
 export default DragCreateItem;
 
 interface AnimatedHourProps {
+  startHour: Animated.SharedValue<number>;
+  startHourCalculated: SharedValue<number>;
   currentHour: Animated.SharedValue<number>;
   offsetY: Animated.SharedValue<number>;
   hourWidth: number;
@@ -73,6 +82,8 @@ interface AnimatedHourProps {
 }
 
 const AnimatedHour = ({
+  startHour,
+  startHourCalculated,
   currentHour,
   offsetY,
   hourWidth,
@@ -80,10 +91,14 @@ const AnimatedHour = ({
   hourFormat,
 }: AnimatedHourProps) => {
   const [time, setTime] = useState('');
+  const [timeStart, setTimeStart] = useState('');
+  const { dragCreateInterval } = useTimelineCalendarContext();
 
   const _onChangedTime = (
     hourStr: string | number,
-    minutesStr: string | number
+    minutesStr: string | number,
+    hourStrStart: string | number,
+    minutesStrStart: string | number
   ) => {
     let newTime = `${hourStr}:${minutesStr}`;
     if (hourFormat) {
@@ -93,50 +108,84 @@ const AnimatedHour = ({
       ).format(hourFormat);
     }
     setTime(newTime);
+
+    newTime = `${hourStrStart}:${minutesStrStart}`;
+    setTimeStart(newTime);
   };
 
   useAnimatedReaction(
     () => currentHour.value,
     (hour) => {
+      const _displayTime = (convertedTime: number) => {
+        const rHours = Math.floor(convertedTime);
+        const minutes = (convertedTime - rHours) * 60;
+        const rMinutes = Math.round(minutes);
+        const offset = rHours < 0 ? 24 : 0;
+        const hourStr = rHours + offset < 10 ? '0' + rHours : rHours + offset;
+        const minutesStr = rMinutes < 10 ? '0' + rMinutes : rMinutes;
+        return { hourStr, minutesStr };
+      };
+
       let extra = 0;
       if (hour < 0) {
         extra = 24;
       } else if (hour >= 24) {
         extra = -24;
       }
-      const convertedTime = hour + extra;
-      const rHours = Math.floor(convertedTime);
-      const minutes = (convertedTime - rHours) * 60;
-      const rMinutes = Math.round(minutes);
-      const offset = rHours < 0 ? 24 : 0;
-      const hourStr = rHours + offset < 10 ? '0' + rHours : rHours + offset;
-      const minutesStr = rMinutes < 10 ? '0' + rMinutes : rMinutes;
-      runOnJS(_onChangedTime)(hourStr, minutesStr);
+
+      const convertedTime = hour + extra + (dragCreateInterval/60);
+      const convertedTimeStart = startHourCalculated.value + extra;
+      const { hourStr, minutesStr } = _displayTime(convertedTime);
+      const { hourStr: hourStrStart, minutesStr: minutesStrStart } = _displayTime(convertedTimeStart);      
+      runOnJS(_onChangedTime)(hourStr, minutesStr, hourStrStart, minutesStrStart);
     }
   );
 
   const animatedTextStyles = useAnimatedStyle(() => {
     return {
-      transform: [{ translateY: offsetY.value }],
+      transform: [{ translateY: offsetY.value + dragCreateInterval}],
+    };
+  });
+
+  const animatedTextStylesStart = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: startHour.value }],
     };
   });
 
   return (
-    <Animated.View
-      style={[
-        styles.hourContainer,
-        { width: hourWidth - 8 },
-        theme.dragHourContainer,
-        animatedTextStyles,
-      ]}
-    >
-      <Text
-        allowFontScaling={theme.allowFontScaling}
-        style={[styles.hourText, theme.dragHourText]}
+    <>
+      <Animated.View
+        style={[
+          styles.hourContainer,
+          { width: hourWidth - 8 },
+          theme.dragHourContainer,
+          animatedTextStylesStart,
+        ]}
       >
-        {time}
-      </Text>
-    </Animated.View>
+        <Text
+          allowFontScaling={theme.allowFontScaling}
+          style={[styles.hourText, theme.dragHourText]}
+        >
+          {timeStart}
+        </Text>
+      </Animated.View>
+      <Animated.View
+        style={[
+          styles.hourContainer,
+          { width: hourWidth - 8 },
+          theme.dragHourContainer,
+          animatedTextStyles,
+        ]}
+      >
+        <Text
+          allowFontScaling={theme.allowFontScaling}
+          style={[styles.hourText, theme.dragHourText]}
+        >
+          {time}
+        </Text>
+      </Animated.View>
+    </>
   );
 };
 

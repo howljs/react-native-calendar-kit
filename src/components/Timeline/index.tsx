@@ -243,6 +243,8 @@ const Timeline: React.ForwardRefRenderFunction<
     dragXPosition,
     dragYPosition,
     currentHour,
+    startHour,
+    startHourCalculated,
     onLongPress,
   } = useDragCreateGesture({
     onDragCreateEnd,
@@ -310,6 +312,8 @@ const Timeline: React.ForwardRefRenderFunction<
           <DragCreateItem
             offsetX={dragXPosition}
             offsetY={dragYPosition}
+            startHour={startHour}
+            startHourCalculated={startHourCalculated}
             currentHour={currentHour}
           />
         )}
