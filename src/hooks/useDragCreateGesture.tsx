@@ -52,6 +52,8 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
   const [isDraggingCreate, setIsDraggingCreate] = useState(false);
 
   const currentHour = useSharedValue(0);
+  const startHour = useSharedValue(0);
+  const startHourCalculated = useSharedValue(0);
   const dragXPosition = useSharedValue(0);
   const dragYPosition = useSharedValue(0);
   const startOffsetY = useRef(0);
@@ -77,6 +79,19 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       y: calcY + spaceFromTop - offsetY.value,
     };
   };
+
+  const calcStartPosition = (yPosition: number, nearestMinutes: number) => {
+    'worklet';
+    const startY = yPosition + offsetY.value - spaceFromTop;
+    const subtractHour = (dragCreateInterval / 60) * heightByTimeInterval.value;
+    const originalTime = (startY - subtractHour) / heightByTimeInterval.value;
+    const roundedHour = roundTo(originalTime, nearestMinutes, 'up');
+    const calcY = roundedHour * heightByTimeInterval.value;
+    const y = calcY + spaceFromTop - offsetY.value;
+    startHour.value = y;
+    startHourCalculated.value = roundedHour + start;
+  };
+
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const _handleScroll = (x: number) => {
     if (timeoutRef.current && x > hourWidth && x < timelineWidth - 25) {
@@ -136,22 +151,28 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       clearInterval(timeoutRef.current);
       timeoutRef.current = null;
     }
-    const time = event.y / heightByTimeInterval.value;
+    const time = startHourCalculated.value - start;
+    const timeEnd = (event.y + dragCreateInterval) / heightByTimeInterval.value;
+
     const positionIndex = Math.round(event.x / columnWidth);
-    const startDate = pages[viewMode].data[currentIndex.value];
+    const endDate = pages[viewMode].data[currentIndex.value];
     const eventStart = moment
-      .tz(startDate, tzOffset)
+      .tz(endDate, tzOffset)
       .add(positionIndex, 'd')
       .add(time, 'h')
       .add(start, 'h');
     const isBeforeMinDate = eventStart.isBefore(moment(minDate), 'd');
     const isAfterMaxDate = eventStart.isAfter(moment(maxDate), 'd');
 
+    const eventEnd = moment
+      .tz(endDate, tzOffset)
+      .add(positionIndex, 'd')
+      .add(timeEnd, 'h')
+      .add(start, 'h');
+
     if (isBeforeMinDate || isAfterMaxDate) {
       return;
     }
-
-    const eventEnd = eventStart.clone().add(dragCreateInterval, 'm');
     onDragCreateEnd?.({
       start: eventStart.toISOString(),
       end: eventEnd.toISOString(),
@@ -237,9 +258,11 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const posX = e.nativeEvent.locationX + hourWidth;
     const posY = e.nativeEvent.locationY + spaceFromTop - offsetY.value;
     const { x, y } = calcPosition(posX, posY, dragStep);
+    calcStartPosition(posY, dragStep);
     dragXPosition.value = x;
     dragYPosition.value = y;
     startOffsetY.current = offsetY.value;
+
     if (useHaptic) {
       triggerHaptic();
     }
@@ -251,6 +274,8 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     dragYPosition,
     isDraggingCreate,
     currentHour,
+    startHour,
+    startHourCalculated,
     onLongPress,
   };
 };
