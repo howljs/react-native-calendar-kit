@@ -1,3 +1,9 @@
-export { default as TimelineCalendar } from './TimelineCalendar';
+export { default } from './CalendarKit';
+
 export * from './types';
-export { default as MomentConfig } from 'moment-timezone';
+
+export { default as CalendarKitWithoutProvider } from './CalendarKitInner';
+export {
+  default as CalendarKitProvider,
+  useCalendarKit,
+} from './context/CalendarKitProvider';
