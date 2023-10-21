@@ -90,7 +90,7 @@ const AnimatedHour = ({
       newTime = moment(
         `1970/1/1 ${hourStr}:${minutesStr}`,
         'YYYY/M/D HH:mm'
-      ).format(hourFormat);
+      ).format("HH:mm");
     }
     setTime(newTime);
   };
