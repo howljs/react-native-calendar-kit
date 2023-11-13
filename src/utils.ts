@@ -406,7 +406,7 @@ export const triggerHaptic = () => {
     const hapticFeedback = require('react-native-haptic-feedback').default;
     const type = Platform.select({ ios: 'selection', default: 'soft' });
     hapticFeedback.trigger(type, options);
-  } catch (ex) {}
+  } catch (ex) { }
 };
 
 export const getCurrentDate = (tzOffset: string, date?: string) => {

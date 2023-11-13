@@ -65,7 +65,7 @@ const HourItem = ({
   theme: ThemeProperties;
 }) => {
   const hourLabelStyle = useAnimatedStyle(() => {
-    return { top: timeIntervalHeight.value * index - 6 + spaceContent };
+    return { top: timeIntervalHeight.value * index - 6 + spaceContent +  DEFAULT_PROPS.INIT_TIME_INTERVAL_HEIGHT / 2};
   });
 
   return (
@@ -86,8 +86,9 @@ const styles = StyleSheet.create({
   },
   hourText: {
     position: 'absolute',
-    fontSize: 10,
+    fontSize: 12,
     color: DEFAULT_PROPS.BLACK_COLOR,
+    textTransform : "uppercase"
   },
   verticalLine: {
     width: 1,

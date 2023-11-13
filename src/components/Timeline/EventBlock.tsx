@@ -125,9 +125,9 @@ const EventBlock = ({
         onLongPress={_onLongPress}
         style={[
           StyleSheet.absoluteFill,
-          { backgroundColor: event.color || EVENT_DEFAULT_COLOR },
+          { backgroundColor: event.color || EVENT_DEFAULT_COLOR, top: 1 },
         ]}
-        activeOpacity={0.6}
+        activeOpacity={1}
       >
         {renderEventContent
           ? renderEventContent(event, timeIntervalHeight)
@@ -151,7 +151,6 @@ export default memo(EventBlock, areEqual);
 const styles = StyleSheet.create({
   eventBlock: {
     position: 'absolute',
-    borderRadius: 4,
     overflow: 'hidden',
   },
   title: {

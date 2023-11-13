@@ -234,6 +234,7 @@ const TimelineSlots = ({
             estimatedItemSize={rightSideWidth}
             estimatedListSize={listSize}
             {...listProps}
+            scrollEnabled={false}
           />
         </Animated.View>
       </React.Fragment>

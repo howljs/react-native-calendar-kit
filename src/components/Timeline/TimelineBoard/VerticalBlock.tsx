@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   verticalBlock: { position: 'absolute', height: '100%' },
   verticalLine: {
     width: 1,
-    backgroundColor: '#E8E9ED',
+    backgroundColor: '#E6DFDA',
     position: 'absolute',
     height: '100%',
     right: 0,
