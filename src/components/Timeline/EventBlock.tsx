@@ -1,6 +1,6 @@
 import isEqual from 'lodash/isEqual';
 import React, { memo } from 'react';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, Pressable } from 'react-native';
 import Animated, {
   SharedValue,
   useAnimatedStyle,
