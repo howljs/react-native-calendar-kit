@@ -432,11 +432,16 @@ export const shallowEqual = (object1: any, object2: any) => {
   return true;
 };
 
-export const roundTo = (hour: number, step: number, type: 'up' | 'down') => {
-  'worklet';
+export const roundTo = (
+  hour: number,
+  step: number,
+  type: "up" | "down"
+) => {
+  "worklet";
   const totalMinutes = hour * 60;
-  if (type === 'up') {
+  if (type === "up") {
     const nextMinutes = Math.ceil(totalMinutes / step) * step;
+    if (nextMinutes / 60 <= 0) return 0;
     return nextMinutes / 60;
   }
   const nextMinutes = Math.floor(totalMinutes / step) * step;
