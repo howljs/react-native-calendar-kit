@@ -33,7 +33,7 @@ const DragCreateItem = ({
 
   const animatedStyles = useAnimatedStyle(() => {
     return {
-      height: (dragCreateInterval / 60) * heightByTimeInterval.value,
+      height: (dragCreateInterval / 60) * heightByTimeInterval.value - 1, // 변경
       transform: [{ translateX: offsetX.value }, { translateY: offsetY.value }],
     };
   });
@@ -46,7 +46,7 @@ const DragCreateItem = ({
           {
             left: hourWidth,
             backgroundColor: theme.dragCreateItemBackgroundColor,
-            width: columnWidth,
+            width: columnWidth - 1, // 변경 
           },
           animatedStyles,
         ]}
@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     top: 0,
     left: 0,
+    marginTop: 1,   //변경
   },
   hourContainer: {
     position: 'absolute',
