@@ -368,7 +368,7 @@ const DragEditItem = ({
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      height: eventHeight.value,
+      height: eventHeight.value - 0.7, // 변경
       width: eventWidth.value,
       left: eventLeft.value,
       top: eventTop.value,
@@ -523,6 +523,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     borderRadius: 4,
     overflow: 'hidden',
+    marginTop: 1, // 변경
   },
   badgeContainer: {
     padding: 2,
