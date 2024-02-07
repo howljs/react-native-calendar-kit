@@ -381,6 +381,15 @@ export const getDayBarStyle = (
     dayNumberContainer: { ...theme[`${styleKey}NumberContainer`] },
   };
 
+  if(isToday){
+    if(isSaturday){
+      style.dayNumberContainer.backgroundColor = theme["saturdayNumberContainer"]?.backgroundColor;
+    }
+    if(isSunday){
+      style.dayNumberContainer.backgroundColor = theme["sundayNumberContainer"]?.backgroundColor;
+    }
+  }
+
   if (!isToday) {
     if (highlightDate.dayNameColor) {
       style.dayName.color = highlightDate.dayNameColor;
@@ -393,6 +402,8 @@ export const getDayBarStyle = (
         highlightDate.dayNumberBackgroundColor;
     }
   }
+
+  
 
   return style;
 };
@@ -432,11 +443,16 @@ export const shallowEqual = (object1: any, object2: any) => {
   return true;
 };
 
-export const roundTo = (hour: number, step: number, type: 'up' | 'down') => {
-  'worklet';
+export const roundTo = (
+  hour: number,
+  step: number,
+  type: "up" | "down"
+) => {
+  "worklet";
   const totalMinutes = hour * 60;
-  if (type === 'up') {
+  if (type === "up") {
     const nextMinutes = Math.ceil(totalMinutes / step) * step;
+    if (nextMinutes / 60 <= 0) return 0;
     return nextMinutes / 60;
   }
   const nextMinutes = Math.floor(totalMinutes / step) * step;

@@ -44,6 +44,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     useHaptic,
     tzOffset,
     start,
+    end,
     navigateDelay,
     heightByTimeInterval,
   } = useTimelineCalendarContext();
@@ -68,7 +69,23 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const startY = yPosition + offsetY.value - spaceFromTop;
     const subtractHour = (dragCreateInterval / 60) * heightByTimeInterval.value;
     const originalTime = (startY - subtractHour) / heightByTimeInterval.value;
-    const roundedHour = roundTo(originalTime, nearestMinutes, 'up');
+    // const roundedHour = roundTo(originalTime, nearestMinutes, 'up');   원래
+
+    /**   ------ 드래그 박스가 00:00 위로 && 24:00 아래로 가지 못하게 하는 코드 ------
+     * tempRoundedHour : 실제 드래그 박스가 손을 따라 움직인 곳에서의 시간 시간 (start에 상관없이 0시를 기준으로 함)
+     * roundedHour : 드래그 박스가 달력 밖(위/아래)로 삐져 나가지 않게 튜닝된 시작 시간
+     * 
+     * 튜닝된 시작 시간을 얻기 위한 계산
+     * 1. roundTo에서 계산된 시작 시간이 0보다 작다면 0을 반환 (roundTo)
+     * 2. end에서 초기 드래그 박스 높이만큼 위로 떨어진 "최대 시작 시간"(end -start - dragCreateInterval) 구함
+     * 3. 만약 tempRoundedHour가 최대 시작보다 크다면 최대 시작 시간으로, 작다면 tempRoundedHour 그대로 사용
+     * 
+     * newTopPosition : 최종적으로 이동하여 표시될 드래그 박스의 시작 위치 (픽셀 단위)
+     */
+    const tempRoundedHour = roundTo(originalTime, nearestMinutes, 'up');
+    const eventDuration = dragCreateInterval / heightByTimeInterval.value;
+    const roundedHour = tempRoundedHour > end - start - eventDuration ? end - start - eventDuration : tempRoundedHour;
+
     const calcY = roundedHour * heightByTimeInterval.value;
     currentHour.value = roundedHour + start;
 

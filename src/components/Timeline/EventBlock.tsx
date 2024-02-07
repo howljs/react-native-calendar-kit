@@ -1,6 +1,6 @@
 import isEqual from 'lodash/isEqual';
 import React, { memo } from 'react';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, Pressable } from 'react-native';
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -118,7 +118,7 @@ const EventBlock = ({
         eventStyle,
       ]}
     >
-      <TouchableOpacity
+      <Pressable
         disabled={!!selectedEventId}
         delayLongPress={300}
         onPress={_onPress}
@@ -127,12 +127,12 @@ const EventBlock = ({
           StyleSheet.absoluteFill,
           { backgroundColor: event.color || EVENT_DEFAULT_COLOR },
         ]}
-        activeOpacity={0.6}
+        //activeOpacity={0.6}
       >
         {renderEventContent
           ? renderEventContent(event, timeIntervalHeight)
           : _renderEventContent()}
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
   );
 };

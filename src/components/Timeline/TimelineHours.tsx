@@ -11,8 +11,11 @@ import type { ThemeProperties } from '../../types';
 export type HourItem = { text: string; hourNumber: number };
 
 const TimelineHours = () => {
-  const { hours, hourWidth, timeIntervalHeight, spaceFromTop, theme } =
-    useTimelineCalendarContext();
+  const { hours, hourWidth, timeIntervalHeight, spaceFromTop, theme, totalHours } =
+    useTimelineCalendarContext();   // 변경
+
+  // 주간 달력 시간 세로 선 밑으로 삐져 나오는 것 정리
+  const verticalLineHeight = totalHours * timeIntervalHeight.value;   // 변경
 
   const _renderHour = (hour: HourItem, index: number) => {
     return (
@@ -34,7 +37,6 @@ const TimelineHours = () => {
         {
           width: hourWidth,
           backgroundColor: theme.backgroundColor,
-          marginBottom: spaceFromTop,
         },
       ]}
     >
@@ -42,7 +44,11 @@ const TimelineHours = () => {
       <View
         style={[
           styles.verticalLine,
-          { top: spaceFromTop, backgroundColor: theme.cellBorderColor },
+          { 
+            top: spaceFromTop, 
+            backgroundColor: theme.cellBorderColor, 
+            height: verticalLineHeight 
+          },
         ]}
       />
     </View>
@@ -94,6 +100,5 @@ const styles = StyleSheet.create({
     backgroundColor: DEFAULT_PROPS.CELL_BORDER_COLOR,
     position: 'absolute',
     right: 0,
-    height: '100%',
   },
 });
