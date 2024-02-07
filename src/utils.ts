@@ -381,6 +381,15 @@ export const getDayBarStyle = (
     dayNumberContainer: { ...theme[`${styleKey}NumberContainer`] },
   };
 
+  if(isToday){
+    if(isSaturday){
+      style.dayNumberContainer.backgroundColor = theme["saturdayNumberContainer"]?.backgroundColor;
+    }
+    if(isSunday){
+      style.dayNumberContainer.backgroundColor = theme["sundayNumberContainer"]?.backgroundColor;
+    }
+  }
+
   if (!isToday) {
     if (highlightDate.dayNameColor) {
       style.dayName.color = highlightDate.dayNameColor;
@@ -393,6 +402,8 @@ export const getDayBarStyle = (
         highlightDate.dayNumberBackgroundColor;
     }
   }
+
+  
 
   return style;
 };
