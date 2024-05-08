@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
+    "rootDir": ".",
     "paths": {
       "@howljs/calendar-kit": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
-    "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "lib": ["esnext"],
@@ -22,7 +22,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext"
-  },
-  "exclude": ["documentation"]
+    "target": "esnext",
+    "verbatimModuleSyntax": false
+  }
 }
