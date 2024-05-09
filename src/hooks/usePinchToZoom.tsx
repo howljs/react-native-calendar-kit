@@ -1,26 +1,18 @@
 import { useRef } from 'react';
 import { Gesture, type GestureType } from 'react-native-gesture-handler';
-import type { SharedValue } from 'react-native-reanimated';
 import { scrollTo, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useCalendar } from '../context/CalendarProvider';
 import { clampValues } from '../utils/utils';
 
-type UsePinchToZoomProps = {
-  offsetY: SharedValue<number>;
-  maxTimeIntervalHeight: number;
-  minTimeIntervalHeight: number;
-  timeIntervalHeight: SharedValue<number>;
-  allowPinchToZoom: boolean;
-};
-
-const usePinchToZoom = ({
-  maxTimeIntervalHeight,
-  minTimeIntervalHeight,
-  timeIntervalHeight,
-  allowPinchToZoom,
-  offsetY,
-}: UsePinchToZoomProps) => {
-  const { verticalListRef } = useCalendar();
+const usePinchToZoom = () => {
+  const {
+    verticalListRef,
+    maxTimeIntervalHeight,
+    minTimeIntervalHeight,
+    timeIntervalHeight,
+    offsetY,
+    allowPinchToZoom,
+  } = useCalendar();
 
   const pinchGestureRef = useRef<GestureType>();
   const startScale = useSharedValue(0);

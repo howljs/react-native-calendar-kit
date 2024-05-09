@@ -146,13 +146,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     height: timelineHeight.value,
   }));
 
-  const { pinchGesture, pinchGestureRef } = usePinchToZoom({
-    maxTimeIntervalHeight,
-    minTimeIntervalHeight,
-    timeIntervalHeight,
-    allowPinchToZoom,
-    offsetY,
-  });
+  const { pinchGesture, pinchGestureRef } = usePinchToZoom();
 
   const _onLayout = (event: LayoutChangeEvent) => {
     scrollVisibleHeight.current = event.nativeEvent.layout.height;
