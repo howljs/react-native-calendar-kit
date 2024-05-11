@@ -50,6 +50,8 @@ export interface BodyContextProps {
   renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
   onLongPressBackground?: (event: GestureResponderEvent) => void;
   startOffset: SharedValue<number>;
+  rightEdgeSpacing: number;
+  overlapEventsSpacing: number;
 }
 
 export const BodyContext = React.createContext<BodyContextProps | undefined>(

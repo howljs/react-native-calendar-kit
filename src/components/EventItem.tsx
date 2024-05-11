@@ -26,7 +26,14 @@ const EventItem: FC<EventItemProps> = ({
 }) => {
   const { onPressEvent } = useActions();
   const textStyle = useTheme((state) => state.textStyle);
-  const { minuteHeight, columnWidthAnim, start, end } = useBody();
+  const {
+    minuteHeight,
+    columnWidthAnim,
+    start,
+    end,
+    rightEdgeSpacing,
+    overlapEventsSpacing,
+  } = useBody();
   const { _internal, ...event } = eventInput;
   const {
     duration,
@@ -46,21 +53,12 @@ const EventItem: FC<EventItemProps> = ({
       newStart = 0;
     }
 
-    const diffDays =
-      Math.floor((eventStartUnix - startUnix) / MILLISECONDS_IN_DAY) +
-      index / total;
+    const diffDays = Math.floor(
+      (eventStartUnix - startUnix) / MILLISECONDS_IN_DAY
+    );
 
     return { totalDuration, startMinutes: newStart, diffDays };
-  }, [
-    end,
-    start,
-    startMinutes,
-    duration,
-    eventStartUnix,
-    startUnix,
-    index,
-    total,
-  ]);
+  }, [end, start, startMinutes, duration, eventStartUnix, startUnix]);
 
   const initialStartDuration = useRef(getInitialData());
   const durationAnim = useSharedValue(
@@ -82,23 +80,33 @@ const EventItem: FC<EventItemProps> = ({
   const eventHeight = useDerivedValue(
     () => durationAnim.value * minuteHeight.value
   );
+
   const eventWidth = useDerivedValue(() => {
-    return columnWidthAnim.value * (columnSpan / total) - 2;
+    let width = columnWidthAnim.value * (columnSpan / total);
+    if (total > 1) {
+      width -= (rightEdgeSpacing + 1) / total;
+      width -= (overlapEventsSpacing * (total - 1)) / total;
+    } else {
+      width -= rightEdgeSpacing + 1;
+    }
+    return width;
+  });
+
+  const eventPosX = useDerivedValue(() => {
+    let left =
+      diffDaysAnim.value * columnWidthAnim.value + eventWidth.value * index;
+    if (total > 1 && index > 0) {
+      left += overlapEventsSpacing * index;
+    }
+    return left;
   });
 
   const animView = useAnimatedStyle(() => {
     return {
       height: eventHeight.value,
       width: eventWidth.value,
-      left: diffDaysAnim.value * columnWidthAnim.value + 1,
+      left: eventPosX.value + 1,
       top: startMinutesAnim.value * minuteHeight.value,
-    };
-  });
-
-  const animTitle = useAnimatedStyle(() => {
-    return {
-      fontSize: eventHeight.value > 40 ? 12 : 10,
-      margin: 2,
     };
   });
 
@@ -128,12 +136,7 @@ const EventItem: FC<EventItemProps> = ({
             })
           ) : (
             <Animated.Text
-              style={[
-                styles.title,
-                textStyle,
-                { color: event.titleColor },
-                animTitle,
-              ]}
+              style={[textStyle, styles.title, { color: event.titleColor }]}
             >
               {event.title}
             </Animated.Text>
@@ -154,6 +157,6 @@ export default React.memo(EventItem, (prev, next) => {
 
 const styles = StyleSheet.create({
   container: { position: 'absolute', overflow: 'hidden' },
-  title: { fontSize: 12 },
+  title: { fontSize: 10 },
   contentContainer: { borderRadius: 2, width: '100%', height: '100%' },
 });

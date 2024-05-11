@@ -301,9 +301,23 @@ export interface CalendarProviderProps extends ActionsProviderProps {
     | Record<string, UnavailableHourProps[]>
     | UnavailableHourProps[];
 
+  /**
+   * Style for day bar item
+   */
   highlightDates?: Record<string, HighlightDateProps>;
 
+  /**
+   * Events list
+   */
   events?: EventItem[];
+
+  /**
+   * Auto scroll to current time.
+   * Please set to `false` if you want custom initial scroll behavior.
+   *
+   * Default: `true`
+   */
+  scrollToNow?: boolean;
 }
 
 export interface DateRange<T extends DateType = DateType> {
@@ -386,9 +400,10 @@ export interface CalendarBodyProps {
    */
   showNowIndicator?: boolean;
 
-  /** Custom Unavailable Item */
+  /** Custom Out of Range item */
   renderCustomOutOfRange?: (props: OutOfRangeProps) => React.ReactNode;
 
+  /** Custom Unavailable Item */
   renderCustomUnavailableHour?: (
     props: UnavailableHourProps & {
       width: SharedValue<number>;
@@ -396,7 +411,24 @@ export interface CalendarBodyProps {
     }
   ) => React.ReactNode;
 
+  /**
+   * Custom event item
+   */
   renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
+
+  /**
+   * Spacing at the right edge of events.
+   *
+   * Default is `1`
+   */
+  rightEdgeSpacing?: number;
+
+  /**
+   * Spacing between overlapping events.
+   *
+   * Default is 1
+   */
+  overlapEventsSpacing?: number;
 }
 
 export interface RenderHourProps {

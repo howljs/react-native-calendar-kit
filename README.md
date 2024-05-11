@@ -52,7 +52,6 @@ $ npx expo install react-native-gesture-handler react-native-reanimated
 ## TODO:
 - [ ] Drag/drop to create event
 - [ ] Drag/drop to edit event
-- [ ] Auto scroll to current time after init
 - [ ] Update documentation
 - [ ] Support all day events
 - [ ] Support RTL

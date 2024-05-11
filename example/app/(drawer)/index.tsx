@@ -176,6 +176,9 @@ const Calendar = () => {
         events={events}
         onPressEvent={console.log}
         renderEvent={_renderEvent}
+        scrollToNow
+        rightEdgeSpacing={4}
+        overlapEventsSpacing={1}
       />
       <View style={[styles.actions, { paddingBottom: safeBottom }]}>
         <TouchableOpacity

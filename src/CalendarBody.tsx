@@ -30,6 +30,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   renderCustomOutOfRange,
   renderCustomUnavailableHour,
   renderEvent,
+  rightEdgeSpacing = 1,
+  overlapEventsSpacing = 1,
 }) => {
   const {
     calendarLayout,
@@ -106,6 +108,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       renderCustomUnavailableHour,
       renderEvent,
       startOffset,
+      rightEdgeSpacing,
+      overlapEventsSpacing,
     }),
     [
       renderHour,
@@ -139,6 +143,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       renderCustomUnavailableHour,
       renderEvent,
       startOffset,
+      rightEdgeSpacing,
+      overlapEventsSpacing,
     ]
   );
 

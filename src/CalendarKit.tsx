@@ -35,6 +35,8 @@ const BaseCalendarKitWrapper = (Component: CalendarProviderType) => {
           renderCustomOutOfRange,
           renderCustomUnavailableHour,
           renderEvent,
+          rightEdgeSpacing,
+          overlapEventsSpacing,
           ...rest
         } = props;
 
@@ -49,6 +51,8 @@ const BaseCalendarKitWrapper = (Component: CalendarProviderType) => {
           renderCustomOutOfRange,
           renderCustomUnavailableHour,
           renderEvent,
+          rightEdgeSpacing,
+          overlapEventsSpacing,
         };
 
         return (
