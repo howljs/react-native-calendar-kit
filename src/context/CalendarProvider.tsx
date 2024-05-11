@@ -146,6 +146,7 @@ const CalendarProvider: React.ForwardRefRenderFunction<
     events,
     onPressEvent,
     numberOfDays = NUMBER_OF_DAYS[viewMode] || 7,
+    scrollToNow = true,
   },
   ref
 ) => {
@@ -305,11 +306,6 @@ const CalendarProvider: React.ForwardRefRenderFunction<
       offset = Math.floor(diffDays / 7) * (columnWidth * columns);
     }
 
-    const isScrollable = calendarListRef.current?.isScrollable(
-      offset,
-      numberOfDays
-    );
-
     if (props?.hourScroll) {
       const minutes = date.hour * 60 + date.minute;
       const position = minutes * minuteHeight.value - startOffset.value;
@@ -321,6 +317,10 @@ const CalendarProvider: React.ForwardRefRenderFunction<
       });
     }
 
+    const isScrollable = calendarListRef.current?.isScrollable(
+      offset,
+      numberOfDays
+    );
     if (!isScrollable) {
       triggerDateChanged.current = undefined;
       return;
@@ -470,6 +470,15 @@ const CalendarProvider: React.ForwardRefRenderFunction<
     }),
     [goToDate, goToHour, goToNextPage, goToPrevPage, setVisibleDate, zoom]
   );
+
+  useEffect(() => {
+    if (scrollToNow) {
+      // Delay to ensure that the layout is ready
+      setTimeout(() => {
+        goToDate({ hourScroll: true, animatedHour: true });
+      }, 100);
+    }
+  }, [goToDate, scrollToNow]);
 
   useEffect(() => {
     runOnUI(() => {
