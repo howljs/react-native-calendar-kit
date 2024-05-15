@@ -1,7 +1,7 @@
 {
   "name": "@howljs/calendar-kit",
-  "version": "2.0.0",
-  "description": "React Native Calendar Component",
+  "version": "2.0.0-alpha.0",
+  "description": "React Native Calendar Kit",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",
@@ -38,7 +38,9 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "calendar-kit",
+    "calendar-week-view"
   ],
   "repository": {
     "type": "git",
@@ -83,10 +85,12 @@
     "@types/react": "^18.2.44"
   },
   "peerDependencies": {
+    "@types/react": "*",
+    "@types/react-native": "*",
     "react": "*",
     "react-native": "*",
-    "react-native-gesture-handler": "^2.3.2",
-    "react-native-reanimated": "^2.4.1"
+    "react-native-gesture-handler": ">=1.10.1",
+    "react-native-reanimated": ">=2.2.0"
   },
   "workspaces": [
     "example",
