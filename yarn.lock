@@ -2738,8 +2738,8 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-    react-native-gesture-handler: ^2.3.2
-    react-native-reanimated: ^2.4.1
+    react-native-gesture-handler: ">=1.10.1"
+    react-native-reanimated: ">=2.2.0"
   languageName: unknown
   linkType: soft
 
