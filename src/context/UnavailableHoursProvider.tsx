@@ -6,16 +6,15 @@ import React, {
   useContext,
   useEffect,
 } from 'react';
+import { MILLISECONDS_IN_DAY } from '../constants';
 import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreWithSelector';
 import { Store, createStore } from '../storeBuilder';
 import { UnavailableHourProps } from '../types';
-import { parseDateTime } from '../utils/dateUtils';
-import { MILLISECONDS_IN_DAY } from '../constants';
+import { forceUpdateZone } from '../utils/dateUtils';
+import { useDateChangedListener } from './VisibleDateProvider';
 
 type UnavailableHoursStore = {
-  unavailableHours?:
-    | Record<string, UnavailableHourProps[]>
-    | UnavailableHourProps[];
+  unavailableHours?: Record<string, UnavailableHourProps[]>;
 };
 
 export const UnavailableHoursContext = createContext<
@@ -23,15 +22,58 @@ export const UnavailableHoursContext = createContext<
 >(undefined);
 
 const unavailableHoursStore = createStore<UnavailableHoursStore>({
-  unavailableHours: [],
+  unavailableHours: {},
 });
 
 const UnavailableHoursProvider: FC<
-  PropsWithChildren<UnavailableHoursStore>
-> = ({ children, unavailableHours = [] }) => {
+  PropsWithChildren<{
+    unavailableHours?:
+      | Record<string, UnavailableHourProps[]>
+      | UnavailableHourProps[];
+    timeZone: string;
+  }>
+> = ({ children, unavailableHours = {}, timeZone }) => {
+  const currentDate = useDateChangedListener();
+
+  const notifyDataChanged = useCallback(
+    (date: number, offset: number = 7) => {
+      let originalData: Record<string, UnavailableHourProps[]> = {};
+      if (Array.isArray(unavailableHours)) {
+        originalData = {
+          '1': unavailableHours,
+          '2': unavailableHours,
+          '3': unavailableHours,
+          '4': unavailableHours,
+          '5': unavailableHours,
+          '6': unavailableHours,
+          '7': unavailableHours,
+        };
+      } else {
+        originalData = unavailableHours;
+      }
+
+      const data: Record<string, UnavailableHourProps[]> = {};
+      const zonedDate = forceUpdateZone(date, timeZone).toMillis();
+      const minUnix = zonedDate - MILLISECONDS_IN_DAY * offset;
+      const maxUnix = zonedDate + MILLISECONDS_IN_DAY * (offset * 2);
+      for (let i = minUnix; i < maxUnix; i += MILLISECONDS_IN_DAY) {
+        const dateObj = forceUpdateZone(i, timeZone);
+        const weekDay = dateObj.weekday;
+        const dateStr = dateObj.toFormat('yyyy-MM-dd');
+        const unavailableHoursByDate =
+          originalData[dateStr] || originalData[weekDay];
+        if (unavailableHoursByDate) {
+          data[i] = unavailableHoursByDate;
+        }
+      }
+      unavailableHoursStore.setState({ unavailableHours: data });
+    },
+    [unavailableHours, timeZone]
+  );
+
   useEffect(() => {
-    unavailableHoursStore.setState({ unavailableHours });
-  }, [unavailableHours]);
+    notifyDataChanged(currentDate);
+  }, [currentDate, notifyDataChanged]);
 
   return (
     <UnavailableHoursContext.Provider value={unavailableHoursStore}>
@@ -46,49 +88,10 @@ export type UnavailableHoursSelector = UnavailableHourProps & {
   date: number;
 };
 
-export const useUnavailableHours = (date: number, numberOfDays: number) => {
+const selector = (state: UnavailableHoursStore) => state.unavailableHours || {};
+
+export const useUnavailableHours = () => {
   const unavailableHoursContext = useContext(UnavailableHoursContext);
-
-  const selectorByDate = useCallback(
-    (state: UnavailableHoursStore) => {
-      let data: UnavailableHoursSelector[] = [];
-      if (!state.unavailableHours) {
-        return { data };
-      }
-
-      for (let i = 0; i < numberOfDays; i++) {
-        const dateUnix = date + i * MILLISECONDS_IN_DAY;
-        if (Array.isArray(state.unavailableHours)) {
-          for (let j = 0; j < state.unavailableHours.length; j++) {
-            const unavailableHour = state.unavailableHours[j]!;
-            data.push({ ...unavailableHour, date: dateUnix });
-          }
-        } else {
-          const dateObj = parseDateTime(dateUnix);
-          const weekDay = dateObj.weekday;
-          const dateStr = dateObj.toFormat('yyyy-MM-dd');
-          const unavailableHoursWeekDay = state.unavailableHours[weekDay];
-          if (unavailableHoursWeekDay) {
-            for (let j = 0; j < unavailableHoursWeekDay.length; j++) {
-              const unavailableHour = unavailableHoursWeekDay[j]!;
-              data.push({ ...unavailableHour, date: dateUnix });
-            }
-          }
-
-          const unavailableHoursByDate = state.unavailableHours[dateStr];
-          if (unavailableHoursByDate) {
-            for (let j = 0; j < unavailableHoursByDate.length; j++) {
-              const unavailableHour = unavailableHoursByDate[j]!;
-              data.push({ ...unavailableHour, date: dateUnix });
-            }
-          }
-        }
-      }
-
-      return { data };
-    },
-    [date, numberOfDays]
-  );
 
   if (!unavailableHoursContext) {
     throw new Error(
@@ -99,7 +102,7 @@ export const useUnavailableHours = (date: number, numberOfDays: number) => {
   const state = useSyncExternalStoreWithSelector(
     unavailableHoursContext.subscribe,
     unavailableHoursContext.getState,
-    selectorByDate
+    selector
   );
   return state;
 };

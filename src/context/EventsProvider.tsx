@@ -4,8 +4,6 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
-  useRef,
   type PropsWithChildren,
 } from 'react';
 import { MILLISECONDS_IN_DAY } from '../constants';
@@ -29,6 +27,7 @@ import {
   populateEvents,
   processRecurrenceEvent,
 } from '../utils/eventUtils';
+import { useDateChangedListener } from './VisibleDateProvider';
 
 interface EventsState {
   allDayEvents: Record<string, PackedAllDayEvent[]>;
@@ -48,19 +47,10 @@ const EventsContext = React.createContext<Store<EventsState> | undefined>(
   undefined
 );
 
-interface EventActionsContextProps {
-  notifyDataChanged: (date: number, offset?: number) => void;
-}
-
-const EventsActionsContext = React.createContext<
-  EventActionsContextProps | undefined
->(undefined);
-
 interface EventsProviderProps {
   firstDay: WeekdayNumbers;
   events?: EventItem[];
   timeZone: string;
-  visibleStart: React.MutableRefObject<number>;
   useAllDayEvent?: boolean;
 }
 
@@ -69,13 +59,11 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
   children,
   timeZone,
   firstDay,
-  visibleStart,
   useAllDayEvent,
 }) => {
-  const prevEvents = useRef<EventItem[]>();
+  const currentStartDate = useDateChangedListener();
   const notifyDataChanged = useCallback(
     (date: number, offset: number = 7) => {
-      prevEvents.current = events;
       const zonedDate = forceUpdateZone(date, timeZone).toMillis();
       const minUnix = zonedDate - MILLISECONDS_IN_DAY * offset;
       const maxUnix = zonedDate + MILLISECONDS_IN_DAY * (offset * 2);
@@ -189,31 +177,17 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
   );
 
   useEffect(() => {
-    notifyDataChanged(visibleStart.current);
-  }, [events, notifyDataChanged, visibleStart]);
-
-  const actions = useMemo(() => ({ notifyDataChanged }), [notifyDataChanged]);
+    notifyDataChanged(currentStartDate);
+  }, [events, notifyDataChanged, currentStartDate]);
 
   return (
-    <EventsActionsContext.Provider value={actions}>
-      <EventsContext.Provider value={eventStore}>
-        {children}
-      </EventsContext.Provider>
-    </EventsActionsContext.Provider>
+    <EventsContext.Provider value={eventStore}>
+      {children}
+    </EventsContext.Provider>
   );
 };
 
 export default EventsProvider;
-
-export const useNotifyDataChanged = () => {
-  const store = React.useContext(EventsActionsContext);
-  if (!store) {
-    throw new Error(
-      'useNotifyDataChanged must be used within a EventsProvider'
-    );
-  }
-  return store.notifyDataChanged;
-};
 
 export const useAllDayEvents = (date: number, numberOfDays: number) => {
   const eventsContext = useContext(EventsContext);

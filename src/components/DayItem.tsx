@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0)',
   },
   dayNumText: { fontSize: 16, fontWeight: '500' },
   weekDayText: { fontSize: 12, color: '#5F6267', marginBottom: 2 },

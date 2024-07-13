@@ -151,7 +151,7 @@ const Calendar = () => {
         viewMode={params.viewMode}
         scrollByDay={params.viewMode === 'day'}
         numberOfDays={Number(params.numberOfDays)}
-        firstDay={configs.startOfWeek}
+        firstDay={params.viewMode === 'workWeek' ? 1 : configs.startOfWeek}
         initialLocales={initialLocales}
         themeMode={
           configs.themeMode === 'auto'

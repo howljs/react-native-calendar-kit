@@ -1,3 +1,4 @@
+import times from 'lodash/times';
 import React, { FC, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
@@ -30,12 +31,7 @@ const UnavailableHours: FC<UnavailableHoursProps> = ({ dateUnix }) => {
     (state) => state.unavailableHourBackgroundColor || state.colors.surface
   );
 
-  const { data } = useUnavailableHours(dateUnix, columns);
-
-  if (data.length === 0) {
-    return null;
-  }
-
+  const unavailableHours = useUnavailableHours();
   const _renderSpecialRegion = (
     props: UnavailableHoursSelector,
     index: number
@@ -59,7 +55,19 @@ const UnavailableHours: FC<UnavailableHoursProps> = ({ dateUnix }) => {
     );
   };
 
-  return <>{data.map(_renderSpecialRegion)}</>;
+  const _renderColumn = (dayIndex: number) => {
+    const currentUnix = dateUnix + dayIndex * MILLISECONDS_IN_DAY;
+    const unavailableHoursByDate = unavailableHours[currentUnix];
+    if (!unavailableHoursByDate) {
+      return null;
+    }
+
+    return unavailableHoursByDate.map((props, index) =>
+      _renderSpecialRegion({ ...props, date: currentUnix }, index)
+    );
+  };
+
+  return <>{times(columns).map(_renderColumn)}</>;
 };
 
 export default UnavailableHours;

@@ -54,6 +54,7 @@ import NowIndicatorProvider from './NowIndicatorProvider';
 import ThemeProvider from './ThemeProvider';
 import TimeZoneProvider from './TimeZoneProvider';
 import UnavailableHoursProvider from './UnavailableHoursProvider';
+import VisibleDateProvider from './VisibleDateProvider';
 
 Settings.throwOnInvalid = true;
 
@@ -605,21 +606,23 @@ const CalendarProvider: React.ForwardRefRenderFunction<
             >
               <ActionsProvider {...actionsProps}>
                 <LoadingContext.Provider value={loadingValue}>
-                  <HighlightDatesProvider highlightDates={highlightDates}>
-                    <UnavailableHoursProvider
-                      unavailableHours={unavailableHours}
-                    >
-                      <EventsProvider
-                        events={events}
-                        visibleStart={visibleDateUnix}
-                        firstDay={firstDay}
+                  <VisibleDateProvider initialStart={visibleDateUnix}>
+                    <HighlightDatesProvider highlightDates={highlightDates}>
+                      <UnavailableHoursProvider
+                        unavailableHours={unavailableHours}
                         timeZone={timeZone}
-                        useAllDayEvent={useAllDayEvent}
                       >
-                        {children}
-                      </EventsProvider>
-                    </UnavailableHoursProvider>
-                  </HighlightDatesProvider>
+                        <EventsProvider
+                          events={events}
+                          firstDay={firstDay}
+                          timeZone={timeZone}
+                          useAllDayEvent={useAllDayEvent}
+                        >
+                          {children}
+                        </EventsProvider>
+                      </UnavailableHoursProvider>
+                    </HighlightDatesProvider>
+                  </VisibleDateProvider>
                 </LoadingContext.Provider>
               </ActionsProvider>
             </ThemeProvider>

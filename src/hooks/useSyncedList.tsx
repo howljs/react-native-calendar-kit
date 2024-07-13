@@ -7,7 +7,7 @@ import {
 import { MILLISECONDS_IN_DAY, ScrollType } from '../constants';
 import { useActions } from '../context/ActionsProvider';
 import { useCalendar } from '../context/CalendarProvider';
-import { useNotifyDataChanged } from '../context/EventsProvider';
+import { useNotifyDateChanged } from '../context/VisibleDateProvider';
 import { dateTimeToISOString, parseDateTime } from '../utils/dateUtils';
 
 const useSyncedList = ({ id }: { id: ScrollType }) => {
@@ -23,7 +23,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
     triggerDateChanged,
     visibleDateUnixAnim,
   } = useCalendar();
-  const notifyDataChanged = useNotifyDataChanged();
+  const notifyDateChanged = useNotifyDateChanged();
   const { onChange, onDateChanged } = useActions();
   const minDate = calendarData.minDateUnix;
 
@@ -47,7 +47,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       onDateChanged?.(
         dateTimeToISOString(parseDateTime(visibleDateUnix.current))
       );
-      notifyDataChanged(visibleDateUnix.current);
+      notifyDateChanged(visibleDateUnix.current);
       isTriggerMomentum.current = false;
     }
   };
@@ -92,7 +92,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
           ) {
             triggerDateChanged.current = undefined;
             onDateChanged?.(dateIsoStr);
-            notifyDataChanged(visibleStart);
+            notifyDateChanged(visibleStart);
           }
         }
 
@@ -104,7 +104,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
     [
       id,
       minDate,
-      notifyDataChanged,
+      notifyDateChanged,
       numberOfDays,
       onChange,
       onDateChanged,
