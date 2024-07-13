@@ -36,7 +36,7 @@ import type {
   DateType,
   GoToDateOptions,
 } from '../types';
-import Haptic from '../utils/HapticService';
+// import Haptic from '../utils/HapticService';
 import { parseDateTime, startOfWeek } from '../utils/dateUtils';
 import {
   calculateSlots,
@@ -151,7 +151,7 @@ const CalendarProvider: React.ForwardRefRenderFunction<
   ref
 ) => {
   // TODO: Implement haptic feedback
-  const useHaptic = false;
+  // const useHaptic = false;
   // TODO: Implement all day events
   const useAllDayEvent = false;
   // TODO: Implement RTL
@@ -489,9 +489,9 @@ const CalendarProvider: React.ForwardRefRenderFunction<
   const snapToInterval =
     numberOfDays > 1 && scrollByDay ? columnWidth : undefined;
 
-  useEffect(() => {
-    Haptic.setEnabled(useHaptic);
-  }, [useHaptic]);
+  // useEffect(() => {
+  //   Haptic.setEnabled(useHaptic);
+  // }, [useHaptic]);
 
   const context = useMemo<CalendarContextProps>(
     () => ({

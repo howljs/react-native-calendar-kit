@@ -16,7 +16,6 @@
     "axios": "^1.6.7",
     "expo": "^51.0.2",
     "expo-constants": "~16.0.1",
-    "expo-haptics": "~13.0.1",
     "expo-linking": "~6.3.1",
     "expo-router": "~3.5.11",
     "expo-secure-store": "~13.0.1",

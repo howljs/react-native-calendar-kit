@@ -2721,7 +2721,6 @@ __metadata:
     eslint: ^8.51.0
     eslint-config-prettier: ^9.0.0
     eslint-plugin-prettier: ^5.0.1
-    expo-haptics: ^12.8.1
     jest: ^29.7.0
     lodash: ^4.17.21
     luxon: ^3.4.4
@@ -2730,7 +2729,6 @@ __metadata:
     react-native: 0.73.4
     react-native-builder-bob: ^0.20.0
     react-native-gesture-handler: ^2.14.0
-    react-native-haptic-feedback: ^2.2.0
     react-native-reanimated: ^3.6.2
     release-it: ^15.0.0
     rrule: ^2.8.1
@@ -9221,24 +9219,6 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 74284f7aaa809de1432e98090eca61f255c584f1a66e979a8caf435bf6d97f7322c1a6c9428ebb6ce5f4dd20a2987e8ee714a8170cc2782d1f7b87900ccc4b7e
-  languageName: node
-  linkType: hard
-
-"expo-haptics@npm:^12.8.1":
-  version: 12.8.1
-  resolution: "expo-haptics@npm:12.8.1"
-  peerDependencies:
-    expo: "*"
-  checksum: 5448146ecd392e7a4ffc4ca5f222adcf673ff5f177e0e1dda98032a35d50578e44aa76e51ddebdc43206e588c91cb328d37dce667d636ca8c809f5e2d140fb55
-  languageName: node
-  linkType: hard
-
-"expo-haptics@npm:~13.0.1":
-  version: 13.0.1
-  resolution: "expo-haptics@npm:13.0.1"
-  peerDependencies:
-    expo: "*"
-  checksum: 5419e6451d3718dde8fb099eb710d7c90448d75d00d44e8b42ec301ec45d52bdb52e6ef2959fd0f207abcbe090b0c851b8bd94aba90343053d5435e4e545a997
   languageName: node
   linkType: hard
 
@@ -15811,7 +15791,6 @@ __metadata:
     babel-plugin-module-resolver: ^5.0.0
     expo: ^51.0.2
     expo-constants: ~16.0.1
-    expo-haptics: ~13.0.1
     expo-linking: ~6.3.1
     expo-router: ~3.5.11
     expo-secure-store: ~13.0.1
@@ -15859,15 +15838,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 3f3309de471b8de654624c54793f6d72236869156ee61c1adc8bba0f4aca6ffc8ed02035eb85820473091d33eb5ec8b42a0e387a21ec25dc30ee345dff0c1142
-  languageName: node
-  linkType: hard
-
-"react-native-haptic-feedback@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "react-native-haptic-feedback@npm:2.2.0"
-  peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: e7ce6b303a799dc7fd1c5851379b555b65052c3ef7fefe836c7881f125e4057134462554a996762e67ecc7f01e82e45dc3bcad17cc232b53511006160d5f98ed
   languageName: node
   linkType: hard
 
