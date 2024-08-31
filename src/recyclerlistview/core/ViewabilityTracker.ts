@@ -1,13 +1,6 @@
-import BinarySearch from '../utils/BinarySearch';
-import { Dimension } from './dependencies/LayoutProvider';
-import { Layout } from './layoutmanager/LayoutManager';
-/***
- * Given an offset this utility can compute visible items. Also tracks previously visible items to compute items which get hidden or visible
- * Virtual renderer uses callbacks from this utility to main recycle pool and the render stack.
- * The utility optimizes finding visible indexes by using the last visible items. However, that can be slow if scrollToOffset is explicitly called.
- * We use binary search to optimize in most cases like while finding first visible item or initial offset. In future we'll also be using BS to speed up
- * scroll to offset.
- */
+import { Layout } from './LayoutManager';
+import { Dimension } from './LayoutProvider';
+
 export interface Range {
   start: number;
   end: number;
@@ -250,7 +243,6 @@ export default class ViewabilityTracker {
     } else if (
       this._itemIntersectsEngagedWindow(relevantDim.start, relevantDim.end)
     ) {
-      //TODO: This needs to be optimized
       if (insertOnTop) {
         newEngagedIndexes.splice(0, 0, index);
       } else {
@@ -338,24 +330,29 @@ export default class ViewabilityTracker {
     this._visibleWindow.end = endOffset;
   }
 
-  //TODO:Talha optimize this
   private _diffUpdateOriginalIndexesAndRaiseEvents(
     newVisibleItems: number[],
     newEngagedItems: number[]
   ): void {
-    this._diffArraysAndCallFunc(
+    this._updateAndNotify(
       newVisibleItems,
       this._visibleIndexes,
       this.onVisibleRowsChanged
     );
+    this._updateAndNotify(
+      newEngagedItems,
+      this._engagedIndexes,
+      this.onEngagedRowsChanged
+    );
+
     if (
       this.onVisibleColumnChanged &&
       newVisibleItems.length !== 0 &&
-      !!this._columnsPerPage
+      this._columnsPerPage
     ) {
       const startIndex = newVisibleItems[0]!;
       const startOffset = startIndex * this._windowBound;
-      const columnWidth = this._windowBound / this._columnsPerPage!;
+      const columnWidth = this._windowBound / this._columnsPerPage;
       const column = Math.round(
         (this._currentOffset - startOffset) / columnWidth
       );
@@ -371,37 +368,33 @@ export default class ViewabilityTracker {
         this._startColumn = { index: startIndex, columns: column };
       }
     }
-    this._diffArraysAndCallFunc(
-      newEngagedItems,
-      this._engagedIndexes,
-      this.onEngagedRowsChanged
-    );
+
     this._visibleIndexes = newVisibleItems;
     this._engagedIndexes = newEngagedItems;
   }
 
-  private _diffArraysAndCallFunc(
+  private _updateAndNotify(
     newItems: number[],
     oldItems: number[],
-    func: TOnItemStatusChanged | null
+    callback: TOnItemStatusChanged | null
   ): void {
-    if (func) {
-      const now = this._calculateArrayDiff(newItems, oldItems);
-      const notNow = this._calculateArrayDiff(oldItems, newItems);
+    if (callback) {
+      const { now, notNow } = this._calculateArrayDiff(newItems, oldItems);
       if (now.length > 0 || notNow.length > 0) {
-        func([...newItems], now, notNow);
+        callback(newItems, now, notNow);
       }
     }
   }
 
-  private _calculateArrayDiff(arr1: number[], arr2: number[]): number[] {
-    const len = arr1.length;
-    const diffArr: number[] = [];
-    for (let i = 0; i < len; i++) {
-      if (BinarySearch.findIndexOf(arr2, arr1[i]!) === -1) {
-        diffArr.push(arr1[i]!);
-      }
-    }
-    return diffArr;
+  private _calculateArrayDiff(
+    arr1: number[],
+    arr2: number[]
+  ): { now: number[]; notNow: number[] } {
+    const set1 = new Set(arr1);
+    const set2 = new Set(arr2);
+
+    const now = arr1.filter((item) => !set2.has(item));
+    const notNow = arr2.filter((item) => !set1.has(item));
+    return { now, notNow };
   }
 }

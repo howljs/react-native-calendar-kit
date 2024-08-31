@@ -10,7 +10,7 @@ import { DEFAULT_DARK_THEME, DEFAULT_THEME } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
 import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreWithSelector';
 import { createStore, type Store } from '../storeBuilder';
-import type { ThemeConfigs, DeepPartial } from '../types';
+import type { DeepPartial, ThemeConfigs } from '../types';
 
 export const ThemeContext = createContext<Store<ThemeConfigs> | undefined>(
   undefined
@@ -56,8 +56,10 @@ const ThemeProvider: React.FC<PropsWithChildren<ThemeProviderProps>> = ({
 
 export default ThemeProvider;
 
+const selectBackground = (state: ThemeConfigs) => state.colors.background;
+
 const ThemedContainer: React.FC<PropsWithChildren<{}>> = ({ children }) => {
-  const backgroundColor = useTheme((state) => state.colors.background);
+  const backgroundColor = useTheme(selectBackground);
   return (
     <View style={[styles.container, { backgroundColor }]}>{children}</View>
   );

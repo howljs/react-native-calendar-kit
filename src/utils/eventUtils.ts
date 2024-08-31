@@ -24,19 +24,19 @@ export const filterEvents = (
   maxUnix: number,
   useAllDayEvent?: boolean
 ) => {
-  let allDays: EventItemInternal[] = [],
-    regular: EventItemInternal[] = [];
+  const allDays: EventItemInternal[] = [];
+  const regular: EventItemInternal[] = [];
+
   for (let i = 0; i < events.length; i++) {
     const event = events[i]!;
     const eventStart = parseDateTime(event.start).toMillis();
     const eventEnd = parseDateTime(event.end).toMillis();
-    const isValidDate = eventEnd > eventStart;
-    if (!isValidDate) {
-      continue;
-    }
 
-    const isValidRange = eventEnd > minUnix && eventStart < maxUnix;
-    if (!isValidRange && !event.recurrenceRule) {
+    if (
+      eventEnd <= eventStart ||
+      eventEnd <= minUnix ||
+      eventStart >= maxUnix
+    ) {
       continue;
     }
 
@@ -222,14 +222,38 @@ const calcColumnSpan = (
   return colSpan;
 };
 
-const packOverlappingEventGroup = (
-  columns: EventItemInternal[][],
-  calculatedEvents: PackedEvent[]
-) => {
+const sortEvents = (events: EventItemInternal[]) =>
+  events.sort(
+    (a, b) =>
+      a._internal.startUnix - b._internal.startUnix ||
+      a._internal.endUnix - b._internal.endUnix
+  );
+
+export const populateEvents = (events: EventItemInternal[]) => {
+  const sortedEvents = sortEvents([...events]);
+  const columns: EventItemInternal[][] = [];
+  const packedEvents: PackedEvent[] = [];
+
+  for (const event of sortedEvents) {
+    let placed = false;
+    for (let i = 0; i < columns.length; i++) {
+      const column = columns[i]!;
+      if (!hasCollision(column[column.length - 1]!, event)) {
+        column.push(event);
+        placed = true;
+        break;
+      }
+    }
+
+    if (!placed) {
+      columns.push([event]);
+    }
+  }
+
   columns.forEach((column, columnIndex) => {
     column.forEach((event) => {
       const columnSpan = calcColumnSpan(event, columnIndex, columns);
-      calculatedEvents.push({
+      packedEvents.push({
         ...event,
         _internal: {
           ...event._internal,
@@ -240,51 +264,6 @@ const packOverlappingEventGroup = (
       });
     });
   });
-};
-
-const sortEvents = (events: EventItemInternal[]) =>
-  events.sort(
-    (a, b) =>
-      a._internal.startUnix - b._internal.startUnix ||
-      a._internal.endUnix - b._internal.endUnix
-  );
-
-export const populateEvents = (events: EventItemInternal[]) => {
-  let lastEnd: number | null = null;
-  let columns: EventItemInternal[][] = [];
-  let packedEvents: PackedEvent[] = [];
-  const clonedEvents = [...events];
-  sortEvents(clonedEvents);
-  clonedEvents.forEach(function (ev) {
-    const eventStart = ev._internal.startUnix;
-    const eventEnd = ev._internal.endUnix;
-
-    if (lastEnd !== null && eventStart >= lastEnd) {
-      packOverlappingEventGroup(columns, packedEvents);
-      columns = [];
-      lastEnd = null;
-    }
-
-    let placed = false;
-    for (let col of columns) {
-      if (!hasCollision(col[col.length - 1]!, ev)) {
-        col.push(ev);
-        placed = true;
-        break;
-      }
-    }
-
-    if (!placed) {
-      columns.push([ev]);
-    }
-
-    if (lastEnd === null || eventEnd > lastEnd) {
-      lastEnd = eventEnd;
-    }
-  });
-  if (columns.length > 0) {
-    packOverlappingEventGroup(columns, packedEvents);
-  }
 
   return packedEvents;
 };

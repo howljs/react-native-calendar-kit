@@ -1,55 +1,55 @@
-// import { NativeModules } from 'react-native';
+import { NativeModules } from 'react-native';
+import {
+  ReactNativeHapticFeedbackProxy,
+  ExpoHapticProxy,
+} from '../dependencies/HapticProxy';
 
-// class HapticService {
-//   public isHapticFeedbackEnabled: boolean = false;
-//   public useExpoHaptics: boolean = false;
+class HapticService {
+  public isHapticFeedbackEnabled: boolean = false;
+  public useExpoHaptics: boolean = false;
 
-//   constructor() {
-//     const expoConstants =
-//       NativeModules.NativeUnimoduleProxy?.modulesConstants?.ExponentConstants;
-//     this.useExpoHaptics = !!expoConstants;
-//   }
+  constructor() {
+    const expoConstants =
+      NativeModules.NativeUnimoduleProxy?.modulesConstants?.ExponentConstants;
+    this.useExpoHaptics = !!expoConstants;
+  }
 
-//   public setEnabled(isEnabled: boolean) {
-//     this.isHapticFeedbackEnabled = isEnabled;
-//   }
+  public setEnabled(isEnabled: boolean) {
+    this.isHapticFeedbackEnabled = isEnabled;
+  }
 
-//   public impact() {
-//     if (!this.isHapticFeedbackEnabled) {
-//       return;
-//     }
+  public impact() {
+    if (!this.isHapticFeedbackEnabled) {
+      return;
+    }
 
-//     if (this.useExpoHaptics) {
-//       const ExpoHaptics = require('expo-haptics');
-//       return ExpoHaptics.impactAsync(ExpoHaptics.ImpactFeedbackStyle.Medium);
-//     }
+    if (this.useExpoHaptics) {
+      return ExpoHapticProxy.impactAsync(
+        ExpoHapticProxy.ImpactFeedbackStyle.Medium
+      );
+    }
 
-//     const ReactNativeHapticFeedback =
-//       require('react-native-haptic-feedback').default;
-//     return ReactNativeHapticFeedback.trigger('impactMedium', {
-//       enableVibrateFallback: true,
-//       ignoreAndroidSystemSettings: true,
-//     });
-//   }
+    return ReactNativeHapticFeedbackProxy.trigger('impactMedium', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: true,
+    });
+  }
 
-//   public selection() {
-//     if (!this.isHapticFeedbackEnabled) {
-//       return;
-//     }
-//     if (this.useExpoHaptics) {
-//       const ExpoHaptics = require('expo-haptics');
-//       return ExpoHaptics.selectionAsync();
-//     }
+  public selection() {
+    if (!this.isHapticFeedbackEnabled) {
+      return;
+    }
+    if (this.useExpoHaptics) {
+      return ExpoHapticProxy.selectionAsync();
+    }
 
-//     const ReactNativeHapticFeedback =
-//       require('react-native-haptic-feedback').default;
-//     return ReactNativeHapticFeedback.trigger('selection', {
-//       enableVibrateFallback: true,
-//       ignoreAndroidSystemSettings: true,
-//     });
-//   }
-// }
+    return ReactNativeHapticFeedbackProxy.trigger('selection', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: true,
+    });
+  }
+}
 
-// const Haptic = new HapticService();
+const Haptic = new HapticService();
 
-// export default Haptic;
+export default Haptic;

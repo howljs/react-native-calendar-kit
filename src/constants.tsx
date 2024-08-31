@@ -1,4 +1,4 @@
-import type { LocaleConfigs, ThemeConfigs } from './types';
+import type { LocaleConfigsProps, ThemeConfigs } from './types';
 
 export const DEFAULT_THEME: ThemeConfigs = {
   colors: {
@@ -41,7 +41,7 @@ export const MAX_DATE = new Date(
   new Date().getDate()
 ).toISOString();
 
-export const DEFAULT_LOCALES: Record<string, LocaleConfigs> = {
+export const DEFAULT_LOCALES: Record<string, LocaleConfigsProps> = {
   en: {
     weekDayShort: 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_'),
     meridiem: { ante: 'am', post: 'pm' },

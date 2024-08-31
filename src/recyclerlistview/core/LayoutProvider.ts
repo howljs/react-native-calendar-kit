@@ -1,7 +1,4 @@
-import {
-  LayoutManager,
-  WrapLayoutManager,
-} from '../layoutmanager/LayoutManager';
+import { LayoutManager, WrapLayoutManager } from './LayoutManager';
 
 /**
  * Created by talha.naqvi on 05/04/17.

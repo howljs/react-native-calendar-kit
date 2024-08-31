@@ -145,7 +145,7 @@ const TimelineBoard = ({ dateUnix }: TimelineBoardProps) => {
           activeOpacity={1}
           onPress={onPress}
           onLongPress={onLongPressBackground}
-          disabled={!onPressBackground}
+          disabled={!onPressBackground && !onLongPressBackground}
         />
         {_renderOutOfRangeView()}
         {_renderUnavailableHours()}

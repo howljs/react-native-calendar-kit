@@ -4,15 +4,15 @@ import React, {
   type PropsWithChildren,
   type RefAttributes,
 } from 'react';
-import CalendarProvider from './context/CalendarProvider';
 import CalendarBody from './CalendarBody';
 import CalendarDayBar from './CalendarDayBar';
+import CalendarProvider from './CalendarProvider';
 import LayoutProvider from './context/LayoutProvider';
 import type {
   CalendarBodyProps,
+  CalendarDayBarProps,
   CalendarKitHandle,
   CalendarProviderProps,
-  CalendarDayBarProps,
 } from './types';
 
 type CalendarKitProps = CalendarProviderProps &

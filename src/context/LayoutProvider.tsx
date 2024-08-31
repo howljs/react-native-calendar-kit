@@ -17,7 +17,7 @@ export type Size = {
 const DEFAULT_SIZE = { width: 0, height: 0 };
 const LayoutContext = createContext<Size>(DEFAULT_SIZE);
 
-const DEBOUNCE_TIME = 300;
+const DEBOUNCE_TIME = 200;
 
 const LayoutProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   const [layout, setLayout] = useState(DEFAULT_SIZE);

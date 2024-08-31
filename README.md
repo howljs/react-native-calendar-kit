@@ -54,6 +54,7 @@ $ npx expo install react-native-gesture-handler react-native-reanimated
 - [ ] Drag/drop to edit event
 - [ ] Update documentation
 - [ ] Support all day events
+- [ ] Month View
 - [ ] Support RTL
 
 [npm-shield]: https://img.shields.io/npm/v/@howljs/calendar-kit

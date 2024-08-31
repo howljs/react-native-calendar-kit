@@ -10,7 +10,7 @@ import MultiDayBarItem from './components/MultiDayBarItem';
 import SingleDayBarItem from './components/SingleDayBarItem';
 import WeekNumber from './components/WeekNumber';
 import { DAY_BAR_HEIGHT, MILLISECONDS_IN_DAY, ScrollType } from './constants';
-import { useCalendar } from './context/CalendarProvider';
+import { useCalendar } from './CalendarProvider';
 import {
   DayBarContext,
   type DayBarContextProps,

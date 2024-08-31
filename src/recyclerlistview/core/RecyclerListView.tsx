@@ -9,15 +9,15 @@ import VirtualRenderer, {
   RenderStackItem,
   RenderStackParams,
 } from './VirtualRenderer';
-import { BaseLayoutProvider, Dimension } from './dependencies/LayoutProvider';
-import { Layout, LayoutManager, Point } from './layoutmanager/LayoutManager';
+import { BaseLayoutProvider, Dimension } from './LayoutProvider';
+import { Layout, LayoutManager, Point } from './LayoutManager';
 import BaseScrollComponent from './scrollcomponent/BaseScrollComponent';
 import BaseScrollView, {
   ScrollEvent,
   ScrollViewDefaultProps,
 } from './scrollcomponent/BaseScrollView';
 import ScrollComponent from './scrollcomponent/ScrollComponent';
-import ViewRenderer from './viewrenderer/ViewRenderer';
+import ViewRenderer from './ViewRenderer';
 
 export interface RecyclerListViewProps {
   layoutProvider: BaseLayoutProvider;

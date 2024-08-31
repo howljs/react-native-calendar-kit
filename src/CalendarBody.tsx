@@ -9,13 +9,13 @@ import {
 } from 'react-native';
 import { GestureDetector, ScrollView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useCalendar } from './CalendarProvider';
 import BodyItem from './components/BodyItem';
 import CalendarListView from './components/CalendarListView';
 import TimeColumn from './components/TimeColumn';
 import { EXTRA_HEIGHT, MILLISECONDS_IN_DAY, ScrollType } from './constants';
 import { useActions } from './context/ActionsProvider';
 import { BodyContext, type BodyContextProps } from './context/BodyContext';
-import { useCalendar } from './context/CalendarProvider';
 import usePinchToZoom from './hooks/usePinchToZoom';
 import useSyncedList from './hooks/useSyncedList';
 import type { CalendarBodyProps } from './types';
@@ -67,6 +67,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     snapToInterval,
     calendarListRef,
     startOffset,
+    scrollVisibleHeightAnim,
   } = useCalendar();
 
   const { onRefresh } = useActions();
@@ -74,6 +75,49 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   const { onScroll, onVisibleColumnChanged } = useSyncedList({
     id: ScrollType.calendarGrid,
   });
+
+  const animContentStyle = useAnimatedStyle(() => ({
+    height: timelineHeight.value,
+  }));
+
+  const { pinchGesture, pinchGestureRef } = usePinchToZoom();
+
+  const _onLayout = (event: LayoutChangeEvent) => {
+    scrollVisibleHeight.current = event.nativeEvent.layout.height;
+    scrollVisibleHeightAnim.value = event.nativeEvent.layout.height;
+  };
+
+  const _onRefresh = useCallback(() => {
+    if (onRefresh) {
+      const date = parseDateTime(visibleDateUnix.current);
+      onRefresh(dateTimeToISOString(date));
+    }
+  }, [onRefresh, visibleDateUnix]);
+
+  const extraWidth = numberOfDays > 1 ? hourWidth : 0;
+
+  const extraData = useMemo(() => {
+    return {
+      minDate: calendarData.minDateUnix,
+      isRTL,
+      numberOfDays,
+    };
+  }, [calendarData.minDateUnix, isRTL, numberOfDays]);
+
+  const _renderTimeSlots = useCallback(
+    (index: number, extra: typeof extraData) => {
+      let totalColumns = extra.numberOfDays === 1 ? 1 : 7;
+      const dateUnixByIndex =
+        extra.minDate + index * totalColumns * MILLISECONDS_IN_DAY;
+
+      return <BodyItem startUnix={dateUnixByIndex} />;
+    },
+    []
+  );
+
+  const _onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    offsetY.value = e.nativeEvent.contentOffset.y;
+  };
 
   const value = useMemo<BodyContextProps>(
     () => ({
@@ -147,48 +191,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       overlapEventsSpacing,
     ]
   );
-
-  const animContentStyle = useAnimatedStyle(() => ({
-    height: timelineHeight.value,
-  }));
-
-  const { pinchGesture, pinchGestureRef } = usePinchToZoom();
-
-  const _onLayout = (event: LayoutChangeEvent) => {
-    scrollVisibleHeight.current = event.nativeEvent.layout.height;
-  };
-
-  const _onRefresh = useCallback(() => {
-    if (onRefresh) {
-      const date = parseDateTime(visibleDateUnix.current);
-      onRefresh(dateTimeToISOString(date));
-    }
-  }, [onRefresh, visibleDateUnix]);
-
-  const extraWidth = numberOfDays > 1 ? hourWidth : 0;
-
-  const extraData = useMemo(() => {
-    return {
-      minDate: calendarData.minDateUnix,
-      isRTL,
-      numberOfDays,
-    };
-  }, [calendarData.minDateUnix, isRTL, numberOfDays]);
-
-  const _renderTimeSlots = useCallback(
-    (index: number, extra: typeof extraData) => {
-      let totalColumns = extra.numberOfDays === 1 ? 1 : 7;
-      const dateUnixByIndex =
-        extra.minDate + index * totalColumns * MILLISECONDS_IN_DAY;
-
-      return <BodyItem startUnix={dateUnixByIndex} />;
-    },
-    []
-  );
-
-  const _onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    offsetY.value = e.nativeEvent.contentOffset.y;
-  };
 
   return (
     <View style={styles.container}>

@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useRef } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -11,7 +11,7 @@ import { useActions } from '../context/ActionsProvider';
 import { useBody } from '../context/BodyContext';
 import { useTheme } from '../context/ThemeProvider';
 import { PackedEvent, SizeAnimation } from '../types';
-import { isEqual } from 'lodash';
+import isEqual from 'lodash/isEqual';
 
 interface EventItemProps {
   event: PackedEvent;
@@ -60,6 +60,8 @@ const EventItem: FC<EventItemProps> = ({
     return { totalDuration, startMinutes: newStart, diffDays };
   }, [end, start, startMinutes, duration, eventStartUnix, startUnix]);
 
+  const data = useMemo(() => getInitialData(), [getInitialData]);
+
   const initialStartDuration = useRef(getInitialData());
   const durationAnim = useSharedValue(
     initialStartDuration.current.totalDuration
@@ -71,11 +73,17 @@ const EventItem: FC<EventItemProps> = ({
   const diffDaysAnim = useSharedValue(initialStartDuration.current.diffDays);
 
   useEffect(() => {
-    const data = getInitialData();
     durationAnim.value = withTiming(data.totalDuration);
     startMinutesAnim.value = withTiming(data.startMinutes);
     diffDaysAnim.value = withTiming(data.diffDays);
-  }, [diffDaysAnim, durationAnim, getInitialData, startMinutesAnim]);
+  }, [
+    data.diffDays,
+    data.startMinutes,
+    data.totalDuration,
+    diffDaysAnim,
+    durationAnim,
+    startMinutesAnim,
+  ]);
 
   const eventHeight = useDerivedValue(
     () => durationAnim.value * minuteHeight.value
@@ -85,7 +93,12 @@ const EventItem: FC<EventItemProps> = ({
     let width = columnWidthAnim.value * (columnSpan / total);
     if (total > 1) {
       width -= (rightEdgeSpacing + 1) / total;
-      width -= (overlapEventsSpacing * (total - 1)) / total;
+      const isLast = total - columnSpan === index;
+      if (isLast) {
+        width -= rightEdgeSpacing - 1;
+      } else {
+        width -= (overlapEventsSpacing * (total - 1)) / total;
+      }
     } else {
       width -= rightEdgeSpacing + 1;
     }
@@ -93,9 +106,11 @@ const EventItem: FC<EventItemProps> = ({
   });
 
   const eventPosX = useDerivedValue(() => {
-    let left =
-      diffDaysAnim.value * columnWidthAnim.value + eventWidth.value * index;
-    if (total > 1 && index > 0) {
+    // TODO: check logic here
+    const extraX =
+      (columnWidthAnim.value / total - overlapEventsSpacing) * index;
+    let left = diffDaysAnim.value * columnWidthAnim.value + extraX;
+    if (total > 1 && index > 0 && index < total) {
       left += overlapEventsSpacing * index;
     }
     return left;

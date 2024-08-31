@@ -3,67 +3,42 @@
  * Availability check, add/remove etc are all O(1), uses two maps to achieve constant time operation
  */
 
-interface PseudoSet {
-  [key: string]: string;
-}
-interface NullablePseudoSet {
-  [key: string]: string | null;
-}
-
 export default class RecycleItemPool {
-  private _recyclableObjectMap: { [key: string]: NullablePseudoSet };
-  private _availabilitySet: PseudoSet;
+  private _recyclableObjectSet: Set<string>;
+  private _availabilitySet: Set<string>;
 
   constructor() {
-    this._recyclableObjectMap = {};
-    this._availabilitySet = {};
+    this._recyclableObjectSet = new Set();
+    this._availabilitySet = new Set();
   }
 
   public putRecycledObject(object: string): void {
-    const objectSet = this._getRelevantSet();
-    if (!this._availabilitySet[object]) {
-      objectSet[object] = null;
-      this._availabilitySet[object] = 'item';
+    if (!this._availabilitySet.has(object)) {
+      this._recyclableObjectSet.add(object);
+      this._availabilitySet.add(object);
     }
   }
 
   public getRecycledObject(): string | undefined {
-    const objectSet = this._getRelevantSet();
-    let recycledObject;
-    for (const property in objectSet) {
-      if (objectSet.hasOwnProperty(property)) {
-        recycledObject = property;
-        break;
-      }
-    }
-
+    const recycledObject = this._recyclableObjectSet.values().next().value;
     if (recycledObject) {
-      delete objectSet[recycledObject];
-      delete this._availabilitySet[recycledObject];
+      this._recyclableObjectSet.delete(recycledObject);
+      this._availabilitySet.delete(recycledObject);
     }
     return recycledObject;
   }
 
   public removeFromPool(object: string): boolean {
-    if (this._availabilitySet[object]) {
-      delete this._getRelevantSet()[object];
-      delete this._availabilitySet[object];
+    if (this._availabilitySet.has(object)) {
+      this._recyclableObjectSet.delete(object);
+      this._availabilitySet.delete(object);
       return true;
     }
     return false;
   }
 
   public clearAll(): void {
-    this._recyclableObjectMap = {};
-    this._availabilitySet = {};
-  }
-
-  private _getRelevantSet(): NullablePseudoSet {
-    let objectSet = this._recyclableObjectMap.item;
-    if (!objectSet) {
-      objectSet = {};
-      this._recyclableObjectMap.item = objectSet;
-    }
-    return objectSet;
+    this._recyclableObjectSet.clear();
+    this._availabilitySet.clear();
   }
 }

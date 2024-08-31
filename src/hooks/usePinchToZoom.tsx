@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Gesture, type GestureType } from 'react-native-gesture-handler';
 import { scrollTo, useSharedValue, withTiming } from 'react-native-reanimated';
-import { useCalendar } from '../context/CalendarProvider';
+import { useCalendar } from '../CalendarProvider';
 import { clampValues } from '../utils/utils';
 
 const usePinchToZoom = () => {

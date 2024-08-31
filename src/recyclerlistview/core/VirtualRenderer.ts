@@ -5,8 +5,8 @@ import ViewabilityTracker, {
   TOnColumnChanged,
   TOnItemStatusChanged,
 } from './ViewabilityTracker';
-import { Dimension } from './dependencies/LayoutProvider';
-import { LayoutManager, Point } from './layoutmanager/LayoutManager';
+import { Dimension } from './LayoutProvider';
+import { LayoutManager, Point } from './LayoutManager';
 
 /***
  * Renderer which keeps track of recyclable items and the currently rendered items. Notifies list view to re render if something changes, like scroll offset

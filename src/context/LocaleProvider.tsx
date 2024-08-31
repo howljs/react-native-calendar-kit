@@ -2,12 +2,14 @@ import merge from 'lodash/merge';
 import React, { useMemo, type PropsWithChildren } from 'react';
 import { DEFAULT_LOCALES } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
-import type { LocaleConfigs } from '../types';
+import type { LocaleConfigsProps } from '../types';
 
-const LocaleContext = React.createContext<LocaleConfigs | undefined>(undefined);
+const LocaleContext = React.createContext<LocaleConfigsProps | undefined>(
+  undefined
+);
 
 interface LocaleProviderProps {
-  initialLocales?: { [locale: string]: LocaleConfigs };
+  initialLocales?: { [locale: string]: LocaleConfigsProps };
   locale?: string;
 }
 

@@ -17,7 +17,7 @@ import Animated, {
   type AnimatedRef,
   type SharedValue,
 } from 'react-native-reanimated';
-import { CalendarListViewHandle } from '../components/CalendarListView';
+import { CalendarListViewHandle } from './components/CalendarListView';
 import {
   HOUR_WIDTH,
   INITIAL_DATE,
@@ -26,35 +26,35 @@ import {
   MIN_DATE,
   NUMBER_OF_DAYS,
   ScrollType,
-} from '../constants';
-import useLatestCallback from '../hooks/useLatestCallback';
-import useLazyRef from '../hooks/useLazyRef';
+} from './constants';
+import ActionsProvider from './context/ActionsProvider';
+import EventsProvider from './context/EventsProvider';
+import HighlightDatesProvider from './context/HighlightDatesProvider';
+import { useLayout } from './context/LayoutProvider';
+import { LoadingContext } from './context/LoadingContext';
+import LocaleProvider from './context/LocaleProvider';
+import NowIndicatorProvider from './context/NowIndicatorProvider';
+import ThemeProvider from './context/ThemeProvider';
+import TimeZoneProvider from './context/TimeZoneProvider';
+import UnavailableHoursProvider from './context/UnavailableHoursProvider';
+import VisibleDateProvider from './context/VisibleDateProvider';
+import useLatestCallback from './hooks/useLatestCallback';
+import useLazyRef from './hooks/useLazyRef';
 import type {
   CalendarKitHandle,
   CalendarProviderProps,
   CalendarViewMode,
   DateType,
   GoToDateOptions,
-} from '../types';
-// import Haptic from '../utils/HapticService';
-import { parseDateTime, startOfWeek } from '../utils/dateUtils';
+} from './types';
+import { parseDateTime, startOfWeek } from './utils/dateUtils';
+import Haptic from './utils/HapticService';
 import {
   calculateSlots,
   clampValues,
   prepareCalendarRange,
   type DataByMode,
-} from '../utils/utils';
-import ActionsProvider from './ActionsProvider';
-import EventsProvider from './EventsProvider';
-import HighlightDatesProvider from './HighlightDatesProvider';
-import { useLayout } from './LayoutProvider';
-import { LoadingContext } from './LoadingContext';
-import LocaleProvider from './LocaleProvider';
-import NowIndicatorProvider from './NowIndicatorProvider';
-import ThemeProvider from './ThemeProvider';
-import TimeZoneProvider from './TimeZoneProvider';
-import UnavailableHoursProvider from './UnavailableHoursProvider';
-import VisibleDateProvider from './VisibleDateProvider';
+} from './utils/utils';
 
 Settings.throwOnInvalid = true;
 
@@ -101,6 +101,7 @@ export interface CalendarContextProps {
   visibleDateUnixAnim: SharedValue<number>;
   calendarListRef: React.RefObject<CalendarListViewHandle>;
   startOffset: Readonly<SharedValue<number>>;
+  scrollVisibleHeightAnim: SharedValue<number>;
 }
 
 export const CalendarContext = React.createContext<
@@ -148,11 +149,10 @@ const CalendarProvider: React.ForwardRefRenderFunction<
     onPressEvent,
     numberOfDays = NUMBER_OF_DAYS[viewMode] || 7,
     scrollToNow = true,
+    useHaptic = false,
   },
   ref
 ) => {
-  // TODO: Implement haptic feedback
-  // const useHaptic = false;
   // TODO: Implement all day events
   const useAllDayEvent = false;
   // TODO: Implement RTL
@@ -171,6 +171,10 @@ const CalendarProvider: React.ForwardRefRenderFunction<
     () => PixelRatio.roundToNearestPixel(initialHourWidth),
     [initialHourWidth]
   );
+
+  useEffect(() => {
+    Haptic.setEnabled(useHaptic);
+  }, [useHaptic]);
 
   const calendarData = useMemo(
     () =>
@@ -247,6 +251,7 @@ const CalendarProvider: React.ForwardRefRenderFunction<
   const columnWidthAnim = useSharedValue(columnWidth);
   const offsetY = useSharedValue(0);
   const offsetX = useSharedValue(0);
+  const scrollVisibleHeightAnim = useSharedValue(0);
   const timeIntervalHeight = useSharedValue(initialTimeIntervalHeight);
 
   const totalSlots = hours.length;
@@ -490,10 +495,6 @@ const CalendarProvider: React.ForwardRefRenderFunction<
   const snapToInterval =
     numberOfDays > 1 && scrollByDay ? columnWidth : undefined;
 
-  // useEffect(() => {
-  //   Haptic.setEnabled(useHaptic);
-  // }, [useHaptic]);
-
   const context = useMemo<CalendarContextProps>(
     () => ({
       calendarLayout,
@@ -539,6 +540,7 @@ const CalendarProvider: React.ForwardRefRenderFunction<
       visibleDateUnixAnim,
       calendarListRef,
       startOffset,
+      scrollVisibleHeightAnim,
     }),
     [
       calendarLayout,
@@ -577,9 +579,9 @@ const CalendarProvider: React.ForwardRefRenderFunction<
       isRTL,
       snapToInterval,
       columns,
-      triggerDateChanged,
       visibleDateUnixAnim,
       startOffset,
+      scrollVisibleHeightAnim,
     ]
   );
 

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { View, ViewProps } from 'react-native';
-import { LayoutManager } from '../layoutmanager/LayoutManager';
-import { BaseLayoutProvider } from '../dependencies/LayoutProvider';
-import { ComponentCompat } from '../../utils/ComponentCompat';
+import { LayoutManager } from './LayoutManager';
+import { BaseLayoutProvider } from './LayoutProvider';
+import { ComponentCompat } from '../utils/ComponentCompat';
 export interface ViewRendererProps<T> {
   x: number;
   y: number;

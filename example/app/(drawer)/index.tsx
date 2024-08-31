@@ -2,7 +2,7 @@ import CalendarKit, {
   OutOfRangeProps,
   type CalendarKitHandle,
   type CalendarViewMode,
-  type LocaleConfigs,
+  type LocaleConfigsProps,
 } from '@howljs/calendar-kit';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -39,7 +39,7 @@ const INITIAL_DATE = new Date(
   new Date().getDate()
 ).toISOString();
 
-const initialLocales: Record<string, LocaleConfigs> = {
+const initialLocales: Record<string, LocaleConfigsProps> = {
   en: {
     weekDayShort: 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_'),
     meridiem: { ante: 'am', post: 'pm' },

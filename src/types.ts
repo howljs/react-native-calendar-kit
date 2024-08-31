@@ -184,7 +184,7 @@ export interface CalendarProviderProps extends ActionsProviderProps {
     <CalendarKit initialLocales={initialLocales} locale="ja" />
    * ```
    */
-  initialLocales?: { [locale: string]: LocaleConfigs };
+  initialLocales?: { [locale: string]: LocaleConfigsProps };
 
   /** Current locale
    *
@@ -318,6 +318,13 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    * Default: `true`
    */
   scrollToNow?: boolean;
+
+  /**
+   * Use haptic feedback
+   *
+   * Default is `false`
+   */
+  useHaptic?: boolean;
 }
 
 export interface DateRange<T extends DateType = DateType> {
@@ -433,11 +440,11 @@ export interface CalendarBodyProps {
 
 export interface RenderHourProps {
   hour: string;
-  index: number;
+  minutes: number;
   style: TextStyle;
 }
 
-export interface LocaleConfigs {
+export interface LocaleConfigsProps {
   weekDayShort: string[];
   meridiem: { ante: string; post: string };
 }

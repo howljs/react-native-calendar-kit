@@ -6,7 +6,7 @@ import {
 } from 'react-native-reanimated';
 import { MILLISECONDS_IN_DAY, ScrollType } from '../constants';
 import { useActions } from '../context/ActionsProvider';
-import { useCalendar } from '../context/CalendarProvider';
+import { useCalendar } from '../CalendarProvider';
 import { useNotifyDateChanged } from '../context/VisibleDateProvider';
 import { dateTimeToISOString, parseDateTime } from '../utils/dateUtils';
 
