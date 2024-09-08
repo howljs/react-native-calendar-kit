@@ -1,5 +1,10 @@
 import type { DateTime, WeekdayNumbers } from 'luxon';
-import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
+import type {
+  GestureResponderEvent,
+  StyleProp,
+  TextStyle,
+  ViewStyle,
+} from 'react-native';
 import { SharedValue } from 'react-native-reanimated';
 
 export type DeepPartial<T> = T extends object
@@ -75,8 +80,6 @@ export interface CalendarKitHandle {
  */
 export type DateType = Date | number | string | DateTime;
 
-export type CalendarViewMode = 'day' | 'week' | 'workWeek';
-
 export interface ActionsProviderProps {
   /**
    * Callback when the date is changed (scrolling)
@@ -89,7 +92,13 @@ export interface ActionsProviderProps {
   /**
    * Callback when the background is pressed
    */
-  onPressBackground?: (date: string) => void;
+  onPressBackground?: (date: string, event: GestureResponderEvent) => void;
+
+  /**
+   * Callback when the background is long pressed
+   */
+  onLongPressBackground?: (date: string, event: GestureResponderEvent) => void;
+
   /**
    * Callback when the day number is pressed
    */
@@ -99,22 +108,62 @@ export interface ActionsProviderProps {
    */
   onRefresh?: (date: string) => void;
 
-  onPressEvent?: (event: PackedEvent) => void;
+  /**
+   * Callback when the event is pressed
+   */
+  onPressEvent?: (event: EventItem) => void;
+
+  /**
+   * Callback when the drag event is started
+   */
+  onDragEventStart?: (event: DragEventProps) => void;
+
+  /**
+   * Callback when the drag event is ended
+   */
+  onDragEventEnd?: (event: DragEventProps) => Promise<void> | void;
+
+  /**
+   * Callback when the event is long pressed
+   */
+  onLongPressEvent?: (event: EventItem) => void;
+
+  /**
+   * Callback when the selected event is dragged
+   */
+  onDragSelectedEventStart?: (event: DragEventProps) => void;
+
+  /**
+   * Callback when the selected event is dragged
+   */
+  onDragSelectedEventEnd?: (event: DragEventProps) => Promise<void> | void;
+
+  /**
+   * Callback when the drag create event is started
+   */
+  onDragCreateEventStart?: (event: { start: string; end: string }) => void;
+
+  /**
+   * Callback when the drag create event is ended
+   */
+  onDragCreateEventEnd?: (event: {
+    start: string;
+    end: string;
+  }) => Promise<void> | void;
 }
 
 export interface CalendarProviderProps extends ActionsProviderProps {
-  /** Calendar view mode.
+  /**
+   * Number of days to display
    *
-   * * Default: `week`
+   * Default: `7`
    */
-  viewMode?: CalendarViewMode;
-
   numberOfDays?: number;
 
   /**
    * Enable scroll by day
    *
-   * Default: scroll by week if viewMode is week or workWeek, otherwise scroll by day
+   * Default: `false`
    */
   scrollByDay?: boolean;
 
@@ -123,6 +172,9 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    ** Default: `1` (Monday)
    */
   firstDay?: WeekdayNumbers;
+
+  /** Hide week days */
+  hideWeekDays?: WeekdayNumbers[];
 
   /** Minimum display date.
    *
@@ -252,7 +304,7 @@ export interface CalendarProviderProps extends ActionsProviderProps {
   /**
    * Custom time zone
    */
-  timeZone?: string;
+  timezone?: string;
 
   /**
    * Show week number
@@ -325,11 +377,52 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    * Default is `false`
    */
   useHaptic?: boolean;
+
+  /**
+   * Allow drag to edit event
+   */
+  allowDragToEdit?: boolean;
+
+  /**
+   * Drag step
+   *
+   * Default is `15` minutes
+   */
+  dragStep?: number;
+
+  /**
+   * Selected event
+   */
+  selectedEvent?: DragEventProps;
+
+  /**
+   * Specify the number of pages to render ahead and behind the current page.
+   *
+   * Default is `2`
+   */
+  pagesPerSide?: number;
+
+  /**
+   * Allow drag to create event
+   */
+  allowDragToCreate?: boolean;
+
+  /**
+   * Default duration when creating event
+   *
+   * Default is `30` minutes
+   */
+  defaultDuration?: number;
 }
 
 export interface DateRange<T extends DateType = DateType> {
   start: T;
   end: T;
+}
+
+export interface DragEventProps extends Partial<EventItem> {
+  start: string;
+  end: string;
 }
 
 export interface EventItem extends Record<string, any> {

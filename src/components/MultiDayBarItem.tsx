@@ -1,8 +1,6 @@
-import times from 'lodash/times';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { MILLISECONDS_IN_DAY } from '../constants';
 import { useDayBar } from '../context/DayBarContext';
 import { useTheme } from '../context/ThemeProvider';
 import DayItem from './DayItem';
@@ -10,11 +8,18 @@ import LoadingOverlay from './Loading/Overlay';
 import ProgressBar from './Loading/ProgressBar';
 
 interface MultiDayBarItemProps {
-  startUnix: number;
+  pageIndex: number;
 }
 
-const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({ startUnix }) => {
-  const { columnWidthAnim, height, dayBarHeight, isRTL, columns } = useDayBar();
+const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({ pageIndex }) => {
+  const {
+    columnWidthAnim,
+    height,
+    dayBarHeight,
+    isRTL,
+    calendarData,
+    columns,
+  } = useDayBar();
 
   const colors = useTheme((state) => state.colors);
 
@@ -23,12 +28,22 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({ startUnix }) => {
     height: dayBarHeight.value,
   }));
 
-  const _renderColumn = (index: number) => {
-    const dateUnix = startUnix + index * MILLISECONDS_IN_DAY;
+  const dates = useMemo(() => {
+    let data = [];
+    for (let i = 0; i < columns; i++) {
+      const dateUnix = calendarData.visibleDatesArray[pageIndex + i];
+      if (!dateUnix) {
+        continue;
+      }
+      data.push(dateUnix);
+    }
+    return data;
+  }, [calendarData.visibleDatesArray, columns, pageIndex]);
 
+  const _renderColumn = (dateUnix: number) => {
     return (
       <Animated.View
-        key={`column_${index}`}
+        key={`column_${dateUnix}`}
         pointerEvents="box-none"
         style={animStyle}
       >
@@ -49,7 +64,7 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({ startUnix }) => {
   return (
     <Animated.View style={containerStyle}>
       <View style={[styles.container, { direction }]}>
-        {times(columns).map(_renderColumn)}
+        {dates.map(_renderColumn)}
       </View>
       <LoadingOverlay />
       <ProgressBar />

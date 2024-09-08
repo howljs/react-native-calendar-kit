@@ -322,6 +322,7 @@ export default class RecyclerListView<
     this._params.columnsPerPage = newProps.columnsPerPage;
     const initialOffset =
       newProps.initialOffset ?? this.props.initialOffset ?? 0;
+
     this._virtualRenderer.setParamsAndDimensions(this._params, this._layout);
     if (this.props.layoutProvider !== newProps.layoutProvider) {
       const layoutSize = newProps.layoutProvider.getLayoutSize();
@@ -332,7 +333,10 @@ export default class RecyclerListView<
       );
       this._virtualRenderer.refreshWithOffset(initialOffset);
       this._refreshViewability();
-    } else if (this.props.itemCount !== newProps.itemCount) {
+    } else if (
+      this.props.itemCount !== newProps.itemCount ||
+      this.props.columnsPerPage !== newProps.columnsPerPage
+    ) {
       this._virtualRenderer.setLayoutManager(
         this.props.layoutProvider.createLayoutManager()
       );

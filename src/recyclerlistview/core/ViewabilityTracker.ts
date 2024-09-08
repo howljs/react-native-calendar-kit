@@ -350,12 +350,15 @@ export default class ViewabilityTracker {
       newVisibleItems.length !== 0 &&
       this._columnsPerPage
     ) {
-      const startIndex = newVisibleItems[0]!;
+      const columnWidth = this._windowBound / 7;
+      const startIndex = Math.floor(
+        Math.round(this._currentOffset / columnWidth) / 7
+      );
       const startOffset = startIndex * this._windowBound;
-      const columnWidth = this._windowBound / this._columnsPerPage;
       const column = Math.round(
         (this._currentOffset - startOffset) / columnWidth
       );
+
       if (
         this._startColumn?.index !== startIndex ||
         this._startColumn?.columns !== column
@@ -363,7 +366,7 @@ export default class ViewabilityTracker {
         this.onVisibleColumnChanged({
           index: startIndex,
           column,
-          offset: startOffset + column * columnWidth,
+          offset: this._currentOffset,
         });
         this._startColumn = { index: startIndex, columns: column };
       }

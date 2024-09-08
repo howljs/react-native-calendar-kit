@@ -1,41 +1,43 @@
-import { Settings, type WeekdayNumbers } from 'luxon';
+import { Settings } from 'luxon';
 import React, {
   forwardRef,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
   type PropsWithChildren,
 } from 'react';
 import { PixelRatio } from 'react-native';
 import Animated, {
   runOnUI,
+  scrollTo,
   useAnimatedRef,
   useDerivedValue,
   useSharedValue,
   withTiming,
-  type AnimatedRef,
-  type SharedValue,
 } from 'react-native-reanimated';
 import { CalendarListViewHandle } from './components/CalendarListView';
 import {
   HOUR_WIDTH,
   INITIAL_DATE,
   MAX_DATE,
-  MILLISECONDS_IN_DAY,
   MIN_DATE,
-  NUMBER_OF_DAYS,
   ScrollType,
 } from './constants';
 import ActionsProvider from './context/ActionsProvider';
+import CalendarProvider, {
+  CalendarContextProps,
+} from './context/CalendarProvider';
+import DragEventProvider from './context/DragEventProvider';
 import EventsProvider from './context/EventsProvider';
 import HighlightDatesProvider from './context/HighlightDatesProvider';
-import { useLayout } from './context/LayoutProvider';
+import LayoutProvider, { useLayout } from './context/LayoutProvider';
 import { LoadingContext } from './context/LoadingContext';
 import LocaleProvider from './context/LocaleProvider';
 import NowIndicatorProvider from './context/NowIndicatorProvider';
 import ThemeProvider from './context/ThemeProvider';
-import TimeZoneProvider from './context/TimeZoneProvider';
+import TimezoneProvider from './context/TimezoneProvider';
 import UnavailableHoursProvider from './context/UnavailableHoursProvider';
 import VisibleDateProvider from './context/VisibleDateProvider';
 import useLatestCallback from './hooks/useLatestCallback';
@@ -43,7 +45,6 @@ import useLazyRef from './hooks/useLazyRef';
 import type {
   CalendarKitHandle,
   CalendarProviderProps,
-  CalendarViewMode,
   DateType,
   GoToDateOptions,
 } from './types';
@@ -52,63 +53,13 @@ import Haptic from './utils/HapticService';
 import {
   calculateSlots,
   clampValues,
+  findNearestNumber,
   prepareCalendarRange,
-  type DataByMode,
 } from './utils/utils';
 
 Settings.throwOnInvalid = true;
 
-export interface CalendarContextProps {
-  viewMode: CalendarViewMode;
-  calendarData: DataByMode;
-  calendarLayout: { width: number; height: number };
-  visibleDateUnix: React.MutableRefObject<number>;
-  hourWidth: number;
-  numberOfDays: number;
-  verticalListRef: AnimatedRef<Animated.ScrollView>;
-  dayBarListRef: AnimatedRef<Animated.ScrollView>;
-  gridListRef: AnimatedRef<Animated.ScrollView>;
-  columnWidthAnim: SharedValue<number>;
-  firstDay: WeekdayNumbers;
-  scrollType: React.MutableRefObject<ScrollType | null>;
-  offsetY: SharedValue<number>;
-  minuteHeight: Readonly<SharedValue<number>>;
-  maxTimelineHeight: number;
-  maxTimeIntervalHeight: number;
-  minTimeIntervalHeight: number;
-  timeIntervalHeight: SharedValue<number>;
-  allowPinchToZoom: boolean;
-  spaceFromTop: number;
-  spaceFromBottom: number;
-  hours: number[];
-  timelineHeight: Readonly<SharedValue<number>>;
-  totalSlots: number;
-  start: number;
-  end: number;
-  timeInterval: number;
-  scrollVisibleHeight: React.MutableRefObject<number>;
-  offsetX: SharedValue<number>;
-  isTriggerMomentum: React.MutableRefObject<boolean>;
-  showWeekNumber: boolean;
-  calendarGridWidth: number;
-  columnWidth: number;
-  scrollByDay: boolean;
-  initialOffset: number;
-  isRTL: boolean;
-  snapToInterval?: number;
-  columns: number;
-  triggerDateChanged: React.MutableRefObject<number | undefined>;
-  visibleDateUnixAnim: SharedValue<number>;
-  calendarListRef: React.RefObject<CalendarListViewHandle>;
-  startOffset: Readonly<SharedValue<number>>;
-  scrollVisibleHeightAnim: SharedValue<number>;
-}
-
-export const CalendarContext = React.createContext<
-  CalendarContextProps | undefined
->(undefined);
-
-const CalendarProvider: React.ForwardRefRenderFunction<
+const CalendarContainer: React.ForwardRefRenderFunction<
   CalendarKitHandle,
   PropsWithChildren<CalendarProviderProps>
 > = (
@@ -117,7 +68,6 @@ const CalendarProvider: React.ForwardRefRenderFunction<
     darkTheme,
     children,
     hourWidth: initialHourWidth = HOUR_WIDTH,
-    viewMode = 'week',
     firstDay = 1,
     minDate = MIN_DATE,
     maxDate = MAX_DATE,
@@ -130,11 +80,11 @@ const CalendarProvider: React.ForwardRefRenderFunction<
     start = 0,
     end = 1440,
     timeInterval = 60,
-    maxTimeIntervalHeight = 116,
+    maxTimeIntervalHeight = 124,
     minTimeIntervalHeight = 60,
     allowPinchToZoom = false,
     initialTimeIntervalHeight = 60,
-    timeZone = 'local',
+    timezone = 'local',
     themeMode = 'light',
     showWeekNumber = false,
     onChange,
@@ -147,9 +97,23 @@ const CalendarProvider: React.ForwardRefRenderFunction<
     highlightDates,
     events,
     onPressEvent,
-    numberOfDays = NUMBER_OF_DAYS[viewMode] || 7,
+    numberOfDays: initialNumberOfDays = 7,
     scrollToNow = true,
     useHaptic = false,
+    dragStep = 15,
+    allowDragToEdit = false,
+    onDragEventStart,
+    onDragEventEnd,
+    onLongPressEvent,
+    selectedEvent,
+    pagesPerSide = 2,
+    hideWeekDays: initialHideWeekDays,
+    onDragSelectedEventStart,
+    onDragSelectedEventEnd,
+    allowDragToCreate = false,
+    defaultDuration = 30,
+    onDragCreateEventStart,
+    onDragCreateEventEnd,
   },
   ref
 ) => {
@@ -158,13 +122,35 @@ const CalendarProvider: React.ForwardRefRenderFunction<
   // TODO: Implement RTL
   const isRTL = false;
 
-  if (numberOfDays > 7) {
+  if (initialNumberOfDays > 7) {
     throw new Error('The maximum number of days is 7');
   }
 
+  const [hideWeekDays, setHideWeekDays] = useState(initialHideWeekDays ?? []);
+  const hideWeekDaysRef = useRef(initialHideWeekDays ?? []);
+  useEffect(() => {
+    const newHideWeekDays = initialHideWeekDays ?? [];
+    if (newHideWeekDays.length === hideWeekDaysRef.current.length) {
+      const isSame = newHideWeekDays.every(
+        (value, index) => value === hideWeekDaysRef.current[index]
+      );
+      if (!isSame) {
+        hideWeekDaysRef.current = newHideWeekDays;
+        setHideWeekDays(newHideWeekDays);
+      }
+    } else {
+      hideWeekDaysRef.current = newHideWeekDays;
+      setHideWeekDays(newHideWeekDays);
+    }
+  }, [initialHideWeekDays]);
+
+  const hideWeekDaysCount = hideWeekDays.length;
+  const daysToShow = 7 - hideWeekDaysCount;
+  const numberOfDays =
+    initialNumberOfDays > daysToShow ? daysToShow : initialNumberOfDays;
+
   const isSingleDay = numberOfDays === 1;
-  // Columns based on the view mode
-  const columns = isSingleDay ? 1 : viewMode === 'workWeek' ? 5 : 7;
+  const columns = isSingleDay ? 1 : daysToShow;
 
   const calendarLayout = useLayout();
   const hourWidth = useMemo(
@@ -183,8 +169,10 @@ const CalendarProvider: React.ForwardRefRenderFunction<
         maxDate,
         firstDay,
         isSingleDay,
+        hideWeekDays,
+        timezone,
       }),
-    [firstDay, maxDate, minDate, isSingleDay]
+    [minDate, maxDate, firstDay, isSingleDay, hideWeekDays, timezone]
   );
 
   const hours = useMemo(
@@ -202,7 +190,7 @@ const CalendarProvider: React.ForwardRefRenderFunction<
     }
 
     return columnWidth * columns;
-  }, [calendarLayout.width, columnWidth, columns, isSingleDay]);
+  }, [calendarLayout.width, columnWidth, isSingleDay, columns]);
 
   const calendarListRef = useRef<CalendarListViewHandle>(null);
   const verticalListRef = useAnimatedRef<Animated.ScrollView>();
@@ -216,30 +204,41 @@ const CalendarProvider: React.ForwardRefRenderFunction<
   // Current visible date
   const visibleDateUnix = useLazyRef(() => {
     const zonedInitialDate = parseDateTime(initialDate, {
-      zone: timeZone,
+      zone: timezone,
     }).toISODate();
     let date;
-    if (viewMode === 'week') {
-      date = startOfWeek(zonedInitialDate, firstDay);
-    } else {
+    if (scrollByDay) {
       date = parseDateTime(zonedInitialDate);
+    } else {
+      date = startOfWeek(zonedInitialDate, firstDay);
     }
-    return date.toMillis();
+    const dateUnix = date.toMillis();
+    return findNearestNumber(calendarData.visibleDatesArray, dateUnix);
   });
+
   const visibleDateUnixAnim = useSharedValue(visibleDateUnix.current);
 
   const initialOffset = useMemo(() => {
-    const diffInMs = visibleDateUnix.current - calendarData.minDateUnix;
+    const visibleDatesArray = calendarData.visibleDatesArray;
+    const visibleDates = calendarData.visibleDates;
+    const nearestNumber = findNearestNumber(
+      visibleDatesArray,
+      visibleDateUnix.current
+    );
+    const nearestDate = visibleDates[nearestNumber];
+    if (!nearestDate) {
+      return 0;
+    }
+    const nearestIndex = nearestDate.index;
     if (isSingleDay || scrollByDay) {
-      const diffDays = Math.floor(diffInMs / MILLISECONDS_IN_DAY);
       const colWidth = isSingleDay ? calendarGridWidth : columnWidth;
-      return diffDays * colWidth;
+      return nearestIndex * colWidth;
     }
 
-    const pageIndex = Math.floor(diffInMs / (7 * MILLISECONDS_IN_DAY));
+    const pageIndex = Math.floor(nearestIndex / columns);
     return pageIndex * (columnWidth * columns);
   }, [
-    calendarData.minDateUnix,
+    calendarData,
     calendarGridWidth,
     columnWidth,
     columns,
@@ -267,201 +266,172 @@ const CalendarProvider: React.ForwardRefRenderFunction<
   const startOffset = useDerivedValue(() => start * minuteHeight.value);
 
   const goToDate = useLatestCallback((props?: GoToDateOptions) => {
-    const date = parseDateTime(props?.date, { zone: timeZone });
-    const diffInMs = date.toMillis() - calendarData.minDateUnix;
-    let offset = 0;
-    if (isSingleDay || scrollByDay) {
-      const diffDays = Math.floor(diffInMs / MILLISECONDS_IN_DAY);
-      const colWidth = isSingleDay ? calendarGridWidth : columnWidth;
-      triggerDateChanged.current =
-        calendarData.minDateUnix + diffDays * MILLISECONDS_IN_DAY;
-      offset = diffDays * colWidth;
-    } else {
-      const pageIndex = Math.floor(diffInMs / (7 * MILLISECONDS_IN_DAY));
-      offset = pageIndex * (columnWidth * columns);
-      const diffDays = pageIndex * 7;
-      triggerDateChanged.current =
-        calendarData.minDateUnix + diffDays * MILLISECONDS_IN_DAY;
+    const date = parseDateTime(props?.date, { zone: timezone });
+    const isoDate = date.toISODate();
+    let targetDateUnix = parseDateTime(isoDate).toMillis();
+    if (!scrollByDay) {
+      targetDateUnix = startOfWeek(isoDate, firstDay).toMillis();
     }
+    const visibleDates = calendarData.visibleDatesArray;
+    const nearestUnix = findNearestNumber(visibleDates, targetDateUnix);
+    const visibleDayIndex = visibleDates.indexOf(nearestUnix);
+    if (visibleDayIndex !== -1) {
+      let offset = 0;
+      if (isSingleDay || scrollByDay) {
+        const colWidth = isSingleDay ? calendarGridWidth : columnWidth;
+        offset = visibleDayIndex * colWidth;
+      } else {
+        const pageIndex = Math.floor(visibleDayIndex / columns);
+        offset = pageIndex * (columnWidth * columns);
+      }
+      const isScrollable = calendarListRef.current?.isScrollable(
+        offset,
+        numberOfDays
+      );
+      if (isScrollable) {
+        triggerDateChanged.current = nearestUnix;
+        scrollType.current = ScrollType.calendarGrid;
+        const animatedDate =
+          props?.animatedDate !== undefined ? props.animatedDate : true;
 
-    const maxDays = Math.floor(
-      (calendarData.maxDateUnix - calendarData.minDateUnix) /
-        MILLISECONDS_IN_DAY
-    );
-    if (isSingleDay || scrollByDay) {
-      let diffDays = Math.floor(diffInMs / MILLISECONDS_IN_DAY);
-      if (diffDays > maxDays + numberOfDays) {
-        diffDays = maxDays + numberOfDays;
-      } else if (diffDays < 0) {
-        diffDays = 0;
+        runOnUI(() => {
+          scrollTo(gridListRef, offset, 0, animatedDate);
+        })();
       }
-      const colWidth = isSingleDay ? calendarGridWidth : columnWidth;
-      triggerDateChanged.current =
-        calendarData.minDateUnix + diffDays * MILLISECONDS_IN_DAY;
-      offset = diffDays * colWidth;
-    } else {
-      const pageIndex = Math.floor(diffInMs / (7 * MILLISECONDS_IN_DAY));
-      let diffDays = pageIndex * 7;
-      if (diffDays > maxDays) {
-        diffDays = maxDays;
-      } else if (diffDays < 0) {
-        diffDays = 0;
-      }
-      triggerDateChanged.current =
-        calendarData.minDateUnix + diffDays * MILLISECONDS_IN_DAY;
-      offset = Math.floor(diffDays / 7) * (columnWidth * columns);
     }
 
     if (props?.hourScroll) {
       const minutes = date.hour * 60 + date.minute;
       const position = minutes * minuteHeight.value - startOffset.value;
       const scrollOffset = scrollVisibleHeight.current / 2;
-      verticalListRef.current?.scrollTo({
-        x: 0,
-        y: position - scrollOffset,
-        animated: props.animatedHour,
-      });
+      const animatedHour =
+        props?.animatedHour !== undefined ? props.animatedHour : true;
+      runOnUI(() => {
+        scrollTo(verticalListRef, 0, position - scrollOffset, animatedHour);
+      })();
     }
-
-    const isScrollable = calendarListRef.current?.isScrollable(
-      offset,
-      numberOfDays
-    );
-    if (!isScrollable) {
-      triggerDateChanged.current = undefined;
-      return;
-    }
-
-    scrollType.current = ScrollType.calendarGrid;
-    gridListRef.current?.scrollTo({
-      x: offset,
-      y: 0,
-      animated: props?.animatedDate ?? false,
-    });
   });
 
-  const goToHour = useLatestCallback((hour: number, animated?: boolean) => {
-    const minutes = (hour - start) * 60;
-    const position = minutes * minuteHeight.value;
-    verticalListRef.current?.scrollTo({
-      x: 0,
-      y: position,
-      animated: animated,
-    });
-  });
+  const goToHour = useLatestCallback(
+    (hour: number, animated: boolean = true) => {
+      const minutes = (hour - start) * 60;
+      const position = minutes * minuteHeight.value;
+      runOnUI(() => {
+        scrollTo(verticalListRef, 0, position, animated);
+      })();
+    }
+  );
 
   const goToNextPage = useLatestCallback(
     (animated: boolean = true, forceScrollByDay: boolean = false) => {
-      const maxOffset = calendarListRef.current?.getMaxOffset(numberOfDays);
-      const currentOffset = calendarListRef.current?.getCurrentScrollOffset();
-      if (currentOffset === maxOffset) {
+      if (triggerDateChanged.current) {
+        return;
+      }
+      const visibleDatesArray = calendarData.visibleDatesArray;
+      const currentIndex = visibleDatesArray.indexOf(visibleDateUnix.current);
+      if (currentIndex === -1) {
+        return;
+      }
+
+      let nextOffset = 0;
+      let nextVisibleDayIndex = 0;
+      if (isSingleDay || forceScrollByDay || scrollByDay) {
+        nextVisibleDayIndex = currentIndex + 1;
+        const colWidth = isSingleDay ? calendarGridWidth : columnWidth;
+        nextOffset = nextVisibleDayIndex * colWidth;
+      } else {
+        nextVisibleDayIndex = currentIndex + columns;
+        const pageIndex = Math.floor(nextVisibleDayIndex / columns);
+        nextOffset = pageIndex * (columnWidth * columns);
+      }
+
+      const isScrollable = calendarListRef.current?.isScrollable(
+        nextOffset,
+        numberOfDays
+      );
+      const nextDateUnix = visibleDatesArray[nextVisibleDayIndex];
+      if (!nextDateUnix || !isScrollable) {
         triggerDateChanged.current = undefined;
         return;
       }
 
-      if (triggerDateChanged.current) {
-        return;
-      }
-
-      const diffInMs = visibleDateUnix.current - calendarData.minDateUnix;
-      let nextOffset = 0;
-      const maxDays = Math.floor(
-        (calendarData.maxDateUnix - calendarData.minDateUnix) /
-          MILLISECONDS_IN_DAY
-      );
-      if (isSingleDay || forceScrollByDay) {
-        let diffDays = Math.floor(diffInMs / MILLISECONDS_IN_DAY) + 1;
-        if (diffDays > maxDays + numberOfDays) {
-          diffDays = maxDays + numberOfDays;
-        }
-        const colWidth = isSingleDay ? calendarGridWidth : columnWidth;
-        triggerDateChanged.current =
-          calendarData.minDateUnix + diffDays * MILLISECONDS_IN_DAY;
-        nextOffset = diffDays * colWidth;
-      } else {
-        const pageIndex = Math.floor(diffInMs / (7 * MILLISECONDS_IN_DAY)) + 1;
-        let diffDays = pageIndex * 7;
-        if (diffDays > maxDays) {
-          diffDays = maxDays;
-        }
-        triggerDateChanged.current =
-          calendarData.minDateUnix + diffDays * MILLISECONDS_IN_DAY;
-        nextOffset = Math.floor(diffDays / 7) * (columnWidth * columns);
-      }
-
+      triggerDateChanged.current = nextDateUnix;
       scrollType.current = ScrollType.calendarGrid;
-      gridListRef.current?.scrollTo({
-        x: nextOffset,
-        y: 0,
-        animated: animated,
-      });
+      runOnUI(() => {
+        scrollTo(gridListRef, nextOffset, 0, animated);
+      })();
     }
   );
 
   const goToPrevPage = useLatestCallback(
     (animated: boolean = true, forceScrollByDay: boolean = false) => {
-      const currentOffset = calendarListRef.current?.getCurrentScrollOffset();
-      if (!currentOffset || currentOffset === 0) {
+      if (triggerDateChanged.current) {
+        return;
+      }
+      const visibleDatesArray = calendarData.visibleDatesArray;
+      const currentIndex = visibleDatesArray.indexOf(visibleDateUnix.current);
+      if (currentIndex === -1) {
+        return;
+      }
+
+      let nextOffset = 0;
+      let nextVisibleDayIndex = 0;
+      if (isSingleDay || forceScrollByDay || scrollByDay) {
+        nextVisibleDayIndex = Math.max(currentIndex - 1, 0);
+        const colWidth = isSingleDay ? calendarGridWidth : columnWidth;
+        nextOffset = nextVisibleDayIndex * colWidth;
+      } else {
+        nextVisibleDayIndex = Math.max(currentIndex - columns, 0);
+        const pageIndex = Math.floor(nextVisibleDayIndex / columns);
+        nextOffset = pageIndex * (columnWidth * columns);
+      }
+      const isScrollable = calendarListRef.current?.isScrollable(
+        nextOffset,
+        numberOfDays
+      );
+      const nextDateUnix = visibleDatesArray[nextVisibleDayIndex];
+      if (!nextDateUnix || !isScrollable) {
         triggerDateChanged.current = undefined;
         return;
       }
 
-      if (triggerDateChanged.current) {
-        return;
-      }
-
-      const diffInMs = visibleDateUnix.current - calendarData.minDateUnix;
-      let offset = 0;
-      if (isSingleDay || forceScrollByDay) {
-        const diffDays = Math.floor(diffInMs / MILLISECONDS_IN_DAY) - 1;
-        const colWidth = isSingleDay ? calendarGridWidth : columnWidth;
-        triggerDateChanged.current =
-          calendarData.minDateUnix + diffDays * MILLISECONDS_IN_DAY;
-        offset = diffDays * colWidth;
-      } else {
-        const pageIndex = Math.floor(diffInMs / (7 * MILLISECONDS_IN_DAY)) - 1;
-        offset = pageIndex * (columnWidth * columns);
-        const diffDays = pageIndex * 7;
-        triggerDateChanged.current =
-          calendarData.minDateUnix + diffDays * MILLISECONDS_IN_DAY;
-      }
-
-      if (offset < 0) {
-        offset = 0;
-        triggerDateChanged.current = calendarData.minDateUnix;
-      }
-
+      triggerDateChanged.current = nextDateUnix;
       scrollType.current = ScrollType.calendarGrid;
-      gridListRef.current?.scrollTo({
-        x: offset,
-        y: 0,
-        animated: animated,
-      });
+      runOnUI(() => {
+        scrollTo(gridListRef, nextOffset, 0, animated);
+      })();
     }
   );
 
   const zoom = useLatestCallback(
     (props?: { scale?: number; height?: number }) => {
-      let newHeight = props?.height ?? initialTimeIntervalHeight;
-      if (props?.scale) {
-        newHeight = timeIntervalHeight.value * props.scale;
-      }
-      const clampedHeight = clampValues(
-        newHeight,
-        minTimeIntervalHeight,
-        maxTimeIntervalHeight
-      );
-      const pinchYNormalized = offsetY.value / timeIntervalHeight.value;
-      const pinchYScale = clampedHeight * pinchYNormalized;
-      const y = pinchYScale;
-      verticalListRef.current?.scrollTo({ x: 0, y, animated: true });
-      timeIntervalHeight.value = withTiming(clampedHeight);
+      runOnUI(() => {
+        let newHeight = props?.height ?? initialTimeIntervalHeight;
+        if (props?.scale) {
+          newHeight = timeIntervalHeight.value * props.scale;
+        }
+        const clampedHeight = clampValues(
+          newHeight,
+          minTimeIntervalHeight,
+          maxTimeIntervalHeight
+        );
+        const pinchYNormalized = offsetY.value / timeIntervalHeight.value;
+        const pinchYScale = clampedHeight * pinchYNormalized;
+        const y = pinchYScale;
+        timeIntervalHeight.value = withTiming(clampedHeight);
+        scrollTo(verticalListRef, 0, y, true);
+      })();
     }
   );
 
   const setVisibleDate = useLatestCallback((date: DateType) => {
-    visibleDateUnix.current = parseDateTime(date).toMillis();
-    visibleDateUnixAnim.value = visibleDateUnix.current;
+    const dateObj = parseDateTime(date, { zone: timezone });
+    const isoDate = dateObj.toISODate();
+    const targetDateUnix = parseDateTime(isoDate).toMillis();
+    const visibleDates = calendarData.visibleDatesArray;
+    const nearestUnix = findNearestNumber(visibleDates, targetDateUnix);
+    visibleDateUnix.current = nearestUnix;
+    visibleDateUnixAnim.value = nearestUnix;
   });
 
   useImperativeHandle(
@@ -488,14 +458,22 @@ const CalendarProvider: React.ForwardRefRenderFunction<
 
   useEffect(() => {
     runOnUI(() => {
-      columnWidthAnim.value = withTiming(columnWidth);
+      columnWidthAnim.value = columnWidth;
+      // if (numberOfDays === 1) {
+      //   columnWidthAnim.value = columnWidth;
+      // } else {
+      //   columnWidthAnim.value = withDelay(
+      //     250,
+      //     withTiming(columnWidth, { duration: 250 })
+      //   );
+      // }
     })();
-  }, [columnWidthAnim, columnWidth]);
+  }, [columnWidthAnim, columnWidth, numberOfDays]);
 
   const snapToInterval =
     numberOfDays > 1 && scrollByDay ? columnWidth : undefined;
 
-  const context = useMemo<CalendarContextProps>(
+  const value = useMemo<CalendarContextProps>(
     () => ({
       calendarLayout,
       hourWidth,
@@ -505,7 +483,6 @@ const CalendarProvider: React.ForwardRefRenderFunction<
       verticalListRef,
       dayBarListRef,
       gridListRef,
-      viewMode,
       columnWidthAnim,
       firstDay,
       scrollType,
@@ -541,6 +518,8 @@ const CalendarProvider: React.ForwardRefRenderFunction<
       calendarListRef,
       startOffset,
       scrollVisibleHeightAnim,
+      pagesPerSide,
+      hideWeekDays,
     }),
     [
       calendarLayout,
@@ -551,7 +530,6 @@ const CalendarProvider: React.ForwardRefRenderFunction<
       verticalListRef,
       dayBarListRef,
       gridListRef,
-      viewMode,
       columnWidthAnim,
       firstDay,
       offsetY,
@@ -582,6 +560,8 @@ const CalendarProvider: React.ForwardRefRenderFunction<
       visibleDateUnixAnim,
       startOffset,
       scrollVisibleHeightAnim,
+      pagesPerSide,
+      hideWeekDays,
     ]
   );
 
@@ -592,14 +572,21 @@ const CalendarProvider: React.ForwardRefRenderFunction<
     onChange,
     onDateChanged,
     onPressEvent,
+    onDragEventStart,
+    onDragEventEnd,
+    onLongPressEvent,
+    onDragSelectedEventStart,
+    onDragSelectedEventEnd,
+    onDragCreateEventStart,
+    onDragCreateEventEnd,
   };
 
   const loadingValue = useMemo(() => ({ isLoading }), [isLoading]);
 
   return (
-    <CalendarContext.Provider value={context}>
+    <CalendarProvider value={value}>
       <LocaleProvider initialLocales={initialLocales} locale={locale}>
-        <TimeZoneProvider timeZone={timeZone}>
+        <TimezoneProvider timezone={timezone}>
           <NowIndicatorProvider>
             <ThemeProvider
               theme={theme}
@@ -612,15 +599,25 @@ const CalendarProvider: React.ForwardRefRenderFunction<
                     <HighlightDatesProvider highlightDates={highlightDates}>
                       <UnavailableHoursProvider
                         unavailableHours={unavailableHours}
-                        timeZone={timeZone}
+                        timezone={timezone}
+                        pagesPerSide={pagesPerSide}
                       >
                         <EventsProvider
                           events={events}
                           firstDay={firstDay}
-                          timeZone={timeZone}
+                          timezone={timezone}
                           useAllDayEvent={useAllDayEvent}
+                          pagesPerSide={pagesPerSide}
                         >
-                          {children}
+                          <DragEventProvider
+                            dragStep={dragStep}
+                            allowDragToEdit={allowDragToEdit}
+                            selectedEvent={selectedEvent}
+                            allowDragToCreate={allowDragToCreate}
+                            defaultDuration={defaultDuration}
+                          >
+                            {children}
+                          </DragEventProvider>
                         </EventsProvider>
                       </UnavailableHoursProvider>
                     </HighlightDatesProvider>
@@ -629,18 +626,23 @@ const CalendarProvider: React.ForwardRefRenderFunction<
               </ActionsProvider>
             </ThemeProvider>
           </NowIndicatorProvider>
-        </TimeZoneProvider>
+        </TimezoneProvider>
       </LocaleProvider>
-    </CalendarContext.Provider>
+    </CalendarProvider>
   );
 };
 
-export default forwardRef(CalendarProvider);
+const CalendarContainerInner = forwardRef(CalendarContainer);
 
-export const useCalendar = () => {
-  const context = React.useContext(CalendarContext);
-  if (context === undefined) {
-    throw new Error('useCalendar must be used within a CalendarProvider');
-  }
-  return context;
+const CalendarContainerWithLayout: React.ForwardRefRenderFunction<
+  CalendarKitHandle,
+  PropsWithChildren<CalendarProviderProps>
+> = (props, ref) => {
+  return (
+    <LayoutProvider>
+      <CalendarContainerInner {...props} ref={ref} />
+    </LayoutProvider>
+  );
 };
+
+export default forwardRef(CalendarContainerWithLayout);

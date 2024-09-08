@@ -35,7 +35,8 @@ const Header: FC<HeaderProps> = ({ currentDate, onPressToday }) => {
     () => currentDate.value,
     (value) => {
       runOnJS(updateTitle)(value);
-    }
+    },
+    []
   );
 
   const _onPressMenu = () => {

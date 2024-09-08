@@ -1,10 +1,13 @@
 import CalendarKit, {
+  DragEventProps,
+  EventItem,
   OutOfRangeProps,
+  PackedEvent,
   type CalendarKitHandle,
-  type CalendarViewMode,
   type LocaleConfigsProps,
 } from '@howljs/calendar-kit';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { WeekdayNumbers } from 'luxon';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   StyleSheet,
@@ -19,16 +22,16 @@ import Header from '../../components/Header';
 import OutOfRange from '../../components/OutOfRange';
 import { useAppContext } from '../../context/AppProvider';
 
-type SearchParams = { viewMode: CalendarViewMode; numberOfDays: string };
+type SearchParams = { viewMode: string; numberOfDays: string };
 
 const MIN_DATE = new Date(
-  new Date().getFullYear() - 2,
+  new Date().getFullYear() - 1,
   new Date().getMonth(),
   new Date().getDate()
 ).toISOString();
 
 const MAX_DATE = new Date(
-  new Date().getFullYear() + 2,
+  new Date().getFullYear() + 1,
   new Date().getMonth(),
   new Date().getDate()
 ).toISOString();
@@ -54,8 +57,14 @@ const initialLocales: Record<string, LocaleConfigsProps> = {
   },
 };
 
-const randomColor = () =>
-  `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+const randomColor = () => {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+};
 
 const minDate = new Date(
   new Date().getFullYear(),
@@ -64,18 +73,16 @@ const minDate = new Date(
 );
 
 const generateEvents = () => {
-  return new Array(1000).fill(0).map((_, index) => {
+  return new Array(300).fill(0).map((_, index) => {
     const randomDateByIndex = new Date(
       minDate.getFullYear(),
       minDate.getMonth(),
       minDate.getDate() + Math.floor(index / 2),
-      Math.floor(Math.random() * 15),
-      Math.floor(Math.random() * 60)
+      Math.floor(Math.random() * 24),
+      Math.round((Math.random() * 60) / 15) * 15
     );
 
-    const duration =
-      Math.floor(Math.random() * 3.5 * 60 * 60 * 1000) + 30 * 60 * 1000;
-
+    const duration = (Math.floor(Math.random() * 15) + 1) * 15 * 60 * 1000;
     const endDate = new Date(randomDateByIndex.getTime() + duration);
 
     return {
@@ -90,7 +97,7 @@ const generateEvents = () => {
 };
 
 const Calendar = () => {
-  const [events, setEvents] = useState(() => generateEvents());
+  const [events, setEvents] = useState<EventItem[]>(() => generateEvents());
   const { bottom: safeBottom } = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const calendarRef = useRef<CalendarKitHandle>(null);
@@ -98,6 +105,7 @@ const Calendar = () => {
   const params = useLocalSearchParams<SearchParams>();
   const router = useRouter();
   const currentDate = useSharedValue(INITIAL_DATE);
+  const [selectedEvent, setSelectedEvent] = useState<DragEventProps>();
 
   const _onChange = (date: string) => {
     currentDate.value = date;
@@ -136,22 +144,41 @@ const Calendar = () => {
   }, []);
 
   const _onPressBackground = (date: string) => {
-    console.log(date);
+    // if (selectedEvent) {
+    //   const startISO = new Date(date).toISOString();
+    //   const duration =
+    //     new Date(selectedEvent.end).getTime() -
+    //     new Date(selectedEvent.start).getTime();
+    //   const end = new Date(date).getTime() + duration;
+    //   const endISO = new Date(end).toISOString();
+    //   const newEvent = { ...selectedEvent, start: startISO, end: endISO };
+    //   if (newEvent.id) {
+    //     let newEvents = events.filter((item) => item.id !== newEvent.id);
+    //     newEvents.push({ ...newEvent, id: newEvent.id });
+    //     setEvents(newEvents);
+    //   }
+    //   setSelectedEvent(newEvent);
+    // }
+    console.log(new Date(date).toISOString());
+    setSelectedEvent(undefined);
   };
 
-  const _renderEvent = useCallback(() => {
-    return <Text>Event</Text>;
+  const _renderEvent = useCallback((props: PackedEvent) => {
+    return <Text>{props.title}</Text>;
   }, []);
+
+  const isWorkWeek = params.viewMode === 'week' && params.numberOfDays === '5';
+  const hideWeekDays: WeekdayNumbers[] = isWorkWeek ? [6, 7] : [];
 
   return (
     <View style={styles.container}>
       <Header currentDate={currentDate} onPressToday={_onPressToday} />
       <CalendarKit
         ref={calendarRef}
-        viewMode={params.viewMode}
-        scrollByDay={params.viewMode === 'day'}
         numberOfDays={Number(params.numberOfDays)}
-        firstDay={params.viewMode === 'workWeek' ? 1 : configs.startOfWeek}
+        scrollByDay={Number(params.numberOfDays) < 5}
+        firstDay={isWorkWeek ? 1 : configs.startOfWeek}
+        hideWeekDays={hideWeekDays}
         initialLocales={initialLocales}
         themeMode={
           configs.themeMode === 'auto'
@@ -174,11 +201,53 @@ const Calendar = () => {
         unavailableHours={unavailableHours}
         highlightDates={highlightDates}
         events={events}
-        onPressEvent={console.log}
+        onPressEvent={(event) => {
+          console.log(new Date(event.start as string).toLocaleString());
+        }}
         renderEvent={_renderEvent}
         scrollToNow
         rightEdgeSpacing={4}
         overlapEventsSpacing={1}
+        useHaptic
+        timezone="Asia/Tokyo"
+        allowDragToEdit
+        allowDragToCreate
+        onLongPressEvent={(event) => {
+          if (event.id !== selectedEvent?.id) {
+            setSelectedEvent(undefined);
+          }
+        }}
+        selectedEvent={selectedEvent}
+        start={60}
+        end={23 * 60}
+        defaultDuration={60}
+        onDragEventEnd={(event) => {
+          if (event.id) {
+            let newEvents = events.filter((item) => item.id !== event.id);
+            newEvents.push({ ...event, id: event.id });
+            setEvents(newEvents);
+          }
+          setSelectedEvent(event);
+        }}
+        onDragSelectedEventEnd={(event) => {
+          if (event.id) {
+            let newEvents = events.filter((item) => item.id !== event.id);
+            newEvents.push({ ...event, id: event.id });
+            setEvents(newEvents);
+          }
+          setSelectedEvent(event);
+        }}
+        onDragCreateEventEnd={(event) => {
+          const newEvent = {
+            ...event,
+            id: `event_${events.length + 1}`,
+            title: `Event ${events.length + 1}`,
+            color: randomColor(),
+          };
+          const newEvents = [...events, newEvent];
+          setEvents(newEvents);
+          setSelectedEvent(newEvent);
+        }}
       />
       <View style={[styles.actions, { paddingBottom: safeBottom }]}>
         <TouchableOpacity
@@ -193,7 +262,7 @@ const Calendar = () => {
         <TouchableOpacity
           style={styles.btn}
           onPress={() => {
-            calendarRef.current?.goToPrevPage(true, params.viewMode === 'day');
+            calendarRef.current?.goToPrevPage(true);
           }}
         >
           <Text>Prev</Text>
@@ -201,7 +270,7 @@ const Calendar = () => {
         <TouchableOpacity
           style={styles.btn}
           onPress={() => {
-            calendarRef.current?.goToNextPage(true, params.viewMode === 'day');
+            calendarRef.current?.goToNextPage(true);
           }}
         >
           <Text>Next</Text>

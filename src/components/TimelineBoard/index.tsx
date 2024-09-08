@@ -10,18 +10,30 @@ import { EXTRA_HEIGHT, MILLISECONDS_IN_DAY } from '../../constants';
 import { useActions } from '../../context/ActionsProvider';
 import { useBody } from '../../context/BodyContext';
 import { useTheme } from '../../context/ThemeProvider';
-import { dateTimeToISOString, parseDateTime } from '../../utils/dateUtils';
+import { useTimezone } from '../../context/TimezoneProvider';
+import {
+  dateTimeToISOString,
+  forceUpdateZone,
+  parseDateTime,
+} from '../../utils/dateUtils';
 import TimeColumn from '../TimeColumn';
 import HorizontalLine from './HorizontalLine';
 import OutOfRangeView from './OutOfRangeView';
 import UnavailableHours from './UnavailableHours';
 import VerticalLine from './VerticalLine';
+import { useDragEventActions } from '../../context/DragEventProvider';
 
 interface TimelineBoardProps {
+  pageIndex: number;
   dateUnix: number;
+  visibleDates: Record<number, { diffDays: number; unix: number }>;
 }
 
-const TimelineBoard = ({ dateUnix }: TimelineBoardProps) => {
+const TimelineBoard = ({
+  pageIndex,
+  dateUnix,
+  visibleDates,
+}: TimelineBoardProps) => {
   const {
     totalSlots,
     timeIntervalHeight,
@@ -32,10 +44,11 @@ const TimelineBoard = ({ dateUnix }: TimelineBoardProps) => {
     numberOfDays,
     calendarData,
     columns,
-    onLongPressBackground,
   } = useBody();
+  const { timezone } = useTimezone();
   const colors = useTheme((state) => state.colors);
-  const { onPressBackground } = useActions();
+  const { onPressBackground, onLongPressBackground } = useActions();
+  const { triggerDragCreateEvent } = useDragEventActions();
 
   const _renderVerticalLines = () => {
     let lines: React.ReactNode[] = [];
@@ -86,17 +99,43 @@ const TimelineBoard = ({ dateUnix }: TimelineBoardProps) => {
   };
 
   const onPress = (event: GestureResponderEvent) => {
-    const dayIndex = Math.floor(
+    const columnIndex = Math.floor(
       event.nativeEvent.locationX / columnWidthAnim.value
     );
+    const dayIndex = pageIndex + columnIndex;
+    const dayUnix = calendarData.visibleDatesArray[dayIndex];
     const hour = event.nativeEvent.locationY / timeIntervalHeight.value;
 
-    const dateByPosition = dateUnix + dayIndex * MILLISECONDS_IN_DAY;
-    const dateObj = parseDateTime(dateByPosition).plus({
-      hours: hour + start,
-    });
+    if (dayUnix) {
+      const dateObj = forceUpdateZone(
+        parseDateTime(dayUnix).plus({
+          minutes: hour * 60 + start,
+        }),
+        timezone
+      );
+      onPressBackground?.(dateTimeToISOString(dateObj), event);
+    }
+  };
 
-    onPressBackground?.(dateTimeToISOString(dateObj));
+  const onLongPress = (event: GestureResponderEvent) => {
+    const columnIndex = Math.floor(
+      event.nativeEvent.locationX / columnWidthAnim.value
+    );
+    const dayIndex = pageIndex + columnIndex;
+    const dayUnix = calendarData.visibleDatesArray[dayIndex];
+    const hour = event.nativeEvent.locationY / timeIntervalHeight.value;
+
+    if (dayUnix) {
+      const dateObj = forceUpdateZone(
+        parseDateTime(dayUnix).plus({
+          minutes: hour * 60 + start,
+        }),
+        timezone
+      );
+      const dateString = dateTimeToISOString(dateObj);
+      triggerDragCreateEvent?.(dateString, event);
+      onLongPressBackground?.(dateString, event);
+    }
   };
 
   const contentView = useAnimatedStyle(() => ({
@@ -104,18 +143,21 @@ const TimelineBoard = ({ dateUnix }: TimelineBoardProps) => {
   }));
 
   const _renderOutOfRangeView = () => {
-    const minDate = calendarData.originalMinDateUnix;
-    const diffMinDays = Math.floor((dateUnix - minDate) / MILLISECONDS_IN_DAY);
-    if (diffMinDays < 0) {
-      return <OutOfRangeView position="left" diffDays={-diffMinDays} />;
+    const diffMinDays = Math.floor(
+      (calendarData.originalMinDateUnix - dateUnix) / MILLISECONDS_IN_DAY
+    );
+    if (diffMinDays > 0) {
+      return (
+        <OutOfRangeView position="left" diffDays={calendarData.diffMinDays} />
+      );
     }
 
-    const maxDate = calendarData.originalMaxDateUnix;
-    const diffMaxDays =
-      Math.floor((maxDate - dateUnix) / MILLISECONDS_IN_DAY) + 1;
-    if (diffMaxDays - columns < 0) {
+    const diffMaxDays = Math.floor(
+      (calendarData.originalMaxDateUnix - dateUnix) / MILLISECONDS_IN_DAY
+    );
+    if (diffMaxDays < 7) {
       return (
-        <OutOfRangeView position="right" diffDays={columns - diffMaxDays} />
+        <OutOfRangeView position="right" diffDays={calendarData.diffMaxDays} />
       );
     }
 
@@ -123,7 +165,7 @@ const TimelineBoard = ({ dateUnix }: TimelineBoardProps) => {
   };
 
   const _renderUnavailableHours = () => {
-    return <UnavailableHours dateUnix={dateUnix} />;
+    return <UnavailableHours visibleDates={visibleDates} />;
   };
 
   return (
@@ -143,12 +185,20 @@ const TimelineBoard = ({ dateUnix }: TimelineBoardProps) => {
         <TouchableOpacity
           style={styles.touchable}
           activeOpacity={1}
-          onPress={onPress}
-          onLongPress={onLongPressBackground}
-          disabled={!onPressBackground && !onLongPressBackground}
+          onPress={onPressBackground ? onPress : undefined}
+          onLongPress={
+            triggerDragCreateEvent || onLongPressBackground
+              ? onLongPress
+              : undefined
+          }
+          disabled={
+            !onPressBackground &&
+            !triggerDragCreateEvent &&
+            !onLongPressBackground
+          }
         />
-        {_renderOutOfRangeView()}
         {_renderUnavailableHours()}
+        {_renderOutOfRangeView()}
         {_renderHorizontalLines()}
       </Animated.View>
       {numberOfDays > 1 && _renderVerticalLines()}

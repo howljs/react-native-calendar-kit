@@ -21,7 +21,7 @@ import {
 import { MILLISECONDS_IN_DAY } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
 import { forceUpdateZone } from '../utils/dateUtils';
-import { useTimeZone } from './TimeZoneProvider';
+import { useTimezone } from './TimezoneProvider';
 
 export interface NowIndicatorContext {
   currentDateUnix: number;
@@ -32,8 +32,8 @@ const NowIndicatorContext = createContext<NowIndicatorContext | undefined>(
   undefined
 );
 
-const getCurrentDatetime = (timeZone?: string) => {
-  const now = forceUpdateZone(DateTime.now().setZone(timeZone));
+const getCurrentDatetime = (timezone?: string) => {
+  const now = forceUpdateZone(DateTime.now().setZone(timezone));
   const dateInMs = now.startOf('day').toMillis();
 
   return {
@@ -47,8 +47,8 @@ interface NowIndicatorProviderProps {
 }
 
 const NowIndicatorProvider = ({ children }: NowIndicatorProviderProps) => {
-  const { timeZone } = useTimeZone();
-  const nowRef = useLazyRef(() => getCurrentDatetime(timeZone));
+  const { timezone } = useTimezone();
+  const nowRef = useLazyRef(() => getCurrentDatetime(timezone));
 
   const [currentDateUnix, setCurrentDateUnix] = useState(nowRef.current.date);
   const currentTime = useSharedValue(nowRef.current.time);
@@ -66,7 +66,7 @@ const NowIndicatorProvider = ({ children }: NowIndicatorProviderProps) => {
   const updateTime = useCallback(() => {
     stopTimer();
 
-    const current = getCurrentDatetime(timeZone);
+    const current = getCurrentDatetime(timezone);
     setCurrentDateUnix((prev) => {
       const diffMsSeconds = current.date - prev;
       const isSameDay =
@@ -80,7 +80,7 @@ const NowIndicatorProvider = ({ children }: NowIndicatorProviderProps) => {
     currentTime.value = withTiming(current.time);
     const nextSeconds = 60 - DateTime.now().second;
     timerRef.current = setTimeout(updateTime, nextSeconds * 1000);
-  }, [currentTime, stopTimer, timeZone]);
+  }, [currentTime, stopTimer, timezone]);
 
   const handleAppStateChange = useCallback(
     (nextAppState: AppStateStatus) => {

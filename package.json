@@ -101,8 +101,7 @@
     }
   },
   "workspaces": [
-    "example",
-    "server"
+    "example"
   ],
   "packageManager": "yarn@3.6.1",
   "jest": {

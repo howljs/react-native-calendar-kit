@@ -30,9 +30,10 @@ const UnavailableHoursProvider: FC<
     unavailableHours?:
       | Record<string, UnavailableHourProps[]>
       | UnavailableHourProps[];
-    timeZone: string;
+    timezone: string;
+    pagesPerSide: number;
   }>
-> = ({ children, unavailableHours = {}, timeZone }) => {
+> = ({ children, unavailableHours = {}, timezone, pagesPerSide }) => {
   const currentDate = useDateChangedListener();
 
   const notifyDataChanged = useCallback(
@@ -53,11 +54,11 @@ const UnavailableHoursProvider: FC<
       }
 
       const data: Record<string, UnavailableHourProps[]> = {};
-      const zonedDate = forceUpdateZone(date, timeZone).toMillis();
-      const minUnix = zonedDate - MILLISECONDS_IN_DAY * offset;
-      const maxUnix = zonedDate + MILLISECONDS_IN_DAY * (offset * 2);
+      const minUnix = date - MILLISECONDS_IN_DAY * (offset * pagesPerSide);
+      const maxUnix =
+        date + MILLISECONDS_IN_DAY * (offset * (pagesPerSide + 1));
       for (let i = minUnix; i < maxUnix; i += MILLISECONDS_IN_DAY) {
-        const dateObj = forceUpdateZone(i, timeZone);
+        const dateObj = forceUpdateZone(i, timezone);
         const weekDay = dateObj.weekday;
         const dateStr = dateObj.toFormat('yyyy-MM-dd');
         const unavailableHoursByDate =
@@ -68,7 +69,7 @@ const UnavailableHoursProvider: FC<
       }
       unavailableHoursStore.setState({ unavailableHours: data });
     },
-    [unavailableHours, timeZone]
+    [unavailableHours, timezone, pagesPerSide]
   );
 
   useEffect(() => {
@@ -83,10 +84,6 @@ const UnavailableHoursProvider: FC<
 };
 
 export default UnavailableHoursProvider;
-
-export type UnavailableHoursSelector = UnavailableHourProps & {
-  date: number;
-};
 
 const selector = (state: UnavailableHoursStore) => state.unavailableHours || {};
 
@@ -103,6 +100,32 @@ export const useUnavailableHours = () => {
     unavailableHoursContext.subscribe,
     unavailableHoursContext.getState,
     selector
+  );
+  return state;
+};
+
+export const useUnavailableHoursByDate = (dateUnix: number) => {
+  const unavailableHoursContext = useContext(UnavailableHoursContext);
+
+  if (!unavailableHoursContext) {
+    throw new Error(
+      'useRegionsByDate must be used within a UnavailableHoursProvider'
+    );
+  }
+
+  const selectUnavailableHoursByDate = useCallback(
+    (state: UnavailableHoursStore) => {
+      return state.unavailableHours
+        ? state.unavailableHours[dateUnix]
+        : undefined;
+    },
+    [dateUnix]
+  );
+
+  const state = useSyncExternalStoreWithSelector(
+    unavailableHoursContext.subscribe,
+    unavailableHoursContext.getState,
+    selectUnavailableHoursByDate
   );
   return state;
 };

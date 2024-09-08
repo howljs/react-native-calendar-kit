@@ -1,30 +1,30 @@
 import React, { useMemo, type PropsWithChildren } from 'react';
 
-export interface TimeZoneContextProps {
-  timeZone: string;
+export interface TimezoneContextProps {
+  timezone: string;
 }
 
-const TimeZoneContext = React.createContext<TimeZoneContextProps | undefined>(
+const TimezoneContext = React.createContext<TimezoneContextProps | undefined>(
   undefined
 );
 
-const TimeZoneProvider: React.FC<PropsWithChildren<{ timeZone: string }>> = ({
+const TimezoneProvider: React.FC<PropsWithChildren<{ timezone: string }>> = ({
   children,
-  timeZone,
+  timezone,
 }) => {
-  const value = useMemo(() => ({ timeZone }), [timeZone]);
+  const value = useMemo(() => ({ timezone }), [timezone]);
 
   return (
-    <TimeZoneContext.Provider value={value}>
+    <TimezoneContext.Provider value={value}>
       {children}
-    </TimeZoneContext.Provider>
+    </TimezoneContext.Provider>
   );
 };
 
-export default TimeZoneProvider;
+export default TimezoneProvider;
 
-export const useTimeZone = () => {
-  const context = React.useContext(TimeZoneContext);
+export const useTimezone = () => {
+  const context = React.useContext(TimezoneContext);
 
   if (context === undefined) {
     throw new Error('TimeZoneContext is not available');

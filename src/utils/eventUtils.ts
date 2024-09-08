@@ -11,12 +11,7 @@ import type {
   PackedAllDayEvent,
   PackedEvent,
 } from '../types';
-import {
-  diffDays,
-  forceUpdateZone,
-  parseDate,
-  parseDateTime,
-} from './dateUtils';
+import { forceUpdateZone, parseDate, parseDateTime } from './dateUtils';
 
 export const filterEvents = (
   events: EventItem[],
@@ -78,17 +73,17 @@ const buildInstanceId = (id: string, date: DateTime<true>) => {
   return `${id}_${dateStr}`;
 };
 
-export const divideEvents = (event: EventItemInternal, timeZone: string) => {
+export const divideEvents = (event: EventItemInternal, timezone: string) => {
   let events: EventItemInternal[] = [];
   const eventStart = parseDateTime(event._internal.startUnix, {
-    zone: timeZone,
+    zone: timezone,
   });
   const eventEnd = parseDateTime(event._internal.endUnix, {
-    zone: timeZone,
+    zone: timezone,
   });
   const startOfEventStart = eventStart.startOf('day');
   const startOfEventEnd = eventEnd.startOf('day');
-  const days = diffDays(startOfEventEnd, startOfEventStart) + 1;
+  const days = startOfEventEnd.diff(startOfEventStart, 'days').days + 1;
   for (let i = 0; i < days; i++) {
     let startUnix = forceUpdateZone(eventStart).toMillis();
     let endUnix = forceUpdateZone(eventEnd).toMillis();
@@ -141,7 +136,7 @@ export const processRecurrenceEvent = (
   event: EventItemInternal,
   minUnix: number,
   maxUnix: number,
-  timeZone: string,
+  timezone: string,
   isAllDay: boolean = false
 ) => {
   let events: EventItemInternal[] = [];
@@ -168,7 +163,7 @@ export const processRecurrenceEvent = (
   const occurrences = parsedRRule.between(minDate, maxDate, true);
   for (let i = 0; i < occurrences.length; i++) {
     const occurrence = occurrences[i]!;
-    const parsedStartDate = parseDateTime(occurrence, { zone: timeZone }).set({
+    const parsedStartDate = parseDateTime(occurrence, { zone: timezone }).set({
       day: occurrence.getUTCDate(),
       month: occurrence.getUTCMonth() + 1,
       year: occurrence.getUTCFullYear(),
@@ -190,7 +185,7 @@ export const processRecurrenceEvent = (
     };
 
     if (!isAllDay) {
-      const nextEvents = divideEvents(nextEvent, timeZone);
+      const nextEvents = divideEvents(nextEvent, timezone);
       events = [...events, ...nextEvents];
     }
   }

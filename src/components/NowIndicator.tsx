@@ -1,35 +1,29 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { MILLISECONDS_IN_DAY } from '../constants';
 import { useBody } from '../context/BodyContext';
 import { useNowIndicator } from '../context/NowIndicatorProvider';
 import { useTheme } from '../context/ThemeProvider';
 
 interface NowIndicatorProps {
   dayIndex: number;
-  width: SharedValue<number>;
   currentTime: SharedValue<number>;
 }
 
-const NowIndicatorInner = ({
-  width,
-  dayIndex,
-  currentTime,
-}: NowIndicatorProps) => {
-  const { minuteHeight, start, end, startOffset } = useBody();
+const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
+  const { minuteHeight, start, end, startOffset, columnWidthAnim } = useBody();
   const nowIndicatorColor = useTheme(
     (state) => state.nowIndicatorColor || state.colors.primary
   );
   const animView = useAnimatedStyle(() => {
     const top = currentTime.value * minuteHeight.value - startOffset.value;
-    const hour = currentTime.value / 60;
-    const opacity = hour >= start && hour <= end ? 1 : 0;
+    const opacity =
+      currentTime.value >= start && currentTime.value <= end ? 1 : 0;
 
     return {
-      width: width.value,
-      left: dayIndex * width.value,
+      width: columnWidthAnim.value,
+      left: dayIndex * columnWidthAnim.value,
       top,
       opacity,
     };
@@ -46,17 +40,15 @@ const NowIndicatorInner = ({
   );
 };
 
-const NowIndicator: FC<{ startUnix: number }> = ({ startUnix }) => {
-  const { columns, showNowIndicator, columnWidthAnim } = useBody();
+const NowIndicator: FC<{
+  startUnix: number;
+  visibleDates: Record<string, { diffDays: number; unix: number }>;
+}> = ({ visibleDates }) => {
+  const { showNowIndicator } = useBody();
   const { currentDateUnix, currentTime } = useNowIndicator();
 
-  const diffDays = useMemo(
-    () => Math.floor((currentDateUnix - startUnix) / MILLISECONDS_IN_DAY),
-    [currentDateUnix, startUnix]
-  );
-
-  const isShowNowIndicator =
-    showNowIndicator && diffDays >= 0 && diffDays < columns;
+  const visibleDate = visibleDates[currentDateUnix];
+  const isShowNowIndicator = showNowIndicator && visibleDate;
 
   if (!isShowNowIndicator) {
     return null;
@@ -65,8 +57,7 @@ const NowIndicator: FC<{ startUnix: number }> = ({ startUnix }) => {
   return (
     <NowIndicatorInner
       currentTime={currentTime}
-      width={columnWidthAnim}
-      dayIndex={diffDays}
+      dayIndex={visibleDate.diffDays - 1}
     />
   );
 };

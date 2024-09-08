@@ -1,76 +1,80 @@
-import times from 'lodash/times';
-import React, { FC, useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { FC, memo, useCallback, useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
+  runOnUI,
   SharedValue,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { MILLISECONDS_IN_DAY } from '../../constants';
 import { useBody } from '../../context/BodyContext';
 import { useTheme } from '../../context/ThemeProvider';
-import {
-  UnavailableHoursSelector,
-  useUnavailableHours,
-} from '../../context/UnavailableHoursProvider';
+import { useUnavailableHoursByDate } from '../../context/UnavailableHoursProvider';
 import { UnavailableHourProps } from '../../types';
 
 interface UnavailableHoursProps {
-  dateUnix: number;
+  visibleDates: Record<string, { diffDays: number; unix: number }>;
 }
 
-const UnavailableHours: FC<UnavailableHoursProps> = ({ dateUnix }) => {
-  const {
-    start: calendarStart,
-    renderCustomUnavailableHour,
-    columns,
-  } = useBody();
-  const backgroundColor = useTheme(
-    (state) => state.unavailableHourBackgroundColor || state.colors.surface
+const UnavailableHours: FC<UnavailableHoursProps> = ({ visibleDates }) => {
+  const _renderColumn = (currentUnix: string, index: number) => (
+    <UnavailableColumn
+      key={`UnavailableHours_${currentUnix}`}
+      currentUnix={Number(currentUnix)}
+      index={index}
+    />
   );
 
-  const unavailableHours = useUnavailableHours();
-  const _renderSpecialRegion = (
-    props: UnavailableHoursSelector,
-    index: number
-  ) => {
-    const clampedStart = Math.max(props.start - calendarStart, 0);
-    const start = props.start > calendarStart ? props.start : calendarStart;
-    const totalMinutes = props.end - start;
-    const diffDays = (props.date - dateUnix) / MILLISECONDS_IN_DAY;
-
-    return (
-      <UnavailableHourItem
-        key={`${props.date}_${index}`}
-        diffDays={diffDays}
-        diffMinutes={clampedStart}
-        totalMinutes={totalMinutes}
-        backgroundColor={props.backgroundColor || backgroundColor}
-        enableBackgroundInteraction={props.enableBackgroundInteraction}
-        renderCustomUnavailableHour={renderCustomUnavailableHour}
-        originalProps={props}
-      />
-    );
-  };
-
-  const _renderColumn = (dayIndex: number) => {
-    const currentUnix = dateUnix + dayIndex * MILLISECONDS_IN_DAY;
-    const unavailableHoursByDate = unavailableHours[currentUnix];
-    if (!unavailableHoursByDate) {
-      return null;
-    }
-
-    return unavailableHoursByDate.map((props, index) =>
-      _renderSpecialRegion({ ...props, date: currentUnix }, index)
-    );
-  };
-
-  return <>{times(columns).map(_renderColumn)}</>;
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      {Object.keys(visibleDates).map(_renderColumn)}
+    </View>
+  );
 };
 
 export default UnavailableHours;
+
+const UnavailableColumn = memo(
+  ({ currentUnix, index }: { currentUnix: number; index: number }) => {
+    const { start: calendarStart, renderCustomUnavailableHour } = useBody();
+    const backgroundColor = useTheme(
+      useCallback(
+        (state) => state.unavailableHourBackgroundColor || state.colors.surface,
+        []
+      )
+    );
+
+    const unavailableHours = useUnavailableHoursByDate(currentUnix);
+    if (!unavailableHours) {
+      return null;
+    }
+
+    const _renderSpecialRegion = (
+      props: UnavailableHourProps,
+      regionIndex: number
+    ) => {
+      const clampedStart = Math.max(props.start - calendarStart, 0);
+      const start = props.start > calendarStart ? props.start : calendarStart;
+      const totalMinutes = props.end - start;
+
+      return (
+        <UnavailableHourItem
+          key={`${currentUnix}_${regionIndex}`}
+          diffDays={index}
+          diffMinutes={clampedStart}
+          totalMinutes={totalMinutes}
+          backgroundColor={props.backgroundColor || backgroundColor}
+          enableBackgroundInteraction={props.enableBackgroundInteraction}
+          renderCustomUnavailableHour={renderCustomUnavailableHour}
+          originalProps={props}
+        />
+      );
+    };
+
+    return unavailableHours.map(_renderSpecialRegion);
+  }
+);
 
 interface UnavailableHourItemProps {
   totalMinutes: number;
@@ -103,9 +107,11 @@ const UnavailableHourItem = ({
   const diffDaysAnim = useSharedValue(diffDays);
 
   useEffect(() => {
-    totalMinutesAnim.value = withTiming(totalMinutes);
-    diffMinutesAnim.value = withTiming(diffMinutes);
-    diffDaysAnim.value = withTiming(diffDays);
+    runOnUI(() => {
+      totalMinutesAnim.value = withTiming(totalMinutes, { duration: 250 });
+      diffMinutesAnim.value = withTiming(diffMinutes, { duration: 250 });
+      diffDaysAnim.value = withTiming(diffDays, { duration: 250 });
+    });
   }, [
     diffDays,
     diffDaysAnim,

@@ -1,15 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { SharedValue, useDerivedValue } from 'react-native-reanimated';
+import {
+  runOnJS,
+  SharedValue,
+  useAnimatedReaction,
+} from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeProvider';
 import { getWeekNumberOfYear } from '../utils/dateUtils';
-import AnimText from './AnimText';
+import Text from './Text';
+import { useTimezone } from '../context/TimezoneProvider';
 
 interface WeekNumberProps {
   date: SharedValue<number>;
 }
 
 const WeekNumber = ({ date }: WeekNumberProps) => {
+  const { timezone } = useTimezone();
   const theme = useTheme((state) => ({
     weekNumberBackgroundColor:
       state.weekNumberBackgroundColor || state.colors.surface,
@@ -17,7 +23,21 @@ const WeekNumber = ({ date }: WeekNumberProps) => {
     weekNumberContainer: state.weekNumberContainer,
   }));
 
-  const weekNumber = useDerivedValue(() => getWeekNumberOfYear(date.value));
+  const [value, setValue] = useState<string | number>('');
+
+  const _getWeekNumber = (newValue: number) => {
+    setValue(getWeekNumberOfYear(newValue, timezone));
+  };
+
+  useAnimatedReaction(
+    () => date.value,
+    (newValue, prevValue) => {
+      if (newValue !== prevValue) {
+        runOnJS(_getWeekNumber)(newValue);
+      }
+    },
+    []
+  );
 
   return (
     <View
@@ -27,7 +47,7 @@ const WeekNumber = ({ date }: WeekNumberProps) => {
         theme.weekNumberContainer,
       ]}
     >
-      <AnimText style={[styles.text, theme.weekNumber]} text={weekNumber} />
+      <Text style={[styles.text, theme.weekNumber]}>{value}</Text>
     </View>
   );
 };

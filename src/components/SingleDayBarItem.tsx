@@ -6,7 +6,6 @@ import { useTheme } from '../context/ThemeProvider';
 import DayItem from './DayItem';
 import LoadingOverlay from './Loading/Overlay';
 import ProgressBar from './Loading/ProgressBar';
-import Text from './Text';
 
 interface SingleDayBarItemProps {
   startUnix: number;
@@ -34,7 +33,9 @@ const SingleDayBarItem = ({ startUnix }: SingleDayBarItemProps) => {
           <DayItem dateUnix={startUnix} height={height} />
         </View>
         <View style={styles.eventsContainer}>
-          <Text>No events</Text>
+          {/**
+           * Events
+           */}
         </View>
       </Animated.View>
       <LoadingOverlay />

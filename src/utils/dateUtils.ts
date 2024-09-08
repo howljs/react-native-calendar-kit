@@ -94,12 +94,9 @@ export const toHourStr = (
   return formattedTime;
 };
 
-export const getWeekNumberOfYear = (date: number) => {
+export const getWeekNumberOfYear = (date: number, timezone: string) => {
   'worklet';
-  const dt = new Date(date);
-  const firstDayOfYear = new Date(dt.getFullYear(), 0, 1);
-  const pastDaysOfYear = (dt.getTime() - firstDayOfYear.getTime()) / 86400000;
-  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  return parseDateTime(date).setZone(timezone).weekNumber;
 };
 
 export const forceUpdateZone = (date: DateType, zone: string = 'local') => {

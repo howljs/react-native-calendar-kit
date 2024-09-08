@@ -1,8 +1,6 @@
 import React from 'react';
-import { GestureResponderEvent } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import type {
-  CalendarViewMode,
   OutOfRangeProps,
   PackedEvent,
   RenderHourProps,
@@ -28,7 +26,6 @@ export interface BodyContextProps {
   timelineHeight: Readonly<SharedValue<number>>;
   totalSlots: number;
   numberOfDays: number;
-  viewMode: CalendarViewMode;
   hourWidth: number;
   calendarLayout: Size;
   start: number;
@@ -51,7 +48,7 @@ export interface BodyContextProps {
   startOffset: SharedValue<number>;
   rightEdgeSpacing: number;
   overlapEventsSpacing: number;
-  onLongPressBackground?: (event: GestureResponderEvent) => void;
+  visibleDateUnixAnim: SharedValue<number>;
 }
 
 export const BodyContext = React.createContext<BodyContextProps | undefined>(

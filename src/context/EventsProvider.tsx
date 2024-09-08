@@ -50,23 +50,26 @@ const EventsContext = React.createContext<Store<EventsState> | undefined>(
 interface EventsProviderProps {
   firstDay: WeekdayNumbers;
   events?: EventItem[];
-  timeZone: string;
+  timezone: string;
   useAllDayEvent?: boolean;
+  pagesPerSide: number;
 }
 
 const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
+  pagesPerSide,
   events = [],
   children,
-  timeZone,
+  timezone,
   firstDay,
   useAllDayEvent,
 }) => {
   const currentStartDate = useDateChangedListener();
   const notifyDataChanged = useCallback(
     (date: number, offset: number = 7) => {
-      const zonedDate = forceUpdateZone(date, timeZone).toMillis();
-      const minUnix = zonedDate - MILLISECONDS_IN_DAY * offset;
-      const maxUnix = zonedDate + MILLISECONDS_IN_DAY * (offset * 2);
+      const zonedDate = forceUpdateZone(date, timezone).toMillis();
+      const minUnix = zonedDate - MILLISECONDS_IN_DAY * (offset * pagesPerSide);
+      const maxUnix =
+        zonedDate + MILLISECONDS_IN_DAY * (offset * (pagesPerSide + 1));
       const filteredEvents = filterEvents(
         events,
         minUnix,
@@ -82,10 +85,10 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
             event,
             minUnix,
             maxUnix,
-            timeZone
+            timezone
           );
         } else {
-          processedEvents = divideEvents(event, timeZone);
+          processedEvents = divideEvents(event, timezone);
         }
 
         for (const evt of processedEvents) {
@@ -113,7 +116,7 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
             event,
             minUnix,
             maxUnix,
-            timeZone,
+            timezone,
             true
           );
         } else {
@@ -121,7 +124,10 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
         }
 
         for (const evt of processedEvents) {
-          const startDate = startOfWeek(evt.start, firstDay).toMillis();
+          const startDate = startOfWeek(
+            parseDateTime(evt.start, { zone: timezone }).toISODate(),
+            firstDay
+          ).toMillis();
           const nextWeek = startDate + 7 * MILLISECONDS_IN_DAY;
           let endUnix = evt._internal.endUnix;
           let duration = evt._internal.duration;
@@ -173,7 +179,7 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
         allDayCountByWeek,
       });
     },
-    [events, firstDay, timeZone, useAllDayEvent]
+    [events, firstDay, pagesPerSide, timezone, useAllDayEvent]
   );
 
   useEffect(() => {
@@ -189,24 +195,30 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
 
 export default EventsProvider;
 
-export const useAllDayEvents = (date: number, numberOfDays: number) => {
+export const useAllDayEvents = (
+  date: number,
+  numberOfDays: number,
+  visibleDays: Record<number, boolean>
+) => {
   const eventsContext = useContext(EventsContext);
 
   const selectorByDate = useCallback(
     (state: EventsState) => {
       let data: PackedAllDayEvent[] = [];
-
-      for (let i = 0; i < numberOfDays; i++) {
+      const totalDays = numberOfDays === 1 ? 1 : 7;
+      for (let i = 0; i < totalDays; i++) {
         const dateUnix = date + i * MILLISECONDS_IN_DAY;
-        const events = state.allDayEvents[dateUnix];
-        if (events) {
-          data.push(...events);
+        if (visibleDays[dateUnix]) {
+          const events = state.allDayEvents[dateUnix];
+          if (events) {
+            data.push(...events);
+          }
         }
       }
 
       return { data };
     },
-    [date, numberOfDays]
+    [date, numberOfDays, visibleDays]
   );
 
   if (!eventsContext) {
@@ -221,24 +233,30 @@ export const useAllDayEvents = (date: number, numberOfDays: number) => {
   return state;
 };
 
-export const useRegularEvents = (date: number, numberOfDays: number) => {
+export const useRegularEvents = (
+  date: number,
+  numberOfDays: number,
+  visibleDays: Record<string, { diffDays: number; unix: number }>
+) => {
   const eventsContext = useContext(EventsContext);
 
   const selectorByDate = useCallback(
     (state: EventsState) => {
       let data: PackedEvent[] = [];
-
-      for (let i = 0; i < numberOfDays; i++) {
+      const totalDays = numberOfDays === 1 ? 1 : 7;
+      for (let i = 0; i < totalDays; i++) {
         const dateUnix = date + i * MILLISECONDS_IN_DAY;
-        const events = state.regularEvents[dateUnix];
-        if (events) {
-          data.push(...events);
+        if (visibleDays[dateUnix]) {
+          const events = state.regularEvents[dateUnix];
+          if (events) {
+            data.push(...events);
+          }
         }
       }
 
       return { data };
     },
-    [date, numberOfDays]
+    [date, numberOfDays, visibleDays]
   );
 
   if (!eventsContext) {

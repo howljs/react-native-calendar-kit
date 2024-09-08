@@ -1,30 +1,41 @@
+import isEqual from 'lodash/isEqual';
 import React, { FC, useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
+  runOnUI,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { MILLISECONDS_IN_DAY } from '../constants';
-import { useActions } from '../context/ActionsProvider';
 import { useBody } from '../context/BodyContext';
 import { useTheme } from '../context/ThemeProvider';
-import { PackedEvent, SizeAnimation } from '../types';
-import isEqual from 'lodash/isEqual';
+import {
+  EventItem as EventItemType,
+  PackedEvent,
+  SizeAnimation,
+} from '../types';
 
 interface EventItemProps {
   event: PackedEvent;
   startUnix: number;
   renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
+  onPressEvent?: (event: EventItemType) => void;
+  onLongPressEvent?: (event: PackedEvent) => void;
+  isDragging?: boolean;
+  visibleDates: Record<string, { diffDays: number; unix: number }>;
 }
 
 const EventItem: FC<EventItemProps> = ({
   event: eventInput,
   startUnix,
   renderEvent,
+  onPressEvent,
+  onLongPressEvent,
+  isDragging,
+  visibleDates,
 }) => {
-  const { onPressEvent } = useActions();
   const textStyle = useTheme((state) => state.textStyle);
   const {
     minuteHeight,
@@ -53,12 +64,30 @@ const EventItem: FC<EventItemProps> = ({
       newStart = 0;
     }
 
-    const diffDays = Math.floor(
+    let diffDays = Math.floor(
       (eventStartUnix - startUnix) / MILLISECONDS_IN_DAY
     );
 
-    return { totalDuration, startMinutes: newStart, diffDays };
-  }, [end, start, startMinutes, duration, eventStartUnix, startUnix]);
+    for (let i = startUnix; i < eventStartUnix; i += MILLISECONDS_IN_DAY) {
+      if (!visibleDates[i]) {
+        diffDays--;
+      }
+    }
+
+    return {
+      totalDuration,
+      startMinutes: newStart,
+      diffDays,
+    };
+  }, [
+    end,
+    start,
+    startMinutes,
+    duration,
+    eventStartUnix,
+    startUnix,
+    visibleDates,
+  ]);
 
   const data = useMemo(() => getInitialData(), [getInitialData]);
 
@@ -73,9 +102,11 @@ const EventItem: FC<EventItemProps> = ({
   const diffDaysAnim = useSharedValue(initialStartDuration.current.diffDays);
 
   useEffect(() => {
-    durationAnim.value = withTiming(data.totalDuration);
-    startMinutesAnim.value = withTiming(data.startMinutes);
-    diffDaysAnim.value = withTiming(data.diffDays);
+    runOnUI(() => {
+      durationAnim.value = withTiming(data.totalDuration, { duration: 150 });
+      startMinutesAnim.value = withTiming(data.startMinutes, { duration: 150 });
+      diffDaysAnim.value = withTiming(data.diffDays, { duration: 150 });
+    })();
   }, [
     data.diffDays,
     data.startMinutes,
@@ -126,22 +157,30 @@ const EventItem: FC<EventItemProps> = ({
   });
 
   const _onPressEvent = () => {
-    onPressEvent!(eventInput);
+    onPressEvent!(event);
   };
+
+  const _onLongPressEvent = () => {
+    onLongPressEvent!(eventInput);
+  };
+
+  const opacity = isDragging ? 0.5 : 1;
 
   return (
     <Animated.View style={[styles.container, animView]}>
       <TouchableOpacity
         style={StyleSheet.absoluteFill}
         activeOpacity={0.6}
-        disabled={!onPressEvent}
+        disabled={!onPressEvent && !onLongPressEvent}
         onPress={onPressEvent ? _onPressEvent : undefined}
+        onLongPress={onLongPressEvent ? _onLongPressEvent : undefined}
       >
         <View
           style={[
             styles.contentContainer,
             { backgroundColor: event.color },
             event.containerStyle,
+            { opacity },
           ]}
         >
           {renderEvent ? (
@@ -165,8 +204,12 @@ const EventItem: FC<EventItemProps> = ({
 export default React.memo(EventItem, (prev, next) => {
   return (
     isEqual(prev.event, next.event) &&
+    isEqual(prev.visibleDates, next.visibleDates) &&
     prev.startUnix === next.startUnix &&
-    prev.renderEvent === next.renderEvent
+    prev.renderEvent === next.renderEvent &&
+    prev.isDragging === next.isDragging &&
+    prev.onPressEvent === next.onPressEvent &&
+    prev.onLongPressEvent === next.onLongPressEvent
   );
 });
 

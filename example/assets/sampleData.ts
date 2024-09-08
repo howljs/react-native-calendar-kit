@@ -21,11 +21,11 @@ export const sampleData = [
     },
     start: {
       dateTime: '2024-01-05T07:20:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     end: {
       dateTime: '2024-01-05T09:00:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     transparency: 'transparent',
     visibility: 'private',
@@ -72,11 +72,11 @@ export const sampleData = [
     },
     start: {
       dateTime: '2024-01-08T09:45:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     end: {
       dateTime: '2024-01-08T11:35:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     transparency: 'transparent',
     visibility: 'private',
@@ -169,11 +169,11 @@ export const sampleData = [
     },
     start: {
       dateTime: '2023-02-20T17:00:00+07:00',
-      timeZone: 'Asia/Tokyo',
+      timezone: 'Asia/Tokyo',
     },
     end: {
       dateTime: '2023-02-20T17:30:00+07:00',
-      timeZone: 'Asia/Tokyo',
+      timezone: 'Asia/Tokyo',
     },
     recurrence: ['RRULE:FREQ=WEEKLY;UNTIL=20230702T145959Z;BYDAY=MO'],
     iCalUID: 'en7h1e31k90rs5nfeumtebseqt@google.com',
@@ -278,7 +278,7 @@ export const sampleData = [
     recurringEventId: 'en7h1e31k90rs5nfeumtebseqt_R20231211T100000',
     originalStartTime: {
       dateTime: '2024-01-01T17:00:00+07:00',
-      timeZone: 'UTC',
+      timezone: 'UTC',
     },
   },
   {
@@ -313,11 +313,11 @@ export const sampleData = [
     },
     start: {
       dateTime: '2024-01-02T20:00:00+07:00',
-      timeZone: 'Pacific/Niue',
+      timezone: 'Pacific/Niue',
     },
     end: {
       dateTime: '2024-01-03T05:00:00+07:00',
-      timeZone: 'Pacific/Niue',
+      timezone: 'Pacific/Niue',
     },
     iCalUID: '3ff7eckefj5glr2ehvb35k286k@google.com',
     sequence: 1,
@@ -346,11 +346,11 @@ export const sampleData = [
     },
     start: {
       dateTime: '2024-01-01T11:00:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     end: {
       dateTime: '2024-01-01T13:00:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     recurrence: ['RRULE:FREQ=DAILY;UNTIL=20240108T165959Z'],
     iCalUID: '44h162s48ar8t9f3jf2dihpl64@google.com',
@@ -380,11 +380,11 @@ export const sampleData = [
     },
     start: {
       dateTime: '2024-01-09T11:00:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     end: {
       dateTime: '2024-01-09T13:00:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     recurrence: ['RRULE:FREQ=DAILY;UNTIL=20240116T165959Z'],
     iCalUID: '44h162s48ar8t9f3jf2dihpl64_R20240109T040000@google.com',
@@ -414,16 +414,16 @@ export const sampleData = [
     },
     start: {
       dateTime: '2024-01-09T08:00:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     end: {
       dateTime: '2024-01-09T10:00:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     recurringEventId: '44h162s48ar8t9f3jf2dihpl64_R20240109T040000',
     originalStartTime: {
       dateTime: '2024-01-09T11:00:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
     iCalUID: '44h162s48ar8t9f3jf2dihpl64_R20240109T040000@google.com',
     sequence: 9,
@@ -440,7 +440,7 @@ export const sampleData = [
     recurringEventId: '44h162s48ar8t9f3jf2dihpl64_R20240109T040000',
     originalStartTime: {
       dateTime: '2024-01-11T11:00:00+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      timezone: 'Asia/Ho_Chi_Minh',
     },
   },
 ];

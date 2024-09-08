@@ -7,15 +7,23 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { GestureDetector, ScrollView } from 'react-native-gesture-handler';
+import {
+  Gesture,
+  GestureDetector,
+  ScrollView,
+} from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { useCalendar } from './CalendarProvider';
 import BodyItem from './components/BodyItem';
 import CalendarListView from './components/CalendarListView';
+import DragEventPlaceholder from './components/DragEventPlaceholder';
+import DraggingHour from './components/DraggingHour';
 import TimeColumn from './components/TimeColumn';
-import { EXTRA_HEIGHT, MILLISECONDS_IN_DAY, ScrollType } from './constants';
+import { EXTRA_HEIGHT, ScrollType } from './constants';
 import { useActions } from './context/ActionsProvider';
 import { BodyContext, type BodyContextProps } from './context/BodyContext';
+import { useCalendar } from './context/CalendarProvider';
+import useDragEventGesture from './hooks/useDragEventGesture';
+import useDragToCreateGesture from './hooks/useDragToCreateGesture';
 import usePinchToZoom from './hooks/usePinchToZoom';
 import useSyncedList from './hooks/useSyncedList';
 import type { CalendarBodyProps } from './types';
@@ -36,7 +44,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   const {
     calendarLayout,
     hourWidth,
-    viewMode,
     columnWidthAnim,
     numberOfDays,
     offsetY,
@@ -68,6 +75,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     calendarListRef,
     startOffset,
     scrollVisibleHeightAnim,
+    visibleDateUnixAnim,
+    pagesPerSide,
   } = useCalendar();
 
   const { onRefresh } = useActions();
@@ -81,6 +90,10 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   }));
 
   const { pinchGesture, pinchGestureRef } = usePinchToZoom();
+  const { gesture: dragEventGesture, isDragging: isDraggingEvent } =
+    useDragEventGesture();
+  const { isDragging: isDraggingCreate, gesture: dragToCreateGesture } =
+    useDragToCreateGesture();
 
   const _onLayout = (event: LayoutChangeEvent) => {
     scrollVisibleHeight.current = event.nativeEvent.layout.height;
@@ -101,16 +114,26 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       minDate: calendarData.minDateUnix,
       isRTL,
       numberOfDays,
+      columns,
+      visibleDatesArray: calendarData.visibleDatesArray,
     };
-  }, [calendarData.minDateUnix, isRTL, numberOfDays]);
+  }, [
+    calendarData.minDateUnix,
+    calendarData.visibleDatesArray,
+    isRTL,
+    numberOfDays,
+    columns,
+  ]);
 
   const _renderTimeSlots = useCallback(
     (index: number, extra: typeof extraData) => {
-      let totalColumns = extra.numberOfDays === 1 ? 1 : 7;
-      const dateUnixByIndex =
-        extra.minDate + index * totalColumns * MILLISECONDS_IN_DAY;
+      const pageIndex = index * extra.columns;
+      const dateUnixByIndex = extra.visibleDatesArray[pageIndex];
+      if (!dateUnixByIndex) {
+        return null;
+      }
 
-      return <BodyItem startUnix={dateUnixByIndex} />;
+      return <BodyItem pageIndex={pageIndex} startUnix={dateUnixByIndex} />;
     },
     []
   );
@@ -137,7 +160,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       totalSlots,
       columnWidthAnim,
       numberOfDays,
-      viewMode,
       hourWidth,
       start,
       end,
@@ -154,6 +176,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       startOffset,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      visibleDateUnixAnim,
     }),
     [
       renderHour,
@@ -172,7 +195,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       totalSlots,
       columnWidthAnim,
       numberOfDays,
-      viewMode,
       hourWidth,
       start,
       end,
@@ -189,18 +211,26 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       startOffset,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      visibleDateUnixAnim,
     ]
+  );
+
+  const composedGesture = Gesture.Race(
+    pinchGesture,
+    dragEventGesture,
+    dragToCreateGesture
   );
 
   return (
     <View style={styles.container}>
-      <GestureDetector gesture={pinchGesture}>
+      <GestureDetector gesture={composedGesture}>
         <AnimatedScrollView
           ref={verticalListRef}
           scrollEventThrottle={16}
           pinchGestureEnabled={false}
           showsVerticalScrollIndicator={false}
           onLayout={_onLayout}
+          scrollEnabled={!isDraggingEvent && !isDraggingCreate}
           onScroll={_onScroll}
           refreshControl={
             onRefresh ? (
@@ -231,9 +261,9 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                 >
                   <CalendarListView
                     ref={calendarListRef}
-                    key={numberOfDays === 1 ? 'single' : 'multi'}
                     animatedRef={gridListRef}
                     count={calendarData.count}
+                    scrollEnabled={!isDraggingEvent && !isDraggingCreate}
                     width={calendarGridWidth}
                     height={maxTimelineHeight + EXTRA_HEIGHT * 2}
                     renderItem={_renderTimeSlots}
@@ -242,9 +272,21 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                     snapToInterval={snapToInterval}
                     initialOffset={initialOffset}
                     onScroll={onScroll}
-                    columnWidth={columnWidth}
+                    columnsPerPage={columns}
                     onVisibleColumnChanged={onVisibleColumnChanged}
+                    renderAheadItem={pagesPerSide}
                   />
+                </View>
+                <View
+                  pointerEvents="box-none"
+                  style={[
+                    styles.absolute,
+                    { top: EXTRA_HEIGHT + spaceFromTop },
+                    styles.dragContainer,
+                  ]}
+                >
+                  <DragEventPlaceholder />
+                  <DraggingHour />
                 </View>
               </View>
             </Animated.View>
@@ -260,4 +302,5 @@ export default React.memo(CalendarBody);
 const styles = StyleSheet.create({
   container: { flex: 1 },
   absolute: { position: 'absolute' },
+  dragContainer: { zIndex: 99999 },
 });

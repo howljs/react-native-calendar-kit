@@ -9,8 +9,8 @@ import CalendarListView from './components/CalendarListView';
 import MultiDayBarItem from './components/MultiDayBarItem';
 import SingleDayBarItem from './components/SingleDayBarItem';
 import WeekNumber from './components/WeekNumber';
-import { DAY_BAR_HEIGHT, MILLISECONDS_IN_DAY, ScrollType } from './constants';
-import { useCalendar } from './CalendarProvider';
+import { DAY_BAR_HEIGHT, ScrollType } from './constants';
+import { useCalendar } from './context/CalendarProvider';
 import {
   DayBarContext,
   type DayBarContextProps,
@@ -24,7 +24,6 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
 }) => {
   const {
     calendarLayout,
-    viewMode,
     numberOfDays,
     columnWidthAnim,
     minuteHeight,
@@ -37,7 +36,6 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
     scrollByDay,
     initialOffset,
     columns,
-    columnWidth,
     showWeekNumber,
     visibleDateUnixAnim,
   } = useCalendar();
@@ -52,7 +50,7 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
   const dayBarHeight = useDerivedValue(() => {
     // TODO: all-day events
     return initialHeight;
-  }, [viewMode]);
+  }, []);
 
   const animView = useAnimatedStyle(() => {
     return {
@@ -62,7 +60,6 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
 
   const value = useMemo<DayBarContextProps>(
     () => ({
-      viewMode,
       height: initialHeight,
       numberOfDays,
       columnWidthAnim,
@@ -73,9 +70,9 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
       isRTL,
       scrollByDay,
       columns,
+      calendarData,
     }),
     [
-      viewMode,
       initialHeight,
       numberOfDays,
       columnWidthAnim,
@@ -86,27 +83,39 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
       isRTL,
       scrollByDay,
       columns,
+      calendarData,
     ]
   );
 
   const extraData = useMemo(
     () => ({
       minDate: calendarData.minDateUnix,
+      visibleDatesArray: calendarData.visibleDatesArray,
       isRTL,
       numberOfDays,
+      columns,
     }),
-    [calendarData.minDateUnix, isRTL, numberOfDays]
+    [
+      calendarData.minDateUnix,
+      calendarData.visibleDatesArray,
+      isRTL,
+      numberOfDays,
+      columns,
+    ]
   );
 
   const _renderDayBarItem = useCallback(
     (index: number, extra: typeof extraData) => {
-      if (extra.numberOfDays === 1) {
-        const dateUnixByIndex = extra.minDate + index * MILLISECONDS_IN_DAY;
+      const dateUnixByIndex = extra.visibleDatesArray[index * extra.columns];
+      if (!dateUnixByIndex) {
+        return null;
+      }
+
+      if (extra.columns === 1) {
         return <SingleDayBarItem startUnix={dateUnixByIndex} />;
       }
 
-      const dateUnixByIndex = extra.minDate + index * 7 * MILLISECONDS_IN_DAY;
-      return <MultiDayBarItem startUnix={dateUnixByIndex} />;
+      return <MultiDayBarItem pageIndex={index * extra.columns} />;
     },
     []
   );
@@ -138,7 +147,6 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
               ]}
             >
               <CalendarListView
-                key={numberOfDays === 1 ? 'single' : 'multi'}
                 animatedRef={dayBarListRef}
                 count={calendarData.count}
                 width={calendarGridWidth}
@@ -149,7 +157,7 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
                 snapToInterval={snapToInterval}
                 initialOffset={initialOffset}
                 onScroll={onScroll}
-                columnWidth={columnWidth}
+                columnsPerPage={columns}
                 onVisibleColumnChanged={onVisibleColumnChanged}
               />
             </View>

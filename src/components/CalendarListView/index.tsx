@@ -31,12 +31,12 @@ interface CalendarListViewProps {
   ) => void;
   snapToInterval?: number;
   inverted?: boolean;
-  columnWidth?: number;
   onVisibleColumnChanged?: (props: {
     index: number;
     column: number;
     offset: number;
   }) => void;
+  columnsPerPage?: number;
 }
 
 export type CalendarListViewHandle = RecyclerListView<
@@ -57,7 +57,7 @@ const CalendarListView = forwardRef<
     extraData,
     renderItem,
     initialOffset = 0,
-    renderAheadItem = 4,
+    renderAheadItem = 2,
     scrollEventThrottle = 16,
     scrollEnabled,
     animatedRef,
@@ -65,8 +65,8 @@ const CalendarListView = forwardRef<
     onVisibleIndicesChanged,
     snapToInterval,
     inverted,
-    columnWidth,
     onVisibleColumnChanged,
+    columnsPerPage = 1,
   } = props;
 
   const layoutProvider = useMemo(
@@ -93,12 +93,12 @@ const CalendarListView = forwardRef<
     if (!snapToInterval || !width) {
       return undefined;
     }
-    const columnsPerPage = width / snapToInterval;
+
     return Array.from(
       { length: columnsPerPage },
       (_, col) => col * snapToInterval
     );
-  }, [width, snapToInterval]);
+  }, [columnsPerPage, snapToInterval, width]);
 
   const _snapToOffsets = useMemo(() => {
     if (!baseOffsets) {
@@ -142,7 +142,7 @@ const CalendarListView = forwardRef<
       extendedState={extraData}
       onVisibleIndicesChanged={onVisibleIndicesChanged}
       externalScrollView={animatedRef ? ExternalScrollView : undefined}
-      columnsPerPage={columnWidth ? Math.floor(width / columnWidth) : undefined}
+      columnsPerPage={columnsPerPage}
       onVisibleColumnChanged={onVisibleColumnChanged}
     />
   );

@@ -62,5 +62,3 @@ export const HOUR_SHORT_LINE_WIDTH = 8;
 export const MIN_ALL_DAY_EVENT_HEIGHT = 15;
 export const MAX_ALL_DAY_EVENT_HEIGHT = 25;
 export const COLLAPSED_ROW_COUNT = 2;
-
-export const NUMBER_OF_DAYS = { day: 1, week: 7, workWeek: 5 };
