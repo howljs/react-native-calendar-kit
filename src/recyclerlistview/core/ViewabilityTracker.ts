@@ -14,8 +14,10 @@ export type TOnItemStatusChanged = (
 
 export type TOnColumnChanged = (props: {
   index: number;
+  columns: number;
   column: number;
   offset: number;
+  extraScrollData: Record<string, any>;
 }) => void;
 
 export default class ViewabilityTracker {
@@ -36,11 +38,13 @@ export default class ViewabilityTracker {
   private _actualOffset: number;
   private _itemCount: number;
   private _columnsPerPage?: number;
+  private _extraScrollData?: Record<string, any>;
 
   constructor(
     renderAheadOffset: number,
     initialOffset: number,
-    columnsPerPage?: number
+    columnsPerPage?: number,
+    extraScrollData?: Record<string, any>
   ) {
     this._currentOffset = Math.max(0, initialOffset);
     this._maxOffset = 0;
@@ -57,6 +61,7 @@ export default class ViewabilityTracker {
     };
     this._itemCount = 0;
     this._columnsPerPage = columnsPerPage;
+    this._extraScrollData = extraScrollData;
 
     this._visibleIndexes = []; //needs to be sorted
     this._engagedIndexes = []; //needs to be sorted
@@ -74,12 +79,14 @@ export default class ViewabilityTracker {
     layout: Layout,
     maxOffset: number,
     itemCount: number,
-    columnsPerPage?: number
+    columnsPerPage?: number,
+    extraScrollData?: Record<string, any>
   ): void {
     this._layout = layout;
     this._maxOffset = maxOffset;
     this._itemCount = itemCount;
     this._columnsPerPage = columnsPerPage;
+    this._extraScrollData = extraScrollData;
   }
 
   public setDimensions(dimension: Dimension): void {
@@ -350,9 +357,9 @@ export default class ViewabilityTracker {
       newVisibleItems.length !== 0 &&
       this._columnsPerPage
     ) {
-      const columnWidth = this._windowBound / 7;
+      const columnWidth = this._windowBound / this._columnsPerPage;
       const startIndex = Math.floor(
-        Math.round(this._currentOffset / columnWidth) / 7
+        Math.round(this._currentOffset / columnWidth) / this._columnsPerPage
       );
       const startOffset = startIndex * this._windowBound;
       const column = Math.round(
@@ -365,8 +372,10 @@ export default class ViewabilityTracker {
       ) {
         this.onVisibleColumnChanged({
           index: startIndex,
+          columns: this._columnsPerPage,
           column,
           offset: this._currentOffset,
+          extraScrollData: this._extraScrollData || {},
         });
         this._startColumn = { index: startIndex, columns: column };
       }

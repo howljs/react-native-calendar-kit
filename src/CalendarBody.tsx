@@ -142,6 +142,13 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     offsetY.value = e.nativeEvent.contentOffset.y;
   };
 
+  const extraScrollData = useMemo(() => {
+    return {
+      visibleDates: calendarData.visibleDatesArray,
+      visibleColumns: numberOfDays,
+    };
+  }, [calendarData.visibleDatesArray, numberOfDays]);
+
   const value = useMemo<BodyContextProps>(
     () => ({
       renderHour,
@@ -275,6 +282,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                     columnsPerPage={columns}
                     onVisibleColumnChanged={onVisibleColumnChanged}
                     renderAheadItem={pagesPerSide}
+                    extraScrollData={extraScrollData}
                   />
                 </View>
                 <View

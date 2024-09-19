@@ -11,7 +11,6 @@ import Text from './Text';
 
 interface DayItemProps {
   dateUnix: number;
-  height: number;
 }
 
 const selectDayItemTheme = (state: ThemeConfigs) => ({
@@ -26,7 +25,7 @@ const selectDayItemTheme = (state: ThemeConfigs) => ({
   todayNumber: state.todayNumber || { color: state.colors.onPrimary },
 });
 
-const DayItem: React.FC<DayItemProps> = ({ dateUnix, height }) => {
+const DayItem: React.FC<DayItemProps> = ({ dateUnix }) => {
   const { weekDayShort } = useLocale();
   const { currentDateUnix } = useNowIndicator();
   const { onPressDayNumber } = useActions();
@@ -83,7 +82,7 @@ const DayItem: React.FC<DayItemProps> = ({ dateUnix, height }) => {
       disabled={!onPressDayNumber}
       onPress={_onDayPress}
     >
-      <View style={[styles.dayContainer, { height }]}>
+      <View style={styles.dayContainer}>
         <Text
           style={[
             styles.weekDayText,

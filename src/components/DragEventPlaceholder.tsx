@@ -100,8 +100,12 @@ const DragEventPlaceholderInner = () => {
       >
         {!!draggingEvent?.title && <Text>{draggingEvent.title}</Text>}
       </View>
-      <DragDot type="top" />
-      <DragDot type="bottom" />
+      <View style={[styles.dot, styles.dotLeft]}>
+        <DragDot />
+      </View>
+      <View style={[styles.dot, styles.dotRight]}>
+        <DragDot />
+      </View>
     </Animated.View>
   );
 };
@@ -128,11 +132,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    borderRadius: 4,
+  },
+  dot: {
+    position: 'absolute',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
   },
   event: {
     borderWidth: 3,
     borderRadius: 4,
     overflow: 'hidden',
   },
+  dotLeft: { top: -12, left: -12 },
+  dotRight: { bottom: -12, right: -12 },
 });

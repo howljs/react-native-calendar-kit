@@ -113,7 +113,10 @@ const TimelineBoard = ({
         }),
         timezone
       );
-      onPressBackground?.(dateTimeToISOString(dateObj), event);
+      onPressBackground?.(
+        { date: dateTimeToISOString(dateObj), isAllDay: false },
+        event
+      );
     }
   };
 
@@ -134,7 +137,7 @@ const TimelineBoard = ({
       );
       const dateString = dateTimeToISOString(dateObj);
       triggerDragCreateEvent?.(dateString, event);
-      onLongPressBackground?.(dateString, event);
+      onLongPressBackground?.({ date: dateString, isAllDay: false }, event);
     }
   };
 

@@ -92,12 +92,18 @@ export interface ActionsProviderProps {
   /**
    * Callback when the background is pressed
    */
-  onPressBackground?: (date: string, event: GestureResponderEvent) => void;
+  onPressBackground?: (
+    props: { date: string; isAllDay?: boolean },
+    event: GestureResponderEvent
+  ) => void;
 
   /**
    * Callback when the background is long pressed
    */
-  onLongPressBackground?: (date: string, event: GestureResponderEvent) => void;
+  onLongPressBackground?: (
+    props: { date: string; isAllDay?: boolean },
+    event: GestureResponderEvent
+  ) => void;
 
   /**
    * Callback when the day number is pressed
@@ -150,6 +156,13 @@ export interface ActionsProviderProps {
     start: string;
     end: string;
   }) => Promise<void> | void;
+
+  /**
+   * Use all day event
+   *
+   * Default: `false`
+   */
+  useAllDayEvent?: boolean;
 }
 
 export interface CalendarProviderProps extends ActionsProviderProps {
@@ -443,12 +456,6 @@ export interface EventItem extends Record<string, any> {
   /** Container style of the event */
   containerStyle?: StyleProp<ViewStyle>;
 
-  /** Recurrence rule of the event */
-  recurrenceRule?: string;
-
-  /** Recurrence exdates of the event */
-  recurrenceExdates?: DateType[];
-
   isAllDay?: boolean;
 }
 
@@ -551,12 +558,13 @@ export interface EventItemInternal extends EventItem {
     originalStartUnix: number;
     originalEndUnix: number;
     startMinutes?: number;
+    index: number;
+    weekStart?: number;
   };
 }
 
 export interface PackedEvent extends EventItem {
   _internal: EventItemInternal['_internal'] & {
-    index: number;
     total: number;
     columnSpan: number;
   };
@@ -565,9 +573,8 @@ export interface PackedEvent extends EventItem {
 export interface PackedAllDayEvent extends EventItem {
   _internal: EventItemInternal['_internal'] & {
     rowIndex: number;
-    columnIndex: number;
-    totalColumns: number;
     startIndex: number;
+    columnSpan: number;
   };
 }
 

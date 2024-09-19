@@ -114,11 +114,10 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     defaultDuration = 30,
     onDragCreateEventStart,
     onDragCreateEventEnd,
+    useAllDayEvent = false,
   },
   ref
 ) => {
-  // TODO: Implement all day events
-  const useAllDayEvent = false;
   // TODO: Implement RTL
   const isRTL = false;
 
@@ -196,7 +195,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const verticalListRef = useAnimatedRef<Animated.ScrollView>();
   const dayBarListRef = useAnimatedRef<Animated.ScrollView>();
   const gridListRef = useAnimatedRef<Animated.ScrollView>();
-  const scrollType = useRef<ScrollType | null>(null);
+  const scrollType = useRef<ScrollType>(ScrollType.calendarGrid);
   const isTriggerMomentum = useRef(false);
   const scrollVisibleHeight = useRef(0);
   const triggerDateChanged = useRef<number>();
@@ -217,6 +216,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   });
 
   const visibleDateUnixAnim = useSharedValue(visibleDateUnix.current);
+  const visibleWeeks = useSharedValue([visibleDateUnix.current]);
 
   const initialOffset = useMemo(() => {
     const visibleDatesArray = calendarData.visibleDatesArray;
@@ -424,8 +424,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     }
   );
 
-  const setVisibleDate = useLatestCallback((date: DateType) => {
-    const dateObj = parseDateTime(date, { zone: timezone });
+  const setVisibleDate = useLatestCallback((initDate: DateType) => {
+    const dateObj = parseDateTime(initDate, { zone: timezone });
     const isoDate = dateObj.toISODate();
     const targetDateUnix = parseDateTime(isoDate).toMillis();
     const visibleDates = calendarData.visibleDatesArray;
@@ -456,19 +456,15 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     }
   }, [goToDate, scrollToNow]);
 
+  const prevMode = useRef(isSingleDay);
   useEffect(() => {
-    runOnUI(() => {
+    if (prevMode.current !== isSingleDay) {
+      prevMode.current = isSingleDay;
       columnWidthAnim.value = columnWidth;
-      // if (numberOfDays === 1) {
-      //   columnWidthAnim.value = columnWidth;
-      // } else {
-      //   columnWidthAnim.value = withDelay(
-      //     250,
-      //     withTiming(columnWidth, { duration: 250 })
-      //   );
-      // }
-    })();
-  }, [columnWidthAnim, columnWidth, numberOfDays]);
+    } else {
+      columnWidthAnim.value = withTiming(columnWidth);
+    }
+  }, [columnWidthAnim, columnWidth, columns, isSingleDay]);
 
   const snapToInterval =
     numberOfDays > 1 && scrollByDay ? columnWidth : undefined;
@@ -520,6 +516,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       scrollVisibleHeightAnim,
       pagesPerSide,
       hideWeekDays,
+      visibleWeeks,
     }),
     [
       calendarLayout,
@@ -562,6 +559,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       scrollVisibleHeightAnim,
       pagesPerSide,
       hideWeekDays,
+      visibleWeeks,
     ]
   );
 
@@ -608,6 +606,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                           timezone={timezone}
                           useAllDayEvent={useAllDayEvent}
                           pagesPerSide={pagesPerSide}
+                          hideWeekDays={hideWeekDays}
                         >
                           <DragEventProvider
                             dragStep={dragStep}

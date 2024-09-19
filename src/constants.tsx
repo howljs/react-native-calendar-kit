@@ -59,6 +59,7 @@ export enum ScrollType {
 
 export const EXTRA_HEIGHT = 300;
 export const HOUR_SHORT_LINE_WIDTH = 8;
-export const MIN_ALL_DAY_EVENT_HEIGHT = 15;
+export const MIN_ALL_DAY_EVENT_HEIGHT = 20;
 export const MAX_ALL_DAY_EVENT_HEIGHT = 25;
 export const COLLAPSED_ROW_COUNT = 2;
+export const COUNT_CONTAINER_HEIGHT = 30;

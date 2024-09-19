@@ -31,7 +31,7 @@ const VisibleDateProvider: FC<PropsWithChildren<VisibleDateProviderProps>> = ({
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedDateUnix(visibleDateUnix);
-    }, 250);
+    }, 150);
     return () => clearTimeout(timeoutId);
   }, [visibleDateUnix]);
 

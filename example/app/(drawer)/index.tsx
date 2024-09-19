@@ -72,28 +72,280 @@ const minDate = new Date(
   new Date().getDate()
 );
 
+const allDayEvents = [
+  {
+    id: 'event_0',
+    start: '2024-09-14T22:00:00.000+07:00',
+    end: '2024-09-24T22:00:00.000+07:00',
+    title: 'Event 0',
+    color: '#5428F2',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_0x',
+    start: '2024-09-16T22:00:00.000+07:00',
+    end: '2024-09-22T23:00:00.000+07:00',
+    title: 'Event 0x',
+    color: '#5428F2',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_1',
+    start: '2024-09-16T22:00:00.000+07:00',
+    end: '2024-09-18T22:00:00.000+07:00',
+    title: 'Event 1',
+    color: '#5428F2',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_1x',
+    start: '2024-09-16T00:00:00.000+07:00',
+    end: '2024-09-19T00:00:00.000+07:00',
+    title: 'Event 1x',
+    color: '#5428F2',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_2',
+    start: '2024-09-21T00:00:00.000+07:00',
+    end: '2024-09-22T00:00:00.000+07:00',
+    title: 'Event 2',
+    color: '#8EBB85',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_2x',
+    start: '2024-09-18T00:00:00.000+07:00',
+    end: '2024-09-21T00:00:00.000+07:00',
+    title: 'Event 2x',
+    color: '#5428F2',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_3c',
+    start: '2024-09-16',
+    end: '2024-09-16',
+    title: 'Event 3',
+    color: '#B70100',
+    titleColor: 'white',
+    isAllDay: true,
+  },
+  {
+    id: 'event_3xx',
+    start: '2024-09-16T22:00:00.000+07:00',
+    end: '2024-09-17T22:00:00.000+07:00',
+    title: 'Event 3xx',
+    color: '#5428F2',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_3x',
+    start: '2024-09-16T15:00:00.000+07:00',
+    end: '2024-09-17T23:00:00.000+07:00',
+    title: 'Event 3x',
+    color: '#5428F2',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_4',
+    start: '2024-09-20T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 4',
+    color: '#B70100',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_5',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 5',
+    color: '#EAAB7E',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_6',
+    start: '2024-09-17T17:00:00.000Z',
+    end: '2024-09-18T17:00:00.000Z',
+    title: 'Event 6x',
+    color: '#AC2A57',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_7',
+    start: '2024-09-20T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 7',
+    color: '#DC1F98',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_8',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 8',
+    color: '#6E911C',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_9',
+    start: '2024-09-20T17:00:00.000Z',
+    end: '2024-09-22T17:00:00.000Z',
+    title: 'Event 9',
+    color: '#BE1459',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_10',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 10',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_11',
+    start: '2024-09-20T00:00:00.000+07:00',
+    end: '2024-09-26T00:00:00.000+07:00',
+    title: 'Event 11',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_12',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_13',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_14',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_15',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_16',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_17',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_18',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_19',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_20',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_21',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_22',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_23',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_24',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+  {
+    id: 'event_25',
+    start: '2024-09-19T17:00:00.000Z',
+    end: '2024-09-21T17:00:00.000Z',
+    title: 'Event 12',
+    color: '#BA3D9D',
+    titleColor: 'white',
+  },
+];
 const generateEvents = () => {
-  return new Array(300).fill(0).map((_, index) => {
-    const randomDateByIndex = new Date(
-      minDate.getFullYear(),
-      minDate.getMonth(),
-      minDate.getDate() + Math.floor(index / 2),
-      Math.floor(Math.random() * 24),
-      Math.round((Math.random() * 60) / 15) * 15
-    );
-
-    const duration = (Math.floor(Math.random() * 15) + 1) * 15 * 60 * 1000;
-    const endDate = new Date(randomDateByIndex.getTime() + duration);
-
-    return {
-      id: `event_${index + 1}`,
-      start: randomDateByIndex.toISOString(),
-      end: endDate.toISOString(),
-      title: `Event ${index + 1}`,
-      color: randomColor(),
-      titleColor: 'white',
-    };
-  });
+  return new Array(1000)
+    .fill(0)
+    .map((_, index) => {
+      const randomDateByIndex = new Date(
+        minDate.getFullYear(),
+        minDate.getMonth(),
+        minDate.getDate() + Math.floor(index / 2),
+        Math.floor(Math.random() * 24),
+        Math.round((Math.random() * 60) / 15) * 15
+      );
+      const duration = (Math.floor(Math.random() * 15) + 1) * 15 * 60 * 1000;
+      const endDate = new Date(randomDateByIndex.getTime() + duration);
+      return {
+        id: `event_${index + 1}`,
+        start: randomDateByIndex.toISOString(),
+        end: endDate.toISOString(),
+        title: `Event ${index + 1}`,
+        color: randomColor(),
+        titleColor: 'white',
+      };
+    })
+    .concat(allDayEvents);
 };
 
 const Calendar = () => {
@@ -143,7 +395,7 @@ const Calendar = () => {
     return <OutOfRange {...props} />;
   }, []);
 
-  const _onPressBackground = (date: string) => {
+  const _onPressBackground = ({ date }: { date: string }) => {
     // if (selectedEvent) {
     //   const startISO = new Date(date).toISOString();
     //   const duration =
@@ -212,6 +464,7 @@ const Calendar = () => {
         timezone="Asia/Tokyo"
         allowDragToEdit
         allowDragToCreate
+        useAllDayEvent
         onLongPressEvent={(event) => {
           if (event.id !== selectedEvent?.id) {
             setSelectedEvent(undefined);
@@ -223,17 +476,19 @@ const Calendar = () => {
         defaultDuration={60}
         onDragEventEnd={(event) => {
           if (event.id) {
-            let newEvents = events.filter((item) => item.id !== event.id);
-            newEvents.push({ ...event, id: event.id });
-            setEvents(newEvents);
+            let filteredEvents = events.filter((item) => item.id !== event.id);
+            const newEvent = { ...event, id: event.id };
+            filteredEvents.push(newEvent);
+            setEvents(filteredEvents);
           }
           setSelectedEvent(event);
         }}
         onDragSelectedEventEnd={(event) => {
           if (event.id) {
-            let newEvents = events.filter((item) => item.id !== event.id);
-            newEvents.push({ ...event, id: event.id });
-            setEvents(newEvents);
+            let filteredEvents = events.filter((item) => item.id !== event.id);
+            const newEvent = { ...event, id: event.id };
+            filteredEvents.push(newEvent);
+            setEvents(filteredEvents);
           }
           setSelectedEvent(event);
         }}

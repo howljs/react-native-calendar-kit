@@ -45,6 +45,7 @@ export interface CalendarContextProps {
   columns: number;
   triggerDateChanged: React.MutableRefObject<number | undefined>;
   visibleDateUnixAnim: SharedValue<number>;
+  visibleWeeks: SharedValue<number[]>;
   calendarListRef: React.RefObject<CalendarListViewHandle>;
   startOffset: Readonly<SharedValue<number>>;
   scrollVisibleHeightAnim: SharedValue<number>;

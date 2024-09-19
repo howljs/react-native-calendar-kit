@@ -34,9 +34,12 @@ interface CalendarListViewProps {
   onVisibleColumnChanged?: (props: {
     index: number;
     column: number;
+    columns: number;
+    extraScrollData: Record<string, any>;
     offset: number;
   }) => void;
-  columnsPerPage?: number;
+  columnsPerPage: number;
+  extraScrollData?: Record<string, any>;
 }
 
 export type CalendarListViewHandle = RecyclerListView<
@@ -66,7 +69,8 @@ const CalendarListView = forwardRef<
     snapToInterval,
     inverted,
     onVisibleColumnChanged,
-    columnsPerPage = 1,
+    columnsPerPage,
+    extraScrollData,
   } = props;
 
   const layoutProvider = useMemo(
@@ -144,6 +148,7 @@ const CalendarListView = forwardRef<
       externalScrollView={animatedRef ? ExternalScrollView : undefined}
       columnsPerPage={columnsPerPage}
       onVisibleColumnChanged={onVisibleColumnChanged}
+      extraScrollData={extraScrollData}
     />
   );
 });

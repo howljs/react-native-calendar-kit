@@ -4,20 +4,32 @@ import { ScrollView } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import CalendarListView from './components/CalendarListView';
+import ExpandButton from './components/ExpandButton';
 import MultiDayBarItem from './components/MultiDayBarItem';
 import SingleDayBarItem from './components/SingleDayBarItem';
 import WeekNumber from './components/WeekNumber';
-import { DAY_BAR_HEIGHT, ScrollType } from './constants';
+import {
+  COLLAPSED_ROW_COUNT,
+  COUNT_CONTAINER_HEIGHT,
+  DAY_BAR_HEIGHT,
+  MAX_ALL_DAY_EVENT_HEIGHT,
+  MIN_ALL_DAY_EVENT_HEIGHT,
+  ScrollType,
+} from './constants';
 import { useCalendar } from './context/CalendarProvider';
 import {
   DayBarContext,
   type DayBarContextProps,
 } from './context/DayBarContext';
+import { useEventCountsByWeek } from './context/EventsProvider';
 import { useTheme } from './context/ThemeProvider';
 import useSyncedList from './hooks/useSyncedList';
 import type { CalendarDayBarProps } from './types';
+import { clampValues } from './utils/utils';
 
 const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
   dayBarHeight: initialHeight = DAY_BAR_HEIGHT,
@@ -38,6 +50,8 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
     columns,
     showWeekNumber,
     visibleDateUnixAnim,
+    visibleWeeks,
+    columnWidth,
   } = useCalendar();
 
   const colors = useTheme((state) => state.colors);
@@ -47,14 +61,53 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
   const { onScroll, onVisibleColumnChanged } = useSyncedList({
     id: ScrollType.dayBar,
   });
-  const dayBarHeight = useDerivedValue(() => {
-    // TODO: all-day events
-    return initialHeight;
-  }, []);
+
+  const isExpanded = useSharedValue(false);
+  const isShowExpandButton = useSharedValue(false);
+  const eventHeight = useDerivedValue(() =>
+    clampValues(
+      15 * minuteHeight.value,
+      MIN_ALL_DAY_EVENT_HEIGHT,
+      MAX_ALL_DAY_EVENT_HEIGHT
+    )
+  );
+  const eventCounts = useEventCountsByWeek(columns === 1 ? 'day' : 'week');
+  const allDayEventsHeight = useDerivedValue(() => {
+    const currentStartWeek = visibleWeeks.value[0];
+    const nextStartWeek = visibleWeeks.value[1];
+    let count = currentStartWeek ? eventCounts[currentStartWeek] ?? 0 : 0;
+    if (nextStartWeek) {
+      const countNextWeek = eventCounts[nextStartWeek] ?? 0;
+      count = Math.max(count, countNextWeek);
+    }
+
+    if (count && count > 0) {
+      const totalCount = isExpanded.value
+        ? count
+        : Math.min(count, COLLAPSED_ROW_COUNT);
+      const nextHeight = totalCount * eventHeight.value;
+      const isShowExpand = count > COLLAPSED_ROW_COUNT;
+      isShowExpandButton.value = isShowExpand;
+      const extraHeight =
+        columns === 1
+          ? isShowExpand
+            ? isExpanded.value
+              ? -initialHeight - 14
+              : 12 - initialHeight
+            : -initialHeight
+          : 0;
+      return withTiming(nextHeight + COUNT_CONTAINER_HEIGHT + extraHeight, {
+        duration: 250,
+      });
+    }
+
+    isShowExpandButton.value = false;
+    return withTiming(0, { duration: 250 });
+  }, [eventCounts, initialHeight, columns]);
 
   const animView = useAnimatedStyle(() => {
     return {
-      height: dayBarHeight.value,
+      height: Math.max(initialHeight, initialHeight + allDayEventsHeight.value),
     };
   });
 
@@ -66,11 +119,15 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
       calendarLayout,
       hourWidth,
       minuteHeight,
-      dayBarHeight,
       isRTL,
       scrollByDay,
       columns,
       calendarData,
+      eventHeight,
+      isExpanded,
+      allDayEventsHeight,
+      isShowExpandButton,
+      columnWidth,
     }),
     [
       initialHeight,
@@ -79,11 +136,15 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
       calendarLayout,
       hourWidth,
       minuteHeight,
-      dayBarHeight,
       isRTL,
       scrollByDay,
       columns,
       calendarData,
+      eventHeight,
+      isExpanded,
+      allDayEventsHeight,
+      isShowExpandButton,
+      columnWidth,
     ]
   );
 
@@ -115,16 +176,28 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
         return <SingleDayBarItem startUnix={dateUnixByIndex} />;
       }
 
-      return <MultiDayBarItem pageIndex={index * extra.columns} />;
+      return (
+        <MultiDayBarItem
+          pageIndex={index * extra.columns}
+          startUnix={dateUnixByIndex}
+        />
+      );
     },
     []
   );
+
+  const extraScrollData = useMemo(() => {
+    return {
+      visibleDates: calendarData.visibleDatesArray,
+      visibleColumns: numberOfDays,
+    };
+  }, [calendarData.visibleDatesArray, numberOfDays]);
 
   const extraWidth = numberOfDays > 1 ? hourWidth : 0;
 
   return (
     <View style={[styles.dayBarContainer, { width: calendarLayout.width }]}>
-      <ScrollView alwaysBounceVertical={false}>
+      <ScrollView alwaysBounceVertical={false} overScrollMode="never">
         <DayBarContext.Provider value={value}>
           <Animated.View
             style={[{ backgroundColor: dayBarBackgroundColor }, animView]}
@@ -132,6 +205,7 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
             {numberOfDays > 1 && (
               <View style={[styles.leftArea, { width: hourWidth }]}>
                 {showWeekNumber && <WeekNumber date={visibleDateUnixAnim} />}
+                <ExpandButton />
                 <View
                   style={[styles.border, { backgroundColor: colors.border }]}
                 />
@@ -159,6 +233,7 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
                 onScroll={onScroll}
                 columnsPerPage={columns}
                 onVisibleColumnChanged={onVisibleColumnChanged}
+                extraScrollData={extraScrollData}
               />
             </View>
           </Animated.View>
@@ -171,7 +246,11 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
 export default React.memo(CalendarDayBar);
 
 const styles = StyleSheet.create({
-  dayBarContainer: { zIndex: 999 },
+  dayBarContainer: {
+    zIndex: 999,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
   absolute: { position: 'absolute' },
   leftArea: { height: '100%' },
   border: { right: 0, height: '100%', position: 'absolute', width: 1 },

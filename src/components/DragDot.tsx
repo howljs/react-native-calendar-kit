@@ -2,22 +2,12 @@ import React, { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../context/ThemeProvider';
 
-const DragDot = ({ type }: { type: 'top' | 'bottom' }) => {
+const DragDot = ({}: {}) => {
   const primaryColor = useTheme(
     useCallback((state) => state.colors.primary, [])
   );
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          top: type === 'top' ? -12 : undefined,
-          bottom: type === 'bottom' ? -12 : undefined,
-          left: type === 'top' ? -12 : undefined,
-          right: type === 'bottom' ? -12 : undefined,
-        },
-      ]}
-    >
+    <View style={styles.container}>
       <View style={styles.dotBackground}>
         <View
           style={[
@@ -38,11 +28,11 @@ export default DragDot;
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
     width: 24,
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 12,
   },
   dotBackground: {
     position: 'absolute',

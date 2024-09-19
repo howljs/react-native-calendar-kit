@@ -10,11 +10,15 @@ export interface DayBarContextProps {
   calendarLayout: Size;
   hourWidth: number;
   minuteHeight: SharedValue<number>;
-  dayBarHeight: SharedValue<number>;
+  eventHeight: Readonly<SharedValue<number>>;
   isRTL: boolean;
   scrollByDay: boolean;
   columns: number;
   calendarData: DataByMode;
+  isExpanded: SharedValue<boolean>;
+  allDayEventsHeight: Readonly<SharedValue<number>>;
+  isShowExpandButton: SharedValue<boolean>;
+  columnWidth: number;
 }
 
 export const DayBarContext = React.createContext<

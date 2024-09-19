@@ -48,6 +48,8 @@ export interface RecyclerListViewProps {
   //and passed down. For better typescript support.
   scrollViewProps?: ScrollViewProps & Record<string, any>;
   columnsPerPage?: number;
+  visibleColumns?: number;
+  extraScrollData?: Record<string, any>;
 }
 
 export interface RecyclerListViewState {
@@ -78,7 +80,6 @@ export default class RecyclerListView<
     initialOffset: 0,
     itemCount: 0,
     renderAheadOffset: 250,
-    columnsPerPage: undefined,
   };
   private _layout: Dimension = { height: 0, width: 0 };
   private _pendingScrollToOffset: Point | null = null;
@@ -320,6 +321,8 @@ export default class RecyclerListView<
   private _checkAndChangeLayouts(newProps: RecyclerListViewProps): void {
     this._params.itemCount = newProps.itemCount;
     this._params.columnsPerPage = newProps.columnsPerPage;
+    this._params.extraScrollData = newProps.extraScrollData;
+    this._params.initialOffset = newProps.initialOffset;
     const initialOffset =
       newProps.initialOffset ?? this.props.initialOffset ?? 0;
 
@@ -331,8 +334,7 @@ export default class RecyclerListView<
       this._virtualRenderer.setLayoutManager(
         newProps.layoutProvider.createLayoutManager()
       );
-      this._virtualRenderer.refreshWithOffset(initialOffset);
-      this._refreshViewability();
+      this._refreshViewability(initialOffset);
     } else if (
       this.props.itemCount !== newProps.itemCount ||
       this.props.columnsPerPage !== newProps.columnsPerPage
@@ -340,12 +342,12 @@ export default class RecyclerListView<
       this._virtualRenderer.setLayoutManager(
         this.props.layoutProvider.createLayoutManager()
       );
-      this._virtualRenderer.refreshWithOffset(initialOffset);
-      this._refreshViewability();
+      this._refreshViewability(initialOffset);
     }
   }
 
-  private _refreshViewability(): void {
+  private _refreshViewability(initialOffset: number): void {
+    this._virtualRenderer.refreshWithOffset(initialOffset);
     this._virtualRenderer.refresh();
     this._queueStateRefresh();
   }
@@ -401,6 +403,7 @@ export default class RecyclerListView<
       itemCount: props.itemCount,
       renderAheadOffset: props.renderAheadOffset,
       columnsPerPage: props.columnsPerPage,
+      extraScrollData: props.extraScrollData,
     };
     this._virtualRenderer.setParamsAndDimensions(this._params, this._layout);
     const layoutManager = props.layoutProvider.createLayoutManager();

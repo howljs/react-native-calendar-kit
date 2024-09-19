@@ -74,6 +74,8 @@ const DraggableEventInner = ({
   const topEdgeGesture = Gesture.Tap()
     .runOnJS(true)
     .onTouchesDown(() => {
+      console.log('ss');
+
       triggerDragSelectedEvent({ startIndex: index, type: 'top' });
     })
     .onTouchesUp(() => {
@@ -109,10 +111,14 @@ const DraggableEventInner = ({
         <View style={StyleSheet.absoluteFill} />
       </GestureDetector>
       <GestureDetector gesture={topEdgeGesture}>
-        <DragDot type="top" />
+        <View style={[styles.dot, styles.dotLeft]}>
+          <DragDot />
+        </View>
       </GestureDetector>
       <GestureDetector gesture={bottomEdgeGesture}>
-        <DragDot type="bottom" />
+        <View style={[styles.dot, styles.dotRight]}>
+          <DragDot />
+        </View>
       </GestureDetector>
     </Animated.View>
   );
@@ -122,11 +128,19 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
   },
+  dot: {
+    position: 'absolute',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+  },
   event: {
     borderRadius: 4,
     overflow: 'hidden',
     borderWidth: 3,
   },
+  dotLeft: { top: -12, left: -12 },
+  dotRight: { bottom: -12, right: -12 },
 });
 
 interface DraggableEventProps {

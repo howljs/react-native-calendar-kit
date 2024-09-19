@@ -26,6 +26,7 @@ export interface RenderStackParams {
   initialOffset?: number;
   renderAheadOffset?: number;
   columnsPerPage?: number;
+  extraScrollData?: Record<string, any>;
 }
 
 export type StableIdProvider = (index: number) => string;
@@ -174,7 +175,8 @@ export default class VirtualRenderer {
       this._viewabilityTracker = new ViewabilityTracker(
         valueWithDefault<number>(this._params.renderAheadOffset, 0),
         valueWithDefault<number>(this._params.initialOffset, 0),
-        this._params.columnsPerPage
+        this._params.columnsPerPage,
+        this._params.extraScrollData
       );
     } else {
       this._viewabilityTracker = new ViewabilityTracker(0, 0);
@@ -253,7 +255,8 @@ export default class VirtualRenderer {
         this._layoutManager.getLayout(),
         this._layoutManager.getContentDimension().width,
         this._params.itemCount,
-        this._params.columnsPerPage
+        this._params.columnsPerPage,
+        this._params.extraScrollData
       );
       this._viewabilityTracker.setDimensions({
         height: this._dimensions.height,
@@ -278,8 +281,10 @@ export default class VirtualRenderer {
 
   private _onVisibleColumnChanged = (props: {
     index: number;
+    columns: number;
     column: number;
     offset: number;
+    extraScrollData: Record<string, any>;
   }): void => {
     if (this.onVisibleColumnChanged) {
       this.onVisibleColumnChanged(props);
