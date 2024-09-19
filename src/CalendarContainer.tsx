@@ -517,6 +517,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       pagesPerSide,
       hideWeekDays,
       visibleWeeks,
+      useAllDayEvent,
     }),
     [
       calendarLayout,
@@ -560,6 +561,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       pagesPerSide,
       hideWeekDays,
       visibleWeeks,
+      useAllDayEvent,
     ]
   );
 

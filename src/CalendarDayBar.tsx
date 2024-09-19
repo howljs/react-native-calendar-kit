@@ -52,6 +52,7 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
     visibleDateUnixAnim,
     visibleWeeks,
     columnWidth,
+    useAllDayEvent,
   } = useCalendar();
 
   const colors = useTheme((state) => state.colors);
@@ -128,6 +129,7 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
       allDayEventsHeight,
       isShowExpandButton,
       columnWidth,
+      useAllDayEvent,
     }),
     [
       initialHeight,
@@ -145,6 +147,7 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
       allDayEventsHeight,
       isShowExpandButton,
       columnWidth,
+      useAllDayEvent,
     ]
   );
 

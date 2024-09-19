@@ -51,6 +51,7 @@ export interface CalendarContextProps {
   scrollVisibleHeightAnim: SharedValue<number>;
   pagesPerSide: number;
   hideWeekDays: WeekdayNumbers[];
+  useAllDayEvent: boolean;
 }
 
 export const CalendarContext = React.createContext<

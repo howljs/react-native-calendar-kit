@@ -19,6 +19,7 @@ export interface DayBarContextProps {
   allDayEventsHeight: Readonly<SharedValue<number>>;
   isShowExpandButton: SharedValue<boolean>;
   columnWidth: number;
+  useAllDayEvent: boolean;
 }
 
 export const DayBarContext = React.createContext<

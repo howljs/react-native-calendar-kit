@@ -22,7 +22,7 @@ interface SingleDayBarItemProps {
 
 const SingleDayBarItem = ({ startUnix }: SingleDayBarItemProps) => {
   const colors = useTheme((state) => state.colors);
-  const { hourWidth, height, allDayEventsHeight } = useDayBar();
+  const { hourWidth, height, allDayEventsHeight, useAllDayEvent } = useDayBar();
   const { data: events, eventCounts } = useAllDayEventsByDay(startUnix);
   const { onPressEvent } = useActions();
   const containerStyle = useAnimatedStyle(() => {
@@ -44,21 +44,29 @@ const SingleDayBarItem = ({ startUnix }: SingleDayBarItemProps) => {
   return (
     <View>
       <Animated.View style={[styles.container, containerStyle]}>
-        <View
-          style={[
-            styles.dayItemContainer,
-            { width: hourWidth, borderRightColor: colors.border },
-          ]}
-        >
-          <DayItem dateUnix={startUnix} />
-          <ExpandButton />
-        </View>
-        <View style={[styles.eventsContainer]}>
-          <View style={styles.events}>{events.map(_renderEvent)}</View>
-          {eventCounts > COLLAPSED_ROW_COUNT && (
-            <EventCounts eventCounts={eventCounts} />
-          )}
-        </View>
+        {!useAllDayEvent ? (
+          <View style={styles.dayContainer}>
+            <DayItem dateUnix={startUnix} />
+          </View>
+        ) : (
+          <>
+            <View
+              style={[
+                styles.dayItemContainer,
+                { width: hourWidth, borderRightColor: colors.border },
+              ]}
+            >
+              <DayItem dateUnix={startUnix} />
+              <ExpandButton />
+            </View>
+            <View style={[styles.eventsContainer]}>
+              <View style={styles.events}>{events.map(_renderEvent)}</View>
+              {eventCounts > COLLAPSED_ROW_COUNT && (
+                <EventCounts eventCounts={eventCounts} />
+              )}
+            </View>
+          </>
+        )}
       </Animated.View>
       <LoadingOverlay />
       <ProgressBar />
@@ -149,4 +157,9 @@ const styles = StyleSheet.create({
   },
   eventTitle: { fontSize: 12, color: '#FFF', paddingHorizontal: 2 },
   countText: { fontSize: 12, paddingHorizontal: 8 },
+  dayContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexGrow: 1,
+  },
 });

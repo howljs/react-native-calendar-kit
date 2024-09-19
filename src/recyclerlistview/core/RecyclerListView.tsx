@@ -1,4 +1,4 @@
-import debounce from 'lodash/debounce';
+import debounce from 'lodash.debounce';
 import * as React from 'react';
 import { ScrollViewProps } from 'react-native';
 import { ComponentCompat } from '../utils/ComponentCompat';

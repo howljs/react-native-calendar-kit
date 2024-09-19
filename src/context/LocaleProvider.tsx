@@ -1,4 +1,4 @@
-import merge from 'lodash/merge';
+import merge from 'lodash.merge';
 import React, { useMemo, type PropsWithChildren } from 'react';
 import { DEFAULT_LOCALES } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';

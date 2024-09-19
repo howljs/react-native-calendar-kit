@@ -1,4 +1,4 @@
-import is from 'lodash/isEqual';
+import is from 'lodash.isequal';
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 
 type InstRef<T> = {
