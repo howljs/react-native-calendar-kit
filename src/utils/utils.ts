@@ -1,7 +1,7 @@
 import { type WeekdayNumbers } from 'luxon';
 import { MILLISECONDS_IN_DAY } from '../constants';
 import type { DateType } from '../types';
-import { parseDateTime } from './dateUtils';
+import { parseDateTime, startOfWeek } from './dateUtils';
 
 type CalendarRangeOptions = {
   minDate: DateType;
@@ -47,9 +47,7 @@ export const prepareCalendarRange = (
     let currentDate = originalMinDateUnix;
     let index = 0;
     while (currentDate <= originalMaxDateUnix) {
-      const currentWeekDay = parseDateTime(currentDate, {
-        zone: timezone,
-      }).weekday;
+      const currentWeekDay = parseDateTime(currentDate).weekday;
       if (!props.hideWeekDays?.includes(currentWeekDay)) {
         visibleDates[currentDate] = {
           unix: currentDate,
@@ -91,9 +89,7 @@ export const prepareCalendarRange = (
   let index = 0;
 
   while (currentDate < newMax) {
-    const currentDateTime = parseDateTime(currentDate, {
-      zone: timezone,
-    });
+    const currentDateTime = parseDateTime(currentDate);
     const currentWeekDay = currentDateTime.weekday;
     if (!props.hideWeekDays?.includes(currentWeekDay)) {
       const dateUnix = currentDateTime.toMillis();
@@ -186,4 +182,47 @@ export const roundMinutes = (
 ) => {
   'worklet';
   return Math[type](minutes / step) * step;
+};
+
+type PrepareMonthDataOptions = {
+  minDate: DateType;
+  maxDate: DateType;
+  firstDay: WeekdayNumbers;
+  timezone?: string;
+};
+
+export type MonthData = {
+  count: number;
+  minDateUnix: number;
+  originalMinDateUnix: number;
+  originalMaxDateUnix: number;
+  minStartOfMonthUnix: number;
+  maxStartOfMonthUnix: number;
+};
+
+export const prepareMonthData = (props: PrepareMonthDataOptions): MonthData => {
+  const minDateStr = parseDateTime(props.minDate, {
+    zone: props.timezone,
+  }).toISODate();
+  const maxDateStr = parseDateTime(props.maxDate, {
+    zone: props.timezone,
+  }).toISODate();
+  const minDate = parseDateTime(minDateStr);
+  const maxDate = parseDateTime(maxDateStr);
+  const minStartOfMonth = minDate.startOf('month');
+  const maxStartOfMonth = maxDate.startOf('month');
+  const min = startOfWeek(minStartOfMonth, props.firstDay);
+
+  const minDateUnix = min.toMillis();
+  const diffMonths = maxStartOfMonth.diff(minStartOfMonth, 'months').months;
+  const minStartOfMonthUnix = minStartOfMonth.toMillis();
+  const maxStartOfMonthUnix = maxStartOfMonth.toMillis();
+  return {
+    count: diffMonths,
+    minDateUnix,
+    originalMinDateUnix: minDate.toMillis(),
+    originalMaxDateUnix: maxDate.toMillis(),
+    minStartOfMonthUnix,
+    maxStartOfMonthUnix,
+  };
 };

@@ -1,4 +1,7 @@
-import CalendarKit, {
+import {
+  CalendarBody,
+  CalendarContainer,
+  CalendarDayBar,
   DragEventProps,
   EventItem,
   OutOfRangeProps,
@@ -8,8 +11,15 @@ import CalendarKit, {
 } from '@howljs/calendar-kit';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WeekdayNumbers } from 'luxon';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
+  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -25,13 +35,13 @@ import { useAppContext } from '../../context/AppProvider';
 type SearchParams = { viewMode: string; numberOfDays: string };
 
 const MIN_DATE = new Date(
-  new Date().getFullYear() - 1,
+  new Date().getFullYear() - 2,
   new Date().getMonth(),
   new Date().getDate()
 ).toISOString();
 
 const MAX_DATE = new Date(
-  new Date().getFullYear() + 1,
+  new Date().getFullYear() + 2,
   new Date().getMonth(),
   new Date().getDate()
 ).toISOString();
@@ -41,6 +51,31 @@ const INITIAL_DATE = new Date(
   new Date().getMonth(),
   new Date().getDate()
 ).toISOString();
+
+const CALENDAR_THEME = {
+  light: {
+    colors: {
+      primary: '#1a73e8',
+      onPrimary: '#fff',
+      background: '#fff',
+      onBackground: '#000',
+      border: '#dadce0',
+      text: '#000',
+      surface: '#ECECEC',
+    },
+  },
+  dark: {
+    colors: {
+      primary: '#4E98FA',
+      onPrimary: '#FFF',
+      background: '#1A1B21',
+      onBackground: '#FFF',
+      border: '#46464C',
+      text: '#FFF',
+      surface: '#545454',
+    },
+  },
+};
 
 const initialLocales: Record<string, LocaleConfigsProps> = {
   en: {
@@ -358,6 +393,16 @@ const Calendar = () => {
   const router = useRouter();
   const currentDate = useSharedValue(INITIAL_DATE);
   const [selectedEvent, setSelectedEvent] = useState<DragEventProps>();
+  const [calendarWidth, setCalendarWidth] = useState(
+    Dimensions.get('window').width
+  );
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      setCalendarWidth(window.width);
+    });
+    return () => subscription?.remove();
+  }, []);
 
   const _onChange = (date: string) => {
     currentDate.value = date;
@@ -425,22 +470,24 @@ const Calendar = () => {
   return (
     <View style={styles.container}>
       <Header currentDate={currentDate} onPressToday={_onPressToday} />
-      <CalendarKit
+
+      <CalendarContainer
         ref={calendarRef}
+        calendarWidth={calendarWidth}
         numberOfDays={Number(params.numberOfDays)}
         scrollByDay={Number(params.numberOfDays) < 5}
         firstDay={isWorkWeek ? 1 : configs.startOfWeek}
         hideWeekDays={hideWeekDays}
         initialLocales={initialLocales}
-        themeMode={
+        locale="en"
+        theme={
           configs.themeMode === 'auto'
             ? colorScheme === 'dark'
-              ? 'dark'
-              : 'light'
-            : configs.themeMode
+              ? CALENDAR_THEME.dark
+              : CALENDAR_THEME.light
+            : CALENDAR_THEME[configs.themeMode]
         }
         showWeekNumber={configs.showWeekNumber}
-        locale="en"
         allowPinchToZoom
         onChange={_onChange}
         onDateChanged={console.log}
@@ -448,7 +495,6 @@ const Calendar = () => {
         maxDate={MAX_DATE}
         initialDate={INITIAL_DATE}
         onPressDayNumber={_onPressDayNumber}
-        renderCustomOutOfRange={_renderCustomOutOfRange}
         onPressBackground={_onPressBackground}
         unavailableHours={unavailableHours}
         highlightDates={highlightDates}
@@ -456,10 +502,7 @@ const Calendar = () => {
         onPressEvent={(event) => {
           console.log(new Date(event.start as string).toLocaleString());
         }}
-        renderEvent={_renderEvent}
         scrollToNow
-        rightEdgeSpacing={4}
-        overlapEventsSpacing={1}
         useHaptic
         timezone="Asia/Tokyo"
         allowDragToEdit
@@ -503,7 +546,15 @@ const Calendar = () => {
           setEvents(newEvents);
           setSelectedEvent(newEvent);
         }}
-      />
+      >
+        <CalendarDayBar />
+        <CalendarBody
+          renderCustomOutOfRange={_renderCustomOutOfRange}
+          renderEvent={_renderEvent}
+          rightEdgeSpacing={4}
+          overlapEventsSpacing={1}
+        />
+      </CalendarContainer>
       <View style={[styles.actions, { paddingBottom: safeBottom }]}>
         <TouchableOpacity
           style={styles.btn}

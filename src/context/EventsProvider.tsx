@@ -7,6 +7,7 @@ import React, {
   type PropsWithChildren,
 } from 'react';
 import { MILLISECONDS_IN_DAY } from '../constants';
+import useLazyRef from '../hooks/useLazyRef';
 import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreWithSelector';
 import { createStore, type Store } from '../storeBuilder';
 import type {
@@ -33,14 +34,6 @@ interface EventsState {
   eventCountsByWeek: Record<string, number>;
 }
 
-const eventStore = createStore<EventsState>({
-  allDayEvents: {},
-  allDayEventsByDay: {},
-  regularEvents: {},
-  eventCountsByDay: {},
-  eventCountsByWeek: {},
-});
-
 const EventsContext = React.createContext<Store<EventsState> | undefined>(
   undefined
 );
@@ -52,6 +45,7 @@ interface EventsProviderProps {
   useAllDayEvent?: boolean;
   pagesPerSide: number;
   hideWeekDays: WeekdayNumbers[];
+  defaultOffset?: number;
 }
 
 const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
@@ -62,11 +56,21 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
   firstDay,
   useAllDayEvent,
   hideWeekDays,
+  defaultOffset = 7,
 }) => {
+  const eventStore = useLazyRef(() =>
+    createStore<EventsState>({
+      allDayEvents: {},
+      allDayEventsByDay: {},
+      regularEvents: {},
+      eventCountsByDay: {},
+      eventCountsByWeek: {},
+    })
+  ).current;
   const currentStartDate = useDateChangedListener();
 
   const notifyDataChanged = useCallback(
-    (date: number, offset: number = 7) => {
+    (date: number, offset: number = defaultOffset) => {
       const zonedDate = forceUpdateZone(date, timezone).toMillis();
       const minUnix = zonedDate - MILLISECONDS_IN_DAY * (offset * pagesPerSide);
       const maxUnix =
@@ -187,7 +191,16 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
         eventCountsByWeek,
       });
     },
-    [events, firstDay, hideWeekDays, pagesPerSide, timezone, useAllDayEvent]
+    [
+      defaultOffset,
+      eventStore,
+      events,
+      firstDay,
+      hideWeekDays,
+      pagesPerSide,
+      timezone,
+      useAllDayEvent,
+    ]
   );
 
   useEffect(() => {
@@ -328,6 +341,43 @@ export const useEventCountsByWeek = (type: 'week' | 'day') => {
     eventsContext.subscribe,
     eventsContext.getState,
     selectEventCountByWeek
+  );
+  return state;
+};
+
+export const useMonthEvents = (
+  date: number,
+  numberOfDays: number,
+  visibleDays: number[]
+) => {
+  const eventsContext = useContext(EventsContext);
+
+  const selectorByDate = useCallback(
+    (state: EventsState) => {
+      let data: Record<string, PackedEvent[]> = {};
+      for (let i = 0; i < numberOfDays; i++) {
+        const dateUnix = date + i * MILLISECONDS_IN_DAY;
+        if (visibleDays.includes(dateUnix)) {
+          const events = state.regularEvents[dateUnix];
+          if (events) {
+            data[dateUnix] = events;
+          }
+        }
+      }
+
+      return { data };
+    },
+    [date, numberOfDays, visibleDays]
+  );
+
+  if (!eventsContext) {
+    throw new Error('useRegularEvents must be used within a EventsProvider');
+  }
+
+  const state = useSyncExternalStoreWithSelector(
+    eventsContext.subscribe,
+    eventsContext.getState,
+    selectorByDate
   );
   return state;
 };

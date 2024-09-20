@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, {
@@ -33,6 +33,7 @@ import { clampValues } from './utils/utils';
 
 const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
   dayBarHeight: initialHeight = DAY_BAR_HEIGHT,
+  renderDayBarItem,
 }) => {
   const {
     calendarLayout,
@@ -158,6 +159,7 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
       isRTL,
       numberOfDays,
       columns,
+      renderDayBarItem,
     }),
     [
       calendarData.minDateUnix,
@@ -165,29 +167,35 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
       isRTL,
       numberOfDays,
       columns,
+      renderDayBarItem,
     ]
   );
 
-  const _renderDayBarItem = useCallback(
-    (index: number, extra: typeof extraData) => {
-      const dateUnixByIndex = extra.visibleDatesArray[index * extra.columns];
-      if (!dateUnixByIndex) {
-        return null;
-      }
+  const _renderDayBarItem = (index: number, extra: typeof extraData) => {
+    const dateUnixByIndex = extra.visibleDatesArray[index * extra.columns];
+    if (!dateUnixByIndex) {
+      return null;
+    }
 
-      if (extra.columns === 1) {
-        return <SingleDayBarItem startUnix={dateUnixByIndex} />;
-      }
+    if (renderDayBarItem) {
+      return renderDayBarItem({
+        startUnix: dateUnixByIndex,
+        index,
+        extra,
+      });
+    }
 
-      return (
-        <MultiDayBarItem
-          pageIndex={index * extra.columns}
-          startUnix={dateUnixByIndex}
-        />
-      );
-    },
-    []
-  );
+    if (extra.columns === 1) {
+      return <SingleDayBarItem startUnix={dateUnixByIndex} />;
+    }
+
+    return (
+      <MultiDayBarItem
+        pageIndex={index * extra.columns}
+        startUnix={dateUnixByIndex}
+      />
+    );
+  };
 
   const extraScrollData = useMemo(() => {
     return {

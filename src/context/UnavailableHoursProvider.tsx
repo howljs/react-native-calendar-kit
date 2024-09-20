@@ -7,6 +7,7 @@ import React, {
   useEffect,
 } from 'react';
 import { MILLISECONDS_IN_DAY } from '../constants';
+import useLazyRef from '../hooks/useLazyRef';
 import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreWithSelector';
 import { Store, createStore } from '../storeBuilder';
 import { UnavailableHourProps } from '../types';
@@ -21,10 +22,6 @@ export const UnavailableHoursContext = createContext<
   Store<UnavailableHoursStore> | undefined
 >(undefined);
 
-const unavailableHoursStore = createStore<UnavailableHoursStore>({
-  unavailableHours: {},
-});
-
 const UnavailableHoursProvider: FC<
   PropsWithChildren<{
     unavailableHours?:
@@ -34,6 +31,11 @@ const UnavailableHoursProvider: FC<
     pagesPerSide: number;
   }>
 > = ({ children, unavailableHours = {}, timezone, pagesPerSide }) => {
+  const unavailableHoursStore = useLazyRef(() =>
+    createStore<UnavailableHoursStore>({
+      unavailableHours: {},
+    })
+  ).current;
   const currentDate = useDateChangedListener();
 
   const notifyDataChanged = useCallback(
@@ -69,7 +71,7 @@ const UnavailableHoursProvider: FC<
       }
       unavailableHoursStore.setState({ unavailableHours: data });
     },
-    [unavailableHours, timezone, pagesPerSide]
+    [unavailableHours, pagesPerSide, unavailableHoursStore, timezone]
   );
 
   useEffect(() => {

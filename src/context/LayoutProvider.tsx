@@ -8,16 +8,14 @@ import React, {
 } from 'react';
 import { StyleSheet, type LayoutChangeEvent } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { DEBOUNCE_TIME, DEFAULT_SIZE } from '../constants';
 
 export type Size = {
   width: number;
   height: number;
 };
 
-const DEFAULT_SIZE = { width: 0, height: 0 };
 const LayoutContext = createContext<Size>(DEFAULT_SIZE);
-
-const DEBOUNCE_TIME = 200;
 
 const LayoutProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
   const [layout, setLayout] = useState(DEFAULT_SIZE);

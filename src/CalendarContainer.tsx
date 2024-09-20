@@ -64,8 +64,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   PropsWithChildren<CalendarProviderProps>
 > = (
   {
+    calendarWidth,
     theme,
-    darkTheme,
     children,
     hourWidth: initialHourWidth = HOUR_WIDTH,
     firstDay = 1,
@@ -85,7 +85,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     allowPinchToZoom = false,
     initialTimeIntervalHeight = 60,
     timezone = 'local',
-    themeMode = 'light',
     showWeekNumber = false,
     onChange,
     onDateChanged,
@@ -151,7 +150,14 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const isSingleDay = numberOfDays === 1;
   const columns = isSingleDay ? 1 : daysToShow;
 
-  const calendarLayout = useLayout();
+  const defaultLayout = useLayout();
+  const calendarLayout = useMemo(() => {
+    return {
+      width: calendarWidth ?? defaultLayout.width,
+      height: defaultLayout.height,
+    };
+  }, [calendarWidth, defaultLayout.height, defaultLayout.width]);
+
   const hourWidth = useMemo(
     () => PixelRatio.roundToNearestPixel(initialHourWidth),
     [initialHourWidth]
@@ -249,7 +255,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
 
   const columnWidthAnim = useSharedValue(columnWidth);
   const offsetY = useSharedValue(0);
-  const offsetX = useSharedValue(0);
+  const offsetX = useSharedValue(initialOffset);
   const scrollVisibleHeightAnim = useSharedValue(0);
   const timeIntervalHeight = useSharedValue(initialTimeIntervalHeight);
 
@@ -500,7 +506,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       scrollVisibleHeight,
       offsetX,
       isTriggerMomentum,
-      themeMode,
       showWeekNumber,
       calendarGridWidth,
       columnWidth,
@@ -546,7 +551,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       end,
       timeInterval,
       offsetX,
-      themeMode,
       showWeekNumber,
       calendarGridWidth,
       columnWidth,
@@ -588,11 +592,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       <LocaleProvider initialLocales={initialLocales} locale={locale}>
         <TimezoneProvider timezone={timezone}>
           <NowIndicatorProvider>
-            <ThemeProvider
-              theme={theme}
-              darkTheme={darkTheme}
-              themeMode={themeMode}
-            >
+            <ThemeProvider theme={theme}>
               <ActionsProvider {...actionsProps}>
                 <LoadingContext.Provider value={loadingValue}>
                   <VisibleDateProvider initialStart={visibleDateUnix}>

@@ -6,7 +6,7 @@ import React, {
   type PropsWithChildren,
 } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { DEFAULT_DARK_THEME, DEFAULT_THEME } from '../constants';
+import { DEFAULT_THEME } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
 import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreWithSelector';
 import { createStore, type Store } from '../storeBuilder';
@@ -18,34 +18,20 @@ export const ThemeContext = createContext<Store<ThemeConfigs> | undefined>(
 
 interface ThemeProviderProps {
   theme?: DeepPartial<ThemeConfigs>;
-  darkTheme?: DeepPartial<ThemeConfigs>;
-  themeMode?: string;
 }
 
 const ThemeProvider: React.FC<PropsWithChildren<ThemeProviderProps>> = ({
   children,
   theme,
-  themeMode,
-  darkTheme,
 }) => {
   const store = useLazyRef(() =>
-    createStore(
-      merge(
-        {},
-        themeMode === 'dark' ? DEFAULT_DARK_THEME : DEFAULT_THEME,
-        themeMode === 'dark' ? darkTheme : theme
-      )
-    )
+    createStore(merge({}, DEFAULT_THEME, theme))
   ).current;
 
   useEffect(() => {
-    const configs = merge(
-      {},
-      themeMode === 'dark' ? DEFAULT_DARK_THEME : DEFAULT_THEME,
-      themeMode === 'dark' ? darkTheme : theme
-    );
+    const configs = merge({}, DEFAULT_THEME, theme);
     store.setState(configs);
-  }, [darkTheme, store, theme, themeMode]);
+  }, [store, theme]);
 
   return (
     <ThemeContext.Provider value={store}>

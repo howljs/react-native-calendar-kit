@@ -10,6 +10,7 @@ import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreW
 import { Store, createStore } from '../storeBuilder';
 import { HighlightDateProps } from '../types';
 import { parseDateTime } from '../utils/dateUtils';
+import useLazyRef from '../hooks/useLazyRef';
 
 type HighlightDatesStore = {
   highlightDates?: Record<string, HighlightDateProps>;
@@ -19,17 +20,19 @@ export const HighlightDatesContext = createContext<
   Store<HighlightDatesStore> | undefined
 >(undefined);
 
-const highlightDatesStore = createStore<HighlightDatesStore>({
-  highlightDates: undefined,
-});
-
 const HighlightDatesProvider: FC<PropsWithChildren<HighlightDatesStore>> = ({
   children,
   highlightDates,
 }) => {
+  const highlightDatesStore = useLazyRef(() =>
+    createStore<HighlightDatesStore>({
+      highlightDates: undefined,
+    })
+  ).current;
+
   useEffect(() => {
     highlightDatesStore.setState({ highlightDates });
-  }, [highlightDates]);
+  }, [highlightDates, highlightDatesStore]);
 
   return (
     <HighlightDatesContext.Provider value={highlightDatesStore}>

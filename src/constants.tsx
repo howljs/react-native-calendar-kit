@@ -12,18 +12,6 @@ export const DEFAULT_THEME: ThemeConfigs = {
   },
 };
 
-export const DEFAULT_DARK_THEME: ThemeConfigs = {
-  colors: {
-    primary: '#4E98FA',
-    onPrimary: '#FFF',
-    background: '#1A1B21',
-    onBackground: '#FFF',
-    border: '#46464C',
-    text: '#FFF',
-    surface: '#545454',
-  },
-};
-
 export const HOUR_WIDTH = 60;
 export const DAY_BAR_HEIGHT = 60;
 
@@ -57,9 +45,18 @@ export enum ScrollType {
   calendarGrid,
 }
 
+export enum ScrollTypeMonth {
+  header,
+  body,
+}
+
 export const EXTRA_HEIGHT = 300;
 export const HOUR_SHORT_LINE_WIDTH = 8;
 export const MIN_ALL_DAY_EVENT_HEIGHT = 20;
 export const MAX_ALL_DAY_EVENT_HEIGHT = 25;
 export const COLLAPSED_ROW_COUNT = 2;
 export const COUNT_CONTAINER_HEIGHT = 30;
+export const DEFAULT_SIZE = { width: 0, height: 0 };
+export const DEBOUNCE_TIME = 200;
+export const MONTH_COLUMNS = 7;
+export const MONTH_ROWS = 6;

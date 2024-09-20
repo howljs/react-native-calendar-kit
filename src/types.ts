@@ -167,6 +167,11 @@ export interface ActionsProviderProps {
 
 export interface CalendarProviderProps extends ActionsProviderProps {
   /**
+   * Calendar width
+   */
+  calendarWidth?: number;
+
+  /**
    * Number of days to display
    *
    * Default: `7`
@@ -213,16 +218,6 @@ export interface CalendarProviderProps extends ActionsProviderProps {
 
   /** Theme of calendar */
   theme?: DeepPartial<ThemeConfigs>;
-
-  /** Theme of calendar (Dark mode) */
-  darkTheme?: DeepPartial<ThemeConfigs>;
-
-  /**
-   * Theme mode
-   *
-   * Default: `light`
-   */
-  themeMode?: 'light' | 'dark';
 
   /**
    * Calendar Localization
@@ -489,6 +484,12 @@ export interface CalendarDayBarProps {
    ** Default: `60`
    */
   dayBarHeight?: number;
+
+  renderDayBarItem?: (props: {
+    index: number;
+    startUnix: number;
+    extra: Record<string, any>;
+  }) => JSX.Element | null;
 }
 
 export interface CalendarBodyProps {
