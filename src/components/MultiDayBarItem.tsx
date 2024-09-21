@@ -13,21 +13,21 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { COLLAPSED_ROW_COUNT, COUNT_CONTAINER_HEIGHT } from '../constants';
+import { useActions } from '../context/ActionsProvider';
 import { useDayBar } from '../context/DayBarContext';
 import { useAllDayEvents } from '../context/EventsProvider';
 import { useTheme } from '../context/ThemeProvider';
-import { PackedAllDayEvent, EventItem as EventItemType } from '../types';
-import DayItem from './DayItem';
-import LoadingOverlay from './Loading/Overlay';
-import ProgressBar from './Loading/ProgressBar';
-import Text from './Text';
-import { useActions } from '../context/ActionsProvider';
+import { useTimezone } from '../context/TimeZoneProvider';
+import { OnEventResponse, PackedAllDayEvent } from '../types';
 import {
   dateTimeToISOString,
   forceUpdateZone,
   parseDateTime,
 } from '../utils/dateUtils';
-import { useTimezone } from '../context/TimezoneProvider';
+import DayItem from './DayItem';
+import LoadingOverlay from './Loading/Overlay';
+import ProgressBar from './Loading/ProgressBar';
+import Text from './Text';
 
 interface MultiDayBarItemProps {
   pageIndex: number;
@@ -50,7 +50,7 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
     allDayEventsHeight,
     columnWidth,
   } = useDayBar();
-  const { timezone } = useTimezone();
+  const { timeZone } = useTimezone();
   const { onPressEvent, onPressBackground, onLongPressBackground } =
     useActions();
 
@@ -145,9 +145,9 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
     const dayIndex = pageIndex + columnIndex;
     const dayUnix = calendarData.visibleDatesArray[dayIndex];
     if (dayUnix) {
-      const dateObj = forceUpdateZone(parseDateTime(dayUnix), timezone);
+      const dateObj = forceUpdateZone(parseDateTime(dayUnix), timeZone);
       const dateString = dateTimeToISOString(dateObj);
-      onPressBackground?.({ date: dateString, isAllDay: true }, event);
+      onPressBackground?.({ date: dateString }, event);
     }
   };
 
@@ -156,9 +156,9 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
     const dayIndex = pageIndex + columnIndex;
     const dayUnix = calendarData.visibleDatesArray[dayIndex];
     if (dayUnix) {
-      const dateObj = forceUpdateZone(parseDateTime(dayUnix), timezone);
+      const dateObj = forceUpdateZone(parseDateTime(dayUnix), timeZone);
       const dateString = dateTimeToISOString(dateObj);
-      onLongPressBackground?.({ date: dateString, isAllDay: true }, event);
+      onLongPressBackground?.({ date: dateString }, event);
     }
   };
 
@@ -178,7 +178,7 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
           <View style={styles.eventsInnerContainer}>
             {events.map((event) => (
               <EventItem
-                key={event._internal.id}
+                key={event.localId}
                 event={event}
                 columnWidth={columnWidthAnim}
                 visibleColumns={columns}
@@ -236,7 +236,7 @@ const EventItem = ({
   visibleColumns: number;
   eventHeight: SharedValue<number>;
   isExpanded: SharedValue<boolean>;
-  onPressEvent?: (event: EventItemType) => void;
+  onPressEvent?: (event: OnEventResponse) => void;
 }) => {
   const { _internal, ...rest } = event;
   const eventContainerStyle = useAnimatedStyle(() => {
@@ -259,7 +259,11 @@ const EventItem = ({
 
   return (
     <Animated.View style={eventContainerStyle}>
-      <TouchableOpacity activeOpacity={0.6} onPress={_onPressEvent}>
+      <TouchableOpacity
+        activeOpacity={0.6}
+        disabled={!onPressEvent}
+        onPress={_onPressEvent}
+      >
         <View
           style={[
             styles.eventContent,

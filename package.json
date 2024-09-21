@@ -182,6 +182,7 @@
     "lodash.debounce": "^4.0.8",
     "lodash.isequal": "^4.5.0",
     "lodash.merge": "^4.6.2",
-    "luxon": "^3.4.4"
+    "luxon": "^3.4.4",
+    "rrule": "^2.8.1"
   }
 }

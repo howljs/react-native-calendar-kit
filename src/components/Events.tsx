@@ -7,9 +7,9 @@ import {
   useDragEventActions,
 } from '../context/DragEventProvider';
 import { useRegularEvents } from '../context/EventsProvider';
-import { useTimezone } from '../context/TimezoneProvider';
-import { DragEventProps, PackedEvent } from '../types';
-import { forceUpdateZone } from '../utils/dateUtils';
+import { useTimezone } from '../context/TimeZoneProvider';
+import { PackedEvent } from '../types';
+import { forceUpdateZone, parseDateTime } from '../utils/dateUtils';
 import EventItem from './EventItem';
 
 const Events: FC<{
@@ -19,7 +19,7 @@ const Events: FC<{
   const { renderEvent, numberOfDays } = useBody();
   const { onPressEvent, onLongPressEvent } = useActions();
   const { draggingId, selectedEventId } = useDragEvent();
-  const { timezone } = useTimezone();
+  const { timeZone } = useTimezone();
   const { triggerDragEvent } = useDragEventActions();
   const { data: events } = useRegularEvents(
     startUnix,
@@ -29,24 +29,35 @@ const Events: FC<{
 
   const _triggerDragEvent = useCallback(
     (event: PackedEvent) => {
+      if (!event.start.dateTime || !event.end.dateTime) {
+        return;
+      }
+
       const eventStart = forceUpdateZone(
         event._internal.startUnix,
-        timezone
+        timeZone
       ).startOf('day');
-      const originalStart = forceUpdateZone(event.start, timezone).startOf(
-        'day'
-      );
+      const originalStart = forceUpdateZone(
+        parseDateTime(event.start.dateTime, { zone: event.start.timeZone }),
+        timeZone
+      ).startOf('day');
       const startIndex = eventStart.diff(originalStart, 'days').days;
       triggerDragEvent!(
         {
-          start: event.start,
-          end: event.end,
+          start: {
+            dateTime: event.start.dateTime,
+            timeZone: event.start.timeZone,
+          },
+          end: {
+            dateTime: event.end.dateTime,
+            timeZone: event.end.timeZone,
+          },
           startIndex,
         },
-        event as DragEventProps
+        event
       );
     },
-    [triggerDragEvent, timezone]
+    [triggerDragEvent, timeZone]
   );
 
   const _onLongPressEvent = useCallback(
@@ -65,7 +76,7 @@ const Events: FC<{
   const _renderEvent = (event: PackedEvent) => {
     return (
       <EventItem
-        key={event._internal.id}
+        key={event.localId}
         event={event}
         startUnix={startUnix}
         renderEvent={renderEvent}
@@ -73,7 +84,9 @@ const Events: FC<{
         onLongPressEvent={
           triggerDragEvent ? _triggerDragEvent : _onLongPressEvent
         }
-        isDragging={draggingId === event.id || selectedEventId === event.id}
+        isDragging={
+          draggingId === event.localId || selectedEventId === event.localId
+        }
         visibleDates={visibleDates}
       />
     );

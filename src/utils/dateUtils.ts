@@ -94,9 +94,9 @@ export const toHourStr = (
   return formattedTime;
 };
 
-export const getWeekNumberOfYear = (date: number, timezone: string) => {
+export const getWeekNumberOfYear = (date: number, timeZone: string) => {
   'worklet';
-  return parseDateTime(date).setZone(timezone).weekNumber;
+  return parseDateTime(date).setZone(timeZone).weekNumber;
 };
 
 export const forceUpdateZone = (date: DateType, zone: string = 'local') => {

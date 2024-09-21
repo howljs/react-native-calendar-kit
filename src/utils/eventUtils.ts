@@ -11,43 +11,103 @@ import type {
   PackedEvent,
 } from '../types';
 import { forceUpdateZone, parseDateTime, startOfWeek } from './dateUtils';
+import { RRuleGenerator } from '../service/rrule';
+
+const isValidEventDates = (event: EventItem): boolean => {
+  return (
+    !!(event.start.date && event.end.date) ||
+    !!(event.start.dateTime && event.end.dateTime)
+  );
+};
+
+const getEventTimes = (
+  event: EventItem
+): { eventStartUnix: number; eventEndUnix: number; isAllDay: boolean } => {
+  const isAllDay = Boolean(event.start.date && event.end.date);
+
+  if (isAllDay) {
+    const eventStartUnix = parseDateTime(event.start.date).toMillis();
+    const eventEndUnix = parseDateTime(event.end.date).endOf('day').toMillis();
+    return { eventStartUnix, eventEndUnix, isAllDay };
+  } else {
+    const eventStartUnix = parseDateTime(event.start.dateTime!, {
+      zone: event.start.timeZone,
+    }).toMillis();
+    const eventEndUnix = parseDateTime(event.end.dateTime!, {
+      zone: event.end.timeZone,
+    }).toMillis();
+    return { eventStartUnix, eventEndUnix, isAllDay };
+  }
+};
+
+const isValidEventRange = (
+  eventStartUnix: number,
+  eventEndUnix: number,
+  minUnix: number,
+  maxUnix: number
+): boolean => {
+  return (
+    eventEndUnix > eventStartUnix &&
+    eventEndUnix > minUnix &&
+    eventStartUnix < maxUnix
+  );
+};
+
+const createInternalEvent = (
+  event: EventItem,
+  startUnix: number,
+  endUnix: number,
+  duration: number
+): EventItemInternal => {
+  return {
+    ...event,
+    localId: event.id,
+    _internal: {
+      startUnix,
+      endUnix,
+      duration,
+      index: 0,
+    },
+  };
+};
+
+export type FilteredEvents = {
+  allDays: EventItemInternal[];
+  regular: EventItemInternal[];
+};
 
 export const filterEvents = (
   events: EventItem[],
   minUnix: number,
   maxUnix: number,
   useAllDayEvent?: boolean
-) => {
+): FilteredEvents => {
   const allDays: EventItemInternal[] = [];
   const regular: EventItemInternal[] = [];
 
-  for (let i = 0; i < events.length; i++) {
-    const event = events[i]!;
-    const eventStartUnix = parseDateTime(event.start).toMillis();
-    const eventEndUnix = parseDateTime(event.end).toMillis();
-    let isValidDate = eventEndUnix <= eventStartUnix;
-    if (event.isAllDay) {
-      isValidDate = eventEndUnix < eventStartUnix;
+  for (const event of events) {
+    if (!isValidEventDates(event)) {
+      console.warn('Event has invalid date or dateTime', event);
+      continue;
     }
-    if (isValidDate || eventEndUnix <= minUnix || eventStartUnix >= maxUnix) {
+
+    const { eventStartUnix, eventEndUnix, isAllDay } = getEventTimes(event);
+    if (
+      !isValidEventRange(eventStartUnix, eventEndUnix, minUnix, maxUnix) &&
+      !event.recurrence
+    ) {
       continue;
     }
 
     const duration = (eventEndUnix - eventStartUnix) / MILLISECONDS_IN_MINUTE;
-    const customEvent: EventItemInternal = {
-      ...event,
-      _internal: {
-        startUnix: eventStartUnix,
-        endUnix: eventEndUnix,
-        originalStartUnix: eventStartUnix,
-        originalEndUnix: eventEndUnix,
-        duration,
-        id: event.id,
-        index: 0,
-      },
-    };
+    const customEvent: EventItemInternal = createInternalEvent(
+      event,
+      eventStartUnix,
+      eventEndUnix,
+      duration
+    );
 
-    if (useAllDayEvent && (event.isAllDay || duration >= MINUTES_IN_DAY)) {
+    if (useAllDayEvent && (isAllDay || duration >= MINUTES_IN_DAY)) {
       allDays.push(customEvent);
     } else {
       regular.push(customEvent);
@@ -57,42 +117,32 @@ export const filterEvents = (
   return { allDays, regular };
 };
 
-const buildInstanceId = (id: string, date: DateTime<true>) => {
-  const dateStr = [
-    padStart(date.year, 4, '0'),
-    padStart(date.month, 2, '0'),
-    padStart(date.day, 2, '0'),
-    'T',
-    padStart(date.hour, 2, '0'),
-    padStart(date.minute, 2, '0'),
-    padStart(date.second, 2, '0'),
-    'Z',
-  ].join('');
-
-  return `${id}_${dateStr}`;
+export const buildInstanceId = (id: string, date: DateTime) => {
+  return `${id}_${date.toUTC().toFormat("yyyyMMdd'T'HHmmss'Z'")}`;
 };
 
-export const divideEvents = (event: EventItemInternal, timezone: string) => {
+export const divideEvents = (event: EventItemInternal, timeZone?: string) => {
   let events: EventItemInternal[] = [];
-  const eventStart = parseDateTime(event._internal.startUnix, {
-    zone: timezone,
-  });
-  const eventEnd = parseDateTime(event._internal.endUnix, {
-    zone: timezone,
-  });
-  const startOfEventStart = eventStart.startOf('day');
-  const startOfEventEnd = eventEnd.startOf('day');
-  const days = startOfEventEnd.diff(startOfEventStart, 'days').days + 1;
+  const eventStart = parseDateTime(event.start.dateTime, {
+    zone: event.start.timeZone,
+  }).setZone(timeZone);
+  const eventEnd = parseDateTime(event.end.dateTime, {
+    zone: event.end.timeZone,
+  }).setZone(timeZone);
+
+  const startDayOfEventStart = eventStart.startOf('day');
+  const startDayOfEventEnd = eventEnd.startOf('day');
+  const days = startDayOfEventEnd.diff(startDayOfEventStart, 'days').days + 1;
   for (let i = 0; i < days; i++) {
     let startUnix = forceUpdateZone(eventStart).toMillis();
     let endUnix = forceUpdateZone(eventEnd).toMillis();
     let startMinutes = eventStart.hour * 60 + eventStart.minute;
 
     const dateObj = parseDateTime(startUnix + i * MILLISECONDS_IN_DAY);
-    let id = event.id;
+    let id = event.localId;
     if (days > 1) {
       if (i === 0) {
-        id = buildInstanceId(event.id, dateObj.toUTC());
+        id = `${event.localId}_${startUnix}`;
         endUnix = dateObj.endOf('day').toMillis();
       } else {
         startUnix = dateObj.startOf('day').toMillis();
@@ -100,18 +150,16 @@ export const divideEvents = (event: EventItemInternal, timezone: string) => {
         if (i !== days - 1) {
           endUnix = dateObj.endOf('day').toMillis();
         }
-        id = buildInstanceId(
-          event.id,
-          parseDateTime(dateObj.startOf('day')).toUTC()
-        );
+        id = `${event.localId}_${startUnix}`;
       }
     }
     const duration = (endUnix - startUnix) / MILLISECONDS_IN_MINUTE;
+
     const nextEvent: EventItemInternal = {
       ...event,
+      localId: id,
       _internal: {
         ...event._internal,
-        id,
         startUnix,
         endUnix,
         duration,
@@ -124,28 +172,56 @@ export const divideEvents = (event: EventItemInternal, timezone: string) => {
   return events;
 };
 
+const calculateVisibleDuration = (
+  startUnix: number,
+  endUnix: number,
+  timeZone: string,
+  hideWeekDays: WeekdayNumbers[]
+) => {
+  let duration = 0;
+  for (
+    let currentUnix = startUnix;
+    currentUnix <= endUnix;
+    currentUnix += MILLISECONDS_IN_DAY
+  ) {
+    const dateTime = parseDateTime(currentUnix, { zone: timeZone });
+    if (!hideWeekDays.includes(dateTime.weekday as WeekdayNumbers)) {
+      duration++;
+    }
+  }
+  return duration;
+};
+
 export const divideAllDayEvents = (
   event: EventItemInternal,
-  timezone: string,
+  timeZone: string,
   firstDay: WeekdayNumbers,
   hideWeekDays: WeekdayNumbers[]
 ) => {
   let events: EventItemInternal[] = [];
-  const eventStart = forceUpdateZone(
-    parseDateTime(event._internal.startUnix, {
-      zone: timezone,
-    })
-  );
-  const eventEnd = forceUpdateZone(
-    parseDateTime(event._internal.endUnix, {
-      zone: timezone,
-    })
-  );
+  let eventStart = parseDateTime(event._internal.startUnix);
+  let eventEnd = parseDateTime(event._internal.endUnix);
+  if (event.start.dateTime) {
+    eventStart = parseDateTime(event._internal.startUnix, {
+      zone: event.start.timeZone,
+    }).setZone(timeZone);
+  }
+  if (event.end.dateTime) {
+    eventEnd = parseDateTime(event._internal.endUnix, {
+      zone: event.end.timeZone,
+    }).setZone(timeZone);
+  }
 
-  const startUnix = startOfWeek(eventStart.toISODate(), firstDay).toMillis();
-  const endUnix = startOfWeek(eventEnd.toISODate(), firstDay).toMillis();
+  eventStart = forceUpdateZone(eventStart);
+  eventEnd = forceUpdateZone(eventEnd);
+
+  const weekStartUnix = startOfWeek(
+    eventStart.toISODate(),
+    firstDay
+  ).toMillis();
+  const weekEndUnix = startOfWeek(eventEnd.toISODate(), firstDay).toMillis();
   const diffWeeks =
-    Math.floor((endUnix - startUnix) / (7 * MILLISECONDS_IN_DAY)) + 1;
+    Math.floor((weekEndUnix - weekStartUnix) / (7 * MILLISECONDS_IN_DAY)) + 1;
   const isSameDay = event._internal.startUnix === event._internal.endUnix;
   let eventStartUnix = eventStart.startOf('day').toMillis();
   const eventEndUnix = isSameDay
@@ -159,7 +235,7 @@ export const divideAllDayEvents = (
     const duration = calculateVisibleDuration(
       eventStartUnix,
       eventEndUnix,
-      timezone,
+      timeZone,
       hideWeekDays
     );
 
@@ -171,7 +247,7 @@ export const divideAllDayEvents = (
           startUnix: eventStartUnix,
           endUnix: eventEndUnix,
           duration,
-          weekStart: startUnix,
+          weekStart: weekStartUnix,
         },
       });
     }
@@ -179,7 +255,7 @@ export const divideAllDayEvents = (
   }
 
   for (let i = 0; i < diffWeeks; i++) {
-    const weekStart = startUnix + 7 * MILLISECONDS_IN_DAY * i;
+    const weekStart = weekStartUnix + 7 * MILLISECONDS_IN_DAY * i;
 
     let nextWeekStart = weekStart + 7 * MILLISECONDS_IN_DAY - 1;
     if (eventEndUnix < nextWeekStart) {
@@ -188,13 +264,14 @@ export const divideAllDayEvents = (
     const duration = calculateVisibleDuration(
       eventStartUnix,
       nextWeekStart,
-      timezone,
+      timeZone,
       hideWeekDays
     );
 
     if (duration > 0) {
       const newEvent = {
         ...event,
+        localId: `${event.localId}_${weekStart}`,
         _internal: {
           ...event._internal,
           startUnix: eventStartUnix,
@@ -211,29 +288,158 @@ export const divideAllDayEvents = (
   return events;
 };
 
-// Helper function to calculate visible duration
-const calculateVisibleDuration = (
-  startUnix: number,
-  endUnix: number,
-  timezone: string,
-  hideWeekDays: WeekdayNumbers[]
-) => {
-  let duration = 0;
-  let currentUnix = startUnix;
-  while (currentUnix <= endUnix) {
-    const dateTime = parseDateTime(currentUnix, { zone: timezone });
-    const weekday = dateTime.weekday as WeekdayNumbers;
-    if (!hideWeekDays.includes(weekday)) {
-      duration += 1;
-    }
-    currentUnix += MILLISECONDS_IN_DAY;
-  }
-  return duration;
-};
+// Helper function to process event occurrences
+export function processEventOccurrences(
+  event: EventItemInternal,
+  minUnix: number,
+  maxUnix: number,
+  timeZone: string,
+  divideFunction: (
+    event: EventItemInternal,
+    timeZone: string
+  ) => EventItemInternal[]
+): EventItemInternal[] {
+  if (event.recurrence) {
+    const rrule = new RRuleGenerator(
+      event.recurrence,
+      parseDateTime(event.start.dateTime || event.start.date, {
+        zone: event.start.timeZone,
+      }),
+      event.excludeDates
+    );
 
-const padStart = (value: number, length: number, pad: string) => {
-  return value.toString().padStart(length, pad);
-};
+    const occurrences = rrule.generateOccurrences(
+      parseDateTime(minUnix, { zone: timeZone }),
+      parseDateTime(maxUnix, { zone: timeZone })
+    );
+    const firstOccurrence = rrule.firstOccurrence(event.start.timeZone);
+
+    const duration = event._internal.duration;
+    const {
+      recurrence: originalRrule,
+      excludeDates,
+      _internal,
+      ...rest
+    } = event;
+    return occurrences.flatMap((occurrence) => {
+      let eventStart = occurrence;
+      if (event.start.dateTime) {
+        eventStart = parseDateTime(occurrence, {
+          zone: event.start.timeZone,
+        });
+      }
+      const eventEnd = eventStart
+        .plus({ minutes: duration })
+        .setZone(event.end.timeZone);
+      const instanceId = buildInstanceId(event.id, eventStart.toUTC());
+      const recurringEvent: EventItemInternal = {
+        ...rest,
+        start: event.start.dateTime
+          ? { dateTime: eventStart.toISO(), timeZone: eventStart.zoneName }
+          : { date: eventStart.toISODate() },
+        end: event.end.dateTime
+          ? {
+              dateTime: eventEnd.toISO(),
+              timeZone: eventEnd.zoneName,
+            }
+          : { date: eventEnd.toISODate() },
+        id: instanceId,
+        localId: instanceId,
+        originalStartTime: event.start.dateTime
+          ? { dateTime: eventStart.toISO(), timeZone: eventStart.zoneName }
+          : { date: eventStart.toISODate() },
+        isFirstOccurrence:
+          firstOccurrence?.toMillis() === eventStart.toMillis(),
+        _internal: {
+          ..._internal,
+          startUnix: eventStart.toMillis(),
+          endUnix: eventEnd.toMillis(),
+        },
+        originalRecurringEvent: {
+          ...rest,
+          recurrence: originalRrule,
+          excludeDates: [...(excludeDates || []), eventStart.toUTC().toISO()],
+        },
+      };
+      return divideFunction(recurringEvent, timeZone);
+    });
+  } else {
+    return divideFunction(event, timeZone);
+  }
+}
+
+// Helper function to process all-day events
+export function processAllDayEventMap(
+  allDayEventMap: Map<number, EventItemInternal[]>,
+  timeZone: string,
+  hideWeekDays: WeekdayNumbers[]
+) {
+  const packedAllDayEvents: Record<string, PackedAllDayEvent[]> = {};
+  const packedAllDayEventsByDay: Record<string, PackedAllDayEvent[]> = {};
+  const eventCountsByWeek: Record<string, number> = {};
+  const eventCountsByDay: Record<string, number> = {};
+
+  allDayEventMap.forEach((eventsForWeek, weekStart) => {
+    const visibleDays: number[] = getVisibleDays(
+      weekStart,
+      timeZone,
+      hideWeekDays
+    );
+
+    const { packedEvents, maxRowCount } = populateAllDayEvents(eventsForWeek, {
+      startDate: weekStart,
+      endDate: weekStart + 7 * MILLISECONDS_IN_DAY - 1,
+      timeZone,
+      visibleDays,
+    });
+
+    packedAllDayEvents[weekStart] = packedEvents;
+    eventCountsByWeek[weekStart] = maxRowCount;
+
+    packedEvents.forEach((event) => {
+      const eventStart = event._internal.startUnix;
+      const eventEnd = event._internal.endUnix;
+
+      for (let day = eventStart; day <= eventEnd; day += MILLISECONDS_IN_DAY) {
+        if (visibleDays.includes(day)) {
+          eventCountsByDay[day] = (eventCountsByDay[day] || 0) + 1;
+          if (!packedAllDayEventsByDay[day]) {
+            packedAllDayEventsByDay[day] = [];
+          }
+          packedAllDayEventsByDay[day]!.push(event);
+        }
+      }
+    });
+  });
+
+  return {
+    packedAllDayEvents,
+    packedAllDayEventsByDay,
+    eventCountsByWeek,
+    eventCountsByDay,
+  };
+}
+
+// Helper function to get visible days
+export function getVisibleDays(
+  weekStart: number,
+  timeZone: string,
+  hideWeekDays: WeekdayNumbers[]
+): number[] {
+  const visibleDays: number[] = [];
+  for (
+    let currentDayUnix = weekStart;
+    currentDayUnix < weekStart + 7 * MILLISECONDS_IN_DAY;
+    currentDayUnix += MILLISECONDS_IN_DAY
+  ) {
+    const dateTime = parseDateTime(currentDayUnix, { zone: timeZone });
+    const weekday = dateTime.weekday;
+    if (!hideWeekDays.includes(weekday)) {
+      visibleDays.push(currentDayUnix);
+    }
+  }
+  return visibleDays;
+}
 
 const hasCollision = (a: EventItemInternal, b: EventItemInternal) => {
   return (
@@ -247,13 +453,15 @@ export const populateEvents = (events: EventItemInternal[]) => {
     return [];
   }
 
-  // Sort events by start time
-  const sortedEvents = events
-    .slice()
-    .sort((a, b) => a._internal.startUnix - b._internal.startUnix);
+  const sortedEvents = events.slice().sort((a, b) => {
+    if (a._internal.startUnix !== b._internal.startUnix) {
+      return a._internal.startUnix - b._internal.startUnix;
+    }
+    return a._internal.endUnix - b._internal.endUnix;
+  });
 
-  // Assign events to columns
   const eventColumns: EventItemInternal[][] = [];
+  const packedEvents: PackedEvent[] = [];
 
   for (const event of sortedEvents) {
     let placed = false;
@@ -274,9 +482,6 @@ export const populateEvents = (events: EventItemInternal[]) => {
   }
 
   const maxColumns = eventColumns.length;
-
-  // Calculate column spans
-  const packedEvents: PackedEvent[] = [];
 
   for (const event of sortedEvents) {
     const colIndex = event._internal.index;
@@ -336,7 +541,7 @@ export const sortAllDayEvents = (
 interface PopulateAllDayOptions {
   startDate: number;
   endDate: number;
-  timezone: string;
+  timeZone: string;
   visibleDays: number[];
 }
 interface PopulateAllDayResult {
@@ -349,8 +554,8 @@ export const populateAllDayEvents = (
 ): PopulateAllDayResult => {
   const sortedEvents = sortAllDayEvents(events);
   const rows: EventItemInternal[][] = [];
-
   const dateToIndexMap: Record<string, number> = {};
+
   options.visibleDays.forEach((dateUnix, index) => {
     dateToIndexMap[dateUnix] = index;
   });

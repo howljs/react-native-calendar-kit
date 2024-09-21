@@ -1,27 +1,21 @@
 import isEqual from 'lodash.isequal';
-import React, { FC, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { FC, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
-  runOnUI,
   useAnimatedStyle,
   useDerivedValue,
-  useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { MILLISECONDS_IN_DAY } from '../constants';
 import { useBody } from '../context/BodyContext';
 import { useTheme } from '../context/ThemeProvider';
-import {
-  EventItem as EventItemType,
-  PackedEvent,
-  SizeAnimation,
-} from '../types';
+import { OnEventResponse, PackedEvent, SizeAnimation } from '../types';
 
 interface EventItemProps {
   event: PackedEvent;
   startUnix: number;
   renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
-  onPressEvent?: (event: EventItemType) => void;
+  onPressEvent?: (event: OnEventResponse) => void;
   onLongPressEvent?: (event: PackedEvent) => void;
   isDragging?: boolean;
   visibleDates: Record<string, { diffDays: number; unix: number }>;
@@ -55,7 +49,7 @@ const EventItem: FC<EventItemProps> = ({
     startUnix: eventStartUnix,
   } = _internal;
 
-  const getInitialData = useCallback(() => {
+  const data = useMemo(() => {
     const maxDuration = end - start;
     let newStart = startMinutes - start;
     let totalDuration = Math.min(duration, maxDuration);
@@ -68,9 +62,17 @@ const EventItem: FC<EventItemProps> = ({
       (eventStartUnix - startUnix) / MILLISECONDS_IN_DAY
     );
 
-    for (let i = startUnix; i < eventStartUnix; i += MILLISECONDS_IN_DAY) {
-      if (!visibleDates[i]) {
-        diffDays--;
+    if (eventStartUnix < startUnix) {
+      for (let i = eventStartUnix; i < startUnix; i += MILLISECONDS_IN_DAY) {
+        if (!visibleDates[i]) {
+          diffDays++;
+        }
+      }
+    } else {
+      for (let i = startUnix; i < eventStartUnix; i += MILLISECONDS_IN_DAY) {
+        if (!visibleDates[i]) {
+          diffDays--;
+        }
       }
     }
 
@@ -80,84 +82,52 @@ const EventItem: FC<EventItemProps> = ({
       diffDays,
     };
   }, [
+    duration,
     end,
+    eventStartUnix,
     start,
     startMinutes,
-    duration,
-    eventStartUnix,
     startUnix,
     visibleDates,
   ]);
 
-  const data = useMemo(() => getInitialData(), [getInitialData]);
-
-  const initialStartDuration = useRef(getInitialData());
-  const durationAnim = useSharedValue(
-    initialStartDuration.current.totalDuration
-  );
-  const startMinutesAnim = useSharedValue(
-    initialStartDuration.current.startMinutes
-  );
-
-  const diffDaysAnim = useSharedValue(initialStartDuration.current.diffDays);
-
-  useEffect(() => {
-    runOnUI(() => {
-      durationAnim.value = withTiming(data.totalDuration, { duration: 150 });
-      startMinutesAnim.value = withTiming(data.startMinutes, { duration: 150 });
-      diffDaysAnim.value = withTiming(data.diffDays, { duration: 150 });
-    })();
-  }, [
-    data.diffDays,
-    data.startMinutes,
-    data.totalDuration,
-    diffDaysAnim,
-    durationAnim,
-    startMinutesAnim,
-  ]);
-
   const eventHeight = useDerivedValue(
-    () => durationAnim.value * minuteHeight.value
+    () => data.totalDuration * minuteHeight.value,
+    [data.totalDuration]
   );
 
   const eventWidth = useDerivedValue(() => {
-    let width = columnWidthAnim.value * (columnSpan / total);
-    if (total > 1) {
-      width -= (rightEdgeSpacing + 1) / total;
-      const isLast = total - columnSpan === index;
-      if (isLast) {
-        width -= rightEdgeSpacing - 1;
-      } else {
-        width -= (overlapEventsSpacing * (total - 1)) / total;
-      }
-    } else {
-      width -= rightEdgeSpacing + 1;
-    }
-    return width;
-  });
+    const totalColumns = total - columnSpan;
+    const totalOverlap = totalColumns * overlapEventsSpacing;
+    const totalWidth = columnWidthAnim.value - rightEdgeSpacing - totalOverlap;
+    let width = (totalWidth / total) * columnSpan;
+
+    return withTiming(width, { duration: 150 });
+  }, [columnSpan, rightEdgeSpacing, overlapEventsSpacing, total]);
 
   const eventPosX = useDerivedValue(() => {
-    // TODO: check logic here
-    const extraX =
-      (columnWidthAnim.value / total - overlapEventsSpacing) * index;
-    let left = diffDaysAnim.value * columnWidthAnim.value + extraX;
-    if (total > 1 && index > 0 && index < total) {
-      left += overlapEventsSpacing * index;
-    }
-    return left;
-  });
+    let left = data.diffDays * columnWidthAnim.value;
+    left += (eventWidth.value + overlapEventsSpacing) * index;
+    return withTiming(left, { duration: 150 });
+  }, [data.diffDays, overlapEventsSpacing, rightEdgeSpacing, index, total]);
+
+  const top = useDerivedValue(() => {
+    return data.startMinutes * minuteHeight.value;
+  }, [data.startMinutes]);
 
   const animView = useAnimatedStyle(() => {
     return {
       height: eventHeight.value,
       width: eventWidth.value,
       left: eventPosX.value + 1,
-      top: startMinutesAnim.value * minuteHeight.value,
+      top: top.value,
     };
   });
 
   const _onPressEvent = () => {
-    onPressEvent!(event);
+    if (onPressEvent) {
+      onPressEvent(eventInput);
+    }
   };
 
   const _onLongPressEvent = () => {

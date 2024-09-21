@@ -23,8 +23,9 @@ import {
   divideAllDayEvents,
   divideEvents,
   filterEvents,
-  populateAllDayEvents,
   populateEvents,
+  processAllDayEventMap,
+  processEventOccurrences,
 } from '../utils/eventUtils';
 import { useDateChangedListener } from './VisibleDateProvider';
 
@@ -43,7 +44,7 @@ const EventsContext = React.createContext<Store<EventsState> | undefined>(
 interface EventsProviderProps {
   firstDay: WeekdayNumbers;
   events?: EventItem[];
-  timezone: string;
+  timeZone: string;
   useAllDayEvent?: boolean;
   pagesPerSide: number;
   hideWeekDays: WeekdayNumbers[];
@@ -62,9 +63,9 @@ const EventsProvider: ForwardRefRenderFunction<
     pagesPerSide,
     events = [],
     children,
-    timezone,
+    timeZone,
     firstDay,
-    useAllDayEvent,
+    useAllDayEvent: showAllDay,
     hideWeekDays,
     defaultOffset = 7,
   },
@@ -83,117 +84,69 @@ const EventsProvider: ForwardRefRenderFunction<
 
   const notifyDataChanged = useCallback(
     (date: number, offset: number = defaultOffset) => {
-      const zonedDate = forceUpdateZone(date, timezone).toMillis();
-      const minUnix = zonedDate - MILLISECONDS_IN_DAY * (offset * pagesPerSide);
+      const zonedDate = forceUpdateZone(date, timeZone).toMillis();
+      const minUnix = zonedDate - MILLISECONDS_IN_DAY * offset * pagesPerSide;
       const maxUnix =
-        zonedDate + MILLISECONDS_IN_DAY * (offset * (pagesPerSide + 1));
-      const filteredEvents = filterEvents(
+        zonedDate + MILLISECONDS_IN_DAY * offset * (pagesPerSide + 1);
+
+      const { regular: regularEvents, allDays: allDayEvents } = filterEvents(
         events,
         minUnix,
         maxUnix,
-        useAllDayEvent
+        showAllDay
       );
 
-      const eventsByDate: Record<string, EventItemInternal[]> = {};
-      for (const event of filteredEvents.regular) {
-        const processedEvents: EventItemInternal[] = divideEvents(
+      // Process regular events
+      const regularEventMap = new Map<number, EventItemInternal[]>();
+      regularEvents.forEach((event) => {
+        const processedEvents = processEventOccurrences(
           event,
-          timezone
+          minUnix,
+          maxUnix,
+          timeZone,
+          divideEvents
         );
-        for (const evt of processedEvents) {
-          const key = parseDateTime(evt._internal.startUnix)
+        processedEvents.forEach((evt) => {
+          const dayStart = parseDateTime(evt._internal.startUnix)
             .startOf('day')
             .toMillis();
-
-          if (!eventsByDate[key]) {
-            eventsByDate[key] = [];
+          if (!regularEventMap.has(dayStart)) {
+            regularEventMap.set(dayStart, []);
           }
-          eventsByDate[key]!.push(evt);
-        }
-      }
-
+          regularEventMap.get(dayStart)!.push(evt);
+        });
+      });
       const packedRegularEvents: Record<string, PackedEvent[]> = {};
-      for (const key in eventsByDate) {
-        packedRegularEvents[key] = populateEvents(eventsByDate[key]!);
-      }
-
-      const groupedAllDayEventsByWeek: Record<string, EventItemInternal[]> = {};
-      for (const event of filteredEvents.allDays) {
-        let processedEvents: EventItemInternal[] = divideAllDayEvents(
-          event,
-          timezone,
-          firstDay,
-          hideWeekDays
-        );
-        for (const evt of processedEvents) {
-          const weekStart = evt._internal.weekStart;
-          if (!weekStart) {
-            continue;
-          }
-
-          if (!groupedAllDayEventsByWeek[weekStart]) {
-            groupedAllDayEventsByWeek[weekStart] = [];
-          }
-          groupedAllDayEventsByWeek[weekStart]!.push(evt);
-        }
-      }
+      regularEventMap.forEach((rEvents, day) => {
+        packedRegularEvents[day] = populateEvents(rEvents);
+      });
 
       // Process all-day events
-      const packedAllDayEvents: Record<string, PackedAllDayEvent[]> = {};
-      const packedAllDayEventsByDay: Record<string, PackedAllDayEvent[]> = {};
-      const eventCountsByWeek: Record<string, number> = {};
-      const eventCountsByDay: Record<string, number> = {};
-      for (const weekStart in groupedAllDayEventsByWeek) {
-        const eventsForWeek = groupedAllDayEventsByWeek[weekStart]!;
-        const weekStartDate = Number(weekStart);
-        const weekEndDate = weekStartDate + 7 * MILLISECONDS_IN_DAY - 1;
-        const visibleDays: number[] = [];
-        for (
-          let currentDayUnix = weekStartDate;
-          currentDayUnix <= weekEndDate;
-          currentDayUnix += MILLISECONDS_IN_DAY
-        ) {
-          const dateTime = parseDateTime(currentDayUnix, { zone: timezone });
-          const weekday = dateTime.weekday;
-          if (!hideWeekDays.includes(weekday)) {
-            visibleDays.push(currentDayUnix);
-          }
-        }
-
-        const { packedEvents, maxRowCount } = populateAllDayEvents(
-          eventsForWeek,
-          {
-            startDate: weekStartDate,
-            endDate: weekEndDate,
-            timezone,
-            visibleDays,
-          }
+      const allDayEventMap = new Map<number, EventItemInternal[]>();
+      allDayEvents.forEach((event) => {
+        const processedEvents = processEventOccurrences(
+          event,
+          minUnix,
+          maxUnix,
+          timeZone,
+          (e, tz) => divideAllDayEvents(e, tz, firstDay, hideWeekDays)
         );
-        for (const event of packedEvents) {
-          if (!packedAllDayEvents[weekStart]) {
-            packedAllDayEvents[weekStart] = [];
+        processedEvents.forEach((evt) => {
+          const weekStart = evt._internal.weekStart;
+          if (!weekStart) return;
+          if (!allDayEventMap.has(weekStart)) {
+            allDayEventMap.set(weekStart, []);
           }
-          packedAllDayEvents[weekStart]!.push(event);
+          allDayEventMap.get(weekStart)!.push(evt);
+        });
+      });
 
-          const eventStart = event._internal.startUnix;
-          const eventEnd = event._internal.endUnix;
-
-          for (
-            let day = eventStart;
-            day <= eventEnd;
-            day = day += MILLISECONDS_IN_DAY
-          ) {
-            if (visibleDays.includes(day)) {
-              eventCountsByDay[day] = (eventCountsByDay[day] || 0) + 1;
-              if (!packedAllDayEventsByDay[day]) {
-                packedAllDayEventsByDay[day] = [];
-              }
-              packedAllDayEventsByDay[day]!.push(event);
-            }
-          }
-        }
-        eventCountsByWeek[weekStart] = maxRowCount;
-      }
+      const {
+        packedAllDayEvents,
+        packedAllDayEventsByDay,
+        eventCountsByWeek,
+        eventCountsByDay,
+      } = processAllDayEventMap(allDayEventMap, timeZone, hideWeekDays);
 
       eventStore.setState({
         regularEvents: packedRegularEvents,
@@ -210,8 +163,8 @@ const EventsProvider: ForwardRefRenderFunction<
       firstDay,
       hideWeekDays,
       pagesPerSide,
-      timezone,
-      useAllDayEvent,
+      showAllDay,
+      timeZone,
     ]
   );
 
@@ -223,10 +176,10 @@ const EventsProvider: ForwardRefRenderFunction<
       if (!regularEvents) {
         return [];
       }
-      const targetUnix = forceUpdateZone(dateObj, timezone).toMillis();
+      const targetUnix = forceUpdateZone(dateObj, timeZone).toMillis();
       const filteredEvents = regularEvents.filter((event) => {
-        const eventStart = parseDateTime(event.start).toMillis();
-        const eventEnd = parseDateTime(event.end).toMillis();
+        const eventStart = parseDateTime(event.start.dateTime).toMillis();
+        const eventEnd = parseDateTime(event.end.dateTime).toMillis();
         return eventStart <= targetUnix && eventEnd >= targetUnix;
       });
       return filteredEvents;

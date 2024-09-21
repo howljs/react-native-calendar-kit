@@ -27,10 +27,10 @@ const UnavailableHoursProvider: FC<
     unavailableHours?:
       | Record<string, UnavailableHourProps[]>
       | UnavailableHourProps[];
-    timezone: string;
+    timeZone: string;
     pagesPerSide: number;
   }>
-> = ({ children, unavailableHours = {}, timezone, pagesPerSide }) => {
+> = ({ children, unavailableHours = {}, timeZone, pagesPerSide }) => {
   const unavailableHoursStore = useLazyRef(() =>
     createStore<UnavailableHoursStore>({
       unavailableHours: {},
@@ -60,7 +60,7 @@ const UnavailableHoursProvider: FC<
       const maxUnix =
         date + MILLISECONDS_IN_DAY * (offset * (pagesPerSide + 1));
       for (let i = minUnix; i < maxUnix; i += MILLISECONDS_IN_DAY) {
-        const dateObj = forceUpdateZone(i, timezone);
+        const dateObj = forceUpdateZone(i, timeZone);
         const weekDay = dateObj.weekday;
         const dateStr = dateObj.toFormat('yyyy-MM-dd');
         const unavailableHoursByDate =
@@ -71,7 +71,7 @@ const UnavailableHoursProvider: FC<
       }
       unavailableHoursStore.setState({ unavailableHours: data });
     },
-    [unavailableHours, pagesPerSide, unavailableHoursStore, timezone]
+    [unavailableHours, pagesPerSide, unavailableHoursStore, timeZone]
   );
 
   useEffect(() => {

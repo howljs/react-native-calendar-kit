@@ -2,10 +2,11 @@ import {
   CalendarBody,
   CalendarContainer,
   CalendarDayBar,
-  DragEventProps,
+  DateOrDateTime,
   EventItem,
   OutOfRangeProps,
   PackedEvent,
+  SelectedEventType,
   type CalendarKitHandle,
   type LocaleConfigsProps,
 } from '@howljs/calendar-kit';
@@ -107,259 +108,244 @@ const minDate = new Date(
   new Date().getDate()
 );
 
-const allDayEvents = [
+const allDayEvents: EventItem[] = [
   {
     id: 'event_0',
-    start: '2024-09-14T22:00:00.000+07:00',
-    end: '2024-09-24T22:00:00.000+07:00',
+    start: {
+      date: '2024-09-14',
+    },
+    end: {
+      date: '2024-09-24',
+    },
     title: 'Event 0',
     color: '#5428F2',
     titleColor: 'white',
   },
   {
     id: 'event_0x',
-    start: '2024-09-16T22:00:00.000+07:00',
-    end: '2024-09-22T23:00:00.000+07:00',
+    start: {
+      dateTime: '2024-09-16T22:00:00.000+07:00',
+    },
+    end: {
+      dateTime: '2024-09-22T23:00:00.000+07:00',
+    },
     title: 'Event 0x',
     color: '#5428F2',
     titleColor: 'white',
   },
   {
     id: 'event_1',
-    start: '2024-09-16T22:00:00.000+07:00',
-    end: '2024-09-18T22:00:00.000+07:00',
+    start: {
+      dateTime: '2024-09-16T22:00:00.000+07:00',
+    },
+    end: {
+      dateTime: '2024-09-18T22:00:00.000+07:00',
+    },
     title: 'Event 1',
     color: '#5428F2',
     titleColor: 'white',
   },
   {
     id: 'event_1x',
-    start: '2024-09-16T00:00:00.000+07:00',
-    end: '2024-09-19T00:00:00.000+07:00',
+    start: {
+      dateTime: '2024-09-16T00:00:00.000+07:00',
+    },
+    end: {
+      dateTime: '2024-09-19T00:00:00.000+07:00',
+    },
     title: 'Event 1x',
     color: '#5428F2',
     titleColor: 'white',
   },
   {
     id: 'event_2',
-    start: '2024-09-21T00:00:00.000+07:00',
-    end: '2024-09-22T00:00:00.000+07:00',
+    start: {
+      dateTime: '2024-09-21T00:00:00.000+07:00',
+    },
+    end: {
+      dateTime: '2024-09-22T00:00:00.000+07:00',
+    },
     title: 'Event 2',
     color: '#8EBB85',
     titleColor: 'white',
   },
   {
     id: 'event_2x',
-    start: '2024-09-18T00:00:00.000+07:00',
-    end: '2024-09-21T00:00:00.000+07:00',
+    start: {
+      date: '2024-09-18',
+    },
+    end: {
+      date: '2024-09-21',
+    },
     title: 'Event 2x',
     color: '#5428F2',
     titleColor: 'white',
   },
   {
     id: 'event_3c',
-    start: '2024-09-16',
-    end: '2024-09-16',
+    start: {
+      date: '2024-09-16',
+    },
+    end: {
+      date: '2024-09-16',
+    },
     title: 'Event 3',
     color: '#B70100',
     titleColor: 'white',
-    isAllDay: true,
   },
   {
     id: 'event_3xx',
-    start: '2024-09-16T22:00:00.000+07:00',
-    end: '2024-09-17T22:00:00.000+07:00',
+    start: {
+      dateTime: '2024-09-16T22:00:00.000+07:00',
+    },
+    end: {
+      dateTime: '2024-09-17T22:00:00.000+07:00',
+    },
     title: 'Event 3xx',
     color: '#5428F2',
     titleColor: 'white',
   },
   {
     id: 'event_3x',
-    start: '2024-09-16T15:00:00.000+07:00',
-    end: '2024-09-17T23:00:00.000+07:00',
+    start: {
+      dateTime: '2024-09-16T15:00:00.000+07:00',
+    },
+    end: {
+      dateTime: '2024-09-17T23:00:00.000+07:00',
+    },
     title: 'Event 3x',
     color: '#5428F2',
     titleColor: 'white',
   },
   {
     id: 'event_4',
-    start: '2024-09-20T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
+    start: {
+      dateTime: '2024-09-20T17:00:00.000Z',
+    },
+    end: {
+      dateTime: '2024-09-21T17:00:00.000Z',
+    },
     title: 'Event 4',
     color: '#B70100',
     titleColor: 'white',
   },
   {
     id: 'event_5',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
+    start: {
+      dateTime: '2024-09-19T17:00:00.000Z',
+    },
+    end: {
+      dateTime: '2024-09-21T17:00:00.000Z',
+    },
     title: 'Event 5',
     color: '#EAAB7E',
     titleColor: 'white',
   },
   {
     id: 'event_6',
-    start: '2024-09-17T17:00:00.000Z',
-    end: '2024-09-18T17:00:00.000Z',
+    start: {
+      dateTime: '2024-09-17T17:00:00.000Z',
+    },
+    end: {
+      dateTime: '2024-09-18T17:00:00.000Z',
+    },
     title: 'Event 6x',
     color: '#AC2A57',
     titleColor: 'white',
   },
   {
     id: 'event_7',
-    start: '2024-09-20T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
+    start: {
+      dateTime: '2024-09-20T17:00:00.000Z',
+    },
+    end: {
+      dateTime: '2024-09-21T17:00:00.000Z',
+    },
     title: 'Event 7',
     color: '#DC1F98',
     titleColor: 'white',
   },
   {
     id: 'event_8',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
+    start: {
+      dateTime: '2024-09-19T17:00:00.000Z',
+    },
+    end: {
+      dateTime: '2024-09-21T17:00:00.000Z',
+    },
     title: 'Event 8',
     color: '#6E911C',
     titleColor: 'white',
   },
   {
     id: 'event_9',
-    start: '2024-09-20T17:00:00.000Z',
-    end: '2024-09-22T17:00:00.000Z',
+    start: {
+      dateTime: '2024-09-20T17:00:00.000Z',
+    },
+    end: {
+      dateTime: '2024-09-22T17:00:00.000Z',
+    },
     title: 'Event 9',
     color: '#BE1459',
     titleColor: 'white',
   },
   {
     id: 'event_10',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
+    start: {
+      dateTime: '2024-09-19T17:00:00.000Z',
+    },
+    end: {
+      dateTime: '2024-09-21T17:00:00.000Z',
+    },
     title: 'Event 10',
     color: '#BA3D9D',
     titleColor: 'white',
   },
   {
     id: 'event_11',
-    start: '2024-09-20T00:00:00.000+07:00',
-    end: '2024-09-26T00:00:00.000+07:00',
+    start: {
+      dateTime: '2024-09-20T00:00:00.000+07:00',
+    },
+    end: {
+      dateTime: '2024-09-26T00:00:00.000+07:00',
+    },
     title: 'Event 11',
     color: '#BA3D9D',
     titleColor: 'white',
   },
   {
-    id: 'event_12',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
+    id: 'event_2xx3',
+    start: {
+      date: '2024-09-16',
+    },
+    end: {
+      date: '2024-09-17',
+    },
+    title: 'All day Recurring',
     color: '#BA3D9D',
     titleColor: 'white',
+    recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
+    excludeDates: ['2024-09-16', '2024-09-22'],
   },
   {
-    id: 'event_13',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
+    id: 'event_26',
+    start: {
+      dateTime: '2024-09-16T12:00:00.000+07:00',
+      timeZone: 'Asia/Ho_Chi_Minh',
+    },
+    end: {
+      dateTime: '2024-09-16T17:00:00.000+09:00',
+      timeZone: 'Asia/Tokyo',
+    },
+    title: 'Event Recurring',
     color: '#BA3D9D',
     titleColor: 'white',
-  },
-  {
-    id: 'event_14',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_15',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_16',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_17',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_18',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_19',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_20',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_21',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_22',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_23',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_24',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
-  },
-  {
-    id: 'event_25',
-    start: '2024-09-19T17:00:00.000Z',
-    end: '2024-09-21T17:00:00.000Z',
-    title: 'Event 12',
-    color: '#BA3D9D',
-    titleColor: 'white',
+    recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
+    excludeDates: ['2024-09-16T05:00:00.000Z', '2024-09-22T05:00:00.000Z'],
   },
 ];
 const generateEvents = () => {
-  return new Array(1000)
+  return new Array(500)
     .fill(0)
     .map((_, index) => {
       const randomDateByIndex = new Date(
@@ -373,12 +359,16 @@ const generateEvents = () => {
       const endDate = new Date(randomDateByIndex.getTime() + duration);
       return {
         id: `event_${index + 1}`,
-        start: randomDateByIndex.toISOString(),
-        end: endDate.toISOString(),
+        start: {
+          dateTime: randomDateByIndex.toISOString(),
+        },
+        end: {
+          dateTime: endDate.toISOString(),
+        },
         title: `Event ${index + 1}`,
         color: randomColor(),
         titleColor: 'white',
-      };
+      } as EventItem;
     })
     .concat(allDayEvents);
 };
@@ -392,7 +382,7 @@ const Calendar = () => {
   const params = useLocalSearchParams<SearchParams>();
   const router = useRouter();
   const currentDate = useSharedValue(INITIAL_DATE);
-  const [selectedEvent, setSelectedEvent] = useState<DragEventProps>();
+  const [selectedEvent, setSelectedEvent] = useState<SelectedEventType>();
   const [calendarWidth, setCalendarWidth] = useState(
     Dimensions.get('window').width
   );
@@ -440,7 +430,7 @@ const Calendar = () => {
     return <OutOfRange {...props} />;
   }, []);
 
-  const _onPressBackground = ({ date }: { date: string }) => {
+  const _onPressBackground = (props: DateOrDateTime) => {
     // if (selectedEvent) {
     //   const startISO = new Date(date).toISOString();
     //   const duration =
@@ -456,7 +446,12 @@ const Calendar = () => {
     //   }
     //   setSelectedEvent(newEvent);
     // }
-    console.log(new Date(date).toISOString());
+    if (props.date) {
+      console.log(new Date(props.date).toISOString());
+    }
+    if (props.dateTime) {
+      console.log(new Date(props.dateTime).toISOString());
+    }
     setSelectedEvent(undefined);
   };
 
@@ -470,7 +465,6 @@ const Calendar = () => {
   return (
     <View style={styles.container}>
       <Header currentDate={currentDate} onPressToday={_onPressToday} />
-
       <CalendarContainer
         ref={calendarRef}
         calendarWidth={calendarWidth}
@@ -500,11 +494,11 @@ const Calendar = () => {
         highlightDates={highlightDates}
         events={events}
         onPressEvent={(event) => {
-          console.log(new Date(event.start as string).toLocaleString());
+          console.log(event);
         }}
         scrollToNow
         useHaptic
-        timezone="Asia/Tokyo"
+        timeZone="Asia/Tokyo"
         allowDragToEdit
         allowDragToCreate
         useAllDayEvent
@@ -518,9 +512,16 @@ const Calendar = () => {
         end={23 * 60}
         defaultDuration={60}
         onDragEventEnd={async (event) => {
+          const { originalRecurringEvent, ...rest } = event;
           if (event.id) {
-            let filteredEvents = events.filter((item) => item.id !== event.id);
-            const newEvent = { ...event, id: event.id };
+            let filteredEvents = events.filter(
+              (item) =>
+                item.id !== event.id && item.id !== originalRecurringEvent?.id
+            );
+            if (originalRecurringEvent) {
+              filteredEvents.push(originalRecurringEvent);
+            }
+            const newEvent = { ...rest, id: event.id };
             filteredEvents.push(newEvent);
             setEvents(filteredEvents);
           }
@@ -532,12 +533,19 @@ const Calendar = () => {
           });
         }}
         onDragSelectedEventEnd={async (event) => {
+          const { originalRecurringEvent, ...rest } = event;
           if (event.id) {
-            let filteredEvents = events.filter((item) => item.id !== event.id);
-            const newEvent = { ...event, id: event.id };
-            filteredEvents.push(newEvent);
+            let filteredEvents = events.filter(
+              (item) =>
+                item.id !== event.id && item.id !== originalRecurringEvent?.id
+            );
+            if (originalRecurringEvent) {
+              filteredEvents.push(originalRecurringEvent);
+            }
+            filteredEvents.push(rest as EventItem);
             setEvents(filteredEvents);
           }
+
           setSelectedEvent(event);
           await new Promise((resolve) => {
             setTimeout(() => {

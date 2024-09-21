@@ -22,27 +22,29 @@ import {
   MILLISECONDS_IN_MINUTE,
   ScrollType,
 } from '../constants';
-import { DateType, DragEventProps, EventItem } from '../types';
-import {
-  dateTimeToISOString,
-  forceUpdateZone,
-  parseDateTime,
-} from '../utils/dateUtils';
 import HapticService from '../service/HapticService';
+import {
+  DateTimeType,
+  DateType,
+  DraggingEventType,
+  OnEventResponse,
+  SelectedEventType,
+} from '../types';
+import { forceUpdateZone, parseDateTime } from '../utils/dateUtils';
 import { useActions } from './ActionsProvider';
 import { useCalendar } from './CalendarProvider';
-import { useTimezone } from './TimezoneProvider';
+import { useTimezone } from './TimeZoneProvider';
 
 export type DragEventContextProps = {
   dragStep: number;
   allowDragToEdit: boolean;
   isDragging: boolean;
-  draggingEvent?: DragEventProps;
+  draggingEvent?: SelectedEventType;
   dragStartMinutes: SharedValue<number>;
   dragDuration: SharedValue<number>;
   isDraggingAnim: SharedValue<boolean>;
   draggingId: string | undefined;
-  selectedEvent?: DragEventProps;
+  selectedEvent?: SelectedEventType;
   dragPosition: SharedValue<{
     x: number;
     y: number;
@@ -78,17 +80,16 @@ const DragEventContext = React.createContext<DragEventContextProps | undefined>(
 export type DragEventActionsContextProps = {
   triggerDragEvent?: (
     initialDrag: {
-      start: DateType;
-      end: DateType;
+      start: DateTimeType;
+      end: DateTimeType;
       startIndex?: number;
     },
-    event?: DragEventProps
+    event?: OnEventResponse
   ) => void;
   triggerDragSelectedEvent: (initialDrag: {
     startIndex: number;
     type: 'center' | 'top' | 'bottom';
   }) => void;
-  setEvent: (event: DragEventProps) => void;
   triggerDragCreateEvent?: (
     date: DateType,
     event: GestureResponderEvent
@@ -107,7 +108,7 @@ const DragEventProvider: FC<
   PropsWithChildren<{
     dragStep: number;
     allowDragToEdit: boolean;
-    selectedEvent?: DragEventProps;
+    selectedEvent?: SelectedEventType;
     allowDragToCreate: boolean;
     defaultDuration: number;
     hapticService: HapticService;
@@ -122,7 +123,7 @@ const DragEventProvider: FC<
   hapticService,
 }) => {
   // Contexts
-  const { timezone } = useTimezone();
+  const { timeZone } = useTimezone();
   const {
     offsetY,
     offsetX,
@@ -158,7 +159,7 @@ const DragEventProvider: FC<
   const isDraggingAnim = useSharedValue(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingCreate, setIsDraggingCreate] = useState(false);
-  const [draggingEvent, setDraggingEvent] = useState<DragEventProps>();
+  const [draggingEvent, setDraggingEvent] = useState<DraggingEventType>();
 
   const dragStartUnix = useSharedValue<number>(-1);
   const dragStartMinutes = useSharedValue<number>(-1);
@@ -198,8 +199,8 @@ const DragEventProvider: FC<
   const scrollTargetX = useSharedValue(0);
   const offsetYAnim = useSharedValue(0);
 
-  const draggingId = draggingEvent?.id;
-  const selectedEventId = selectedEvent?.id;
+  const draggingId = draggingEvent?.localId ?? draggingEvent?.id;
+  const selectedEventId = selectedEvent?.localId ?? selectedEvent?.id;
 
   const handleIsDraggingChange = useCallback(
     async (dragging: boolean) => {
@@ -219,40 +220,42 @@ const DragEventProvider: FC<
         const newEndUnix =
           newStartUnix + roundedDragDuration.value * MILLISECONDS_IN_MINUTE;
 
-        if (draggingEvent) {
-          const prevStart = parseDateTime(draggingEvent.start, {
-            zone: timezone,
-          }).toMillis();
-          const prevEnd = parseDateTime(draggingEvent.end, {
-            zone: timezone,
-          }).toMillis();
-          const newStartObj = forceUpdateZone(newStartUnix, timezone);
-          const newEndObj = forceUpdateZone(newEndUnix, timezone);
+        if (draggingEvent?.start?.dateTime && draggingEvent?.end?.dateTime) {
+          const prevStart = parseDateTime(draggingEvent.start.dateTime, {
+            zone: draggingEvent.start.timeZone,
+          })
+            .setZone(timeZone)
+            .toMillis();
+          const prevEnd = parseDateTime(draggingEvent.end.dateTime, {
+            zone: draggingEvent.end.timeZone,
+          })
+            .setZone(timeZone)
+            .toMillis();
+          const newStartObj = forceUpdateZone(newStartUnix, timeZone);
+          const newEndObj = forceUpdateZone(newEndUnix, timeZone);
           const newStart = newStartObj.toMillis();
           const newEnd = newEndObj.toMillis();
+          const currentEvent = { ...draggingEvent };
+          delete currentEvent._internal;
 
           if (prevStart !== newStart || prevEnd !== newEnd) {
-            const newStartISO = dateTimeToISOString(newStartObj);
-            const newEndISO = dateTimeToISOString(newEndObj);
-
+            const newStartISO = newStartObj.toISO();
+            const newEndISO = newEndObj.toISO();
+            const newProps = {
+              start: { dateTime: newStartISO, timeZone: timeZone },
+              end: { dateTime: newEndISO, timeZone: timeZone },
+            };
             if (selectedEvent) {
               await onDragSelectedEventEnd?.({
-                ...draggingEvent,
-                start: newStartISO,
-                end: newEndISO,
-                _internal: undefined,
+                ...(currentEvent as SelectedEventType),
+                ...newProps,
               });
             } else if (isDraggingCreate) {
-              await onDragCreateEventEnd?.({
-                start: newStartISO,
-                end: newEndISO,
-              });
+              await onDragCreateEventEnd?.(newProps);
             } else {
               await onDragEventEnd?.({
-                ...draggingEvent,
-                start: newStartISO,
-                end: newEndISO,
-                _internal: undefined,
+                ...(currentEvent as OnEventResponse),
+                ...newProps,
               });
             }
           }
@@ -292,7 +295,7 @@ const DragEventProvider: FC<
       roundedDragStartMinutes,
       roundedDragStartUnix,
       selectedEvent,
-      timezone,
+      timeZone,
     ]
   );
 
@@ -340,14 +343,14 @@ const DragEventProvider: FC<
     }
   );
 
-  const setEvent = useCallback((event: DragEventProps) => {
-    setDraggingEvent(event);
-  }, []);
-
   useEffect(() => {
-    if (selectedEvent?.start && selectedEvent?.end) {
-      const eventStart = parseDateTime(selectedEvent.start, { zone: timezone });
-      const eventEnd = parseDateTime(selectedEvent.end, { zone: timezone });
+    if (selectedEvent?.start?.dateTime && selectedEvent?.end?.dateTime) {
+      const eventStart = parseDateTime(selectedEvent.start.dateTime, {
+        zone: selectedEvent.start.timeZone,
+      }).setZone(timeZone);
+      const eventEnd = parseDateTime(selectedEvent.end.dateTime, {
+        zone: selectedEvent.end.timeZone,
+      }).setZone(timeZone);
       dragSelectedStartUnix.value = parseDateTime(
         eventStart.toISODate()
       ).toMillis();
@@ -364,7 +367,7 @@ const DragEventProvider: FC<
     dragSelectedStartUnix,
     selectedEvent?.end,
     selectedEvent?.start,
-    timezone,
+    timeZone,
   ]);
 
   const _startAutoHScroll = (isNextPage: boolean) => {
@@ -662,22 +665,28 @@ const DragEventProvider: FC<
 
   const triggerDragEvent = useCallback(
     (
-      initialDrag: { start: DateType; end: DateType; startIndex?: number },
-      event?: DragEventProps
+      initialDrag: {
+        start: DateTimeType;
+        end: DateTimeType;
+        startIndex?: number;
+      },
+      event?: OnEventResponse
     ) => {
       if (event && onLongPressEvent) {
-        onLongPressEvent(event as EventItem);
+        onLongPressEvent(event);
       }
       if (event && onDragEventStart) {
         onDragEventStart(event);
       }
       setDraggingEvent(event);
-      const startDate = forceUpdateZone(
-        parseDateTime(initialDrag.start, { zone: timezone })
-      );
-      const endDate = forceUpdateZone(
-        parseDateTime(initialDrag.end, { zone: timezone })
-      );
+      let startDate = parseDateTime(initialDrag.start.dateTime, {
+        zone: initialDrag.start.timeZone,
+      }).setZone(timeZone);
+      let endDate = parseDateTime(initialDrag.end.dateTime, {
+        zone: initialDrag.end.timeZone,
+      }).setZone(timeZone);
+      startDate = forceUpdateZone(startDate);
+      endDate = forceUpdateZone(endDate);
       const startMinutes = startDate.hour * 60 + startDate.minute;
       const eventStartUnix = startDate.toMillis();
       const eventEndUnix = endDate.toMillis();
@@ -724,7 +733,7 @@ const DragEventProvider: FC<
     [
       onLongPressEvent,
       onDragEventStart,
-      timezone,
+      timeZone,
       dragDuration,
       roundedDragDuration,
       isDraggingAnim,
@@ -739,25 +748,23 @@ const DragEventProvider: FC<
   const triggerDragCreateEvent = useCallback(
     (date: DateType) => {
       setIsDraggingCreate(true);
-      const start = parseDateTime(date, { zone: timezone });
+      const start = parseDateTime(date, { zone: timeZone });
       const startUnix = parseDateTime(start.toISODate()).toMillis();
       const startMinutes = start.hour * 60 + start.minute;
       const roundedMinutes = Math.floor(startMinutes / dragStep) * dragStep;
       const roundedStartUnix =
         startUnix + roundedMinutes * MILLISECONDS_IN_MINUTE;
       const startDate = parseDateTime(roundedStartUnix);
-      const startISO = dateTimeToISOString(startDate);
-      const endISO = dateTimeToISOString(
-        startDate.plus({ minutes: defaultDuration })
-      );
+      const startISO = startDate.toISO();
+      const endISO = startDate.plus({ minutes: defaultDuration }).toISO();
       setDraggingEvent({
-        start: startISO,
-        end: endISO,
+        start: { dateTime: startISO },
+        end: { dateTime: endISO },
       });
       if (onDragCreateEventStart) {
         onDragCreateEventStart({
-          start: startISO,
-          end: endISO,
+          start: { dateTime: startISO },
+          end: { dateTime: endISO },
         });
       }
 
@@ -784,7 +791,7 @@ const DragEventProvider: FC<
       roundedDragDuration,
       roundedDragStartMinutes,
       roundedDragStartUnix,
-      timezone,
+      timeZone,
     ]
   );
 
@@ -850,7 +857,6 @@ const DragEventProvider: FC<
   const actionsContext = useMemo(
     () => ({
       triggerDragEvent: allowDragToEdit ? triggerDragEvent : undefined,
-      setEvent,
       triggerDragSelectedEvent,
       triggerDragCreateEvent: allowDragToCreate
         ? triggerDragCreateEvent
@@ -859,7 +865,6 @@ const DragEventProvider: FC<
     [
       allowDragToEdit,
       triggerDragEvent,
-      setEvent,
       triggerDragSelectedEvent,
       allowDragToCreate,
       triggerDragCreateEvent,

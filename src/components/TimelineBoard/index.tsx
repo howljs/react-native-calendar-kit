@@ -10,7 +10,7 @@ import { EXTRA_HEIGHT, MILLISECONDS_IN_DAY } from '../../constants';
 import { useActions } from '../../context/ActionsProvider';
 import { useBody } from '../../context/BodyContext';
 import { useTheme } from '../../context/ThemeProvider';
-import { useTimezone } from '../../context/TimezoneProvider';
+import { useTimezone } from '../../context/TimeZoneProvider';
 import {
   dateTimeToISOString,
   forceUpdateZone,
@@ -45,7 +45,7 @@ const TimelineBoard = ({
     calendarData,
     columns,
   } = useBody();
-  const { timezone } = useTimezone();
+  const { timeZone } = useTimezone();
   const colors = useTheme((state) => state.colors);
   const { onPressBackground, onLongPressBackground } = useActions();
   const { triggerDragCreateEvent } = useDragEventActions();
@@ -111,12 +111,9 @@ const TimelineBoard = ({
         parseDateTime(dayUnix).plus({
           minutes: hour * 60 + start,
         }),
-        timezone
+        timeZone
       );
-      onPressBackground?.(
-        { date: dateTimeToISOString(dateObj), isAllDay: false },
-        event
-      );
+      onPressBackground?.({ dateTime: dateTimeToISOString(dateObj) }, event);
     }
   };
 
@@ -133,11 +130,11 @@ const TimelineBoard = ({
         parseDateTime(dayUnix).plus({
           minutes: hour * 60 + start,
         }),
-        timezone
+        timeZone
       );
       const dateString = dateTimeToISOString(dateObj);
       triggerDragCreateEvent?.(dateString, event);
-      onLongPressBackground?.({ date: dateString, isAllDay: false }, event);
+      onLongPressBackground?.({ dateTime: dateString }, event);
     }
   };
 

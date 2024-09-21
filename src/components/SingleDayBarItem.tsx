@@ -9,7 +9,7 @@ import { useActions } from '../context/ActionsProvider';
 import { useDayBar } from '../context/DayBarContext';
 import { useAllDayEventsByDay } from '../context/EventsProvider';
 import { useTheme } from '../context/ThemeProvider';
-import { EventItem as EventItemType, PackedAllDayEvent } from '../types';
+import { OnEventResponse, PackedAllDayEvent } from '../types';
 import DayItem from './DayItem';
 import ExpandButton from './ExpandButton';
 import LoadingOverlay from './Loading/Overlay';
@@ -34,7 +34,7 @@ const SingleDayBarItem = ({ startUnix }: SingleDayBarItemProps) => {
   const _renderEvent = (event: PackedAllDayEvent) => {
     return (
       <EventItem
-        key={event._internal.id}
+        key={event.localId}
         event={event}
         onPressEvent={onPressEvent}
       />
@@ -81,7 +81,7 @@ const EventItem = ({
   onPressEvent,
 }: {
   event: PackedAllDayEvent;
-  onPressEvent?: (event: EventItemType) => void;
+  onPressEvent?: (event: OnEventResponse) => void;
 }) => {
   const { eventHeight, isExpanded } = useDayBar();
   const { _internal, ...rest } = event;

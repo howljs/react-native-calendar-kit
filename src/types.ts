@@ -87,6 +87,32 @@ export interface CalendarKitHandle {
  */
 export type DateType = Date | number | string | DateTime;
 
+export type DateOnlyType = { date: string; dateTime?: never; timeZone?: never };
+export type DateTimeType = {
+  dateTime: string;
+  timeZone?: string;
+  date?: never;
+};
+
+export type DateOrDateTime = DateOnlyType | DateTimeType;
+
+export interface OnEventResponse extends EventItem {
+  localId: string;
+}
+
+export interface SelectedEventType extends Omit<EventItem, 'id'> {
+  id?: string;
+}
+
+export interface DraggingEventType extends Omit<EventItem, 'id'> {
+  id?: string;
+}
+
+export interface OnCreateEventResponse {
+  start: DateTimeType;
+  end: DateTimeType;
+}
+
 export interface ActionsProviderProps {
   /**
    * Callback when the date is changed (scrolling)
@@ -100,7 +126,7 @@ export interface ActionsProviderProps {
    * Callback when the background is pressed
    */
   onPressBackground?: (
-    props: { date: string; isAllDay?: boolean },
+    props: DateOrDateTime,
     event: GestureResponderEvent
   ) => void;
 
@@ -108,7 +134,7 @@ export interface ActionsProviderProps {
    * Callback when the background is long pressed
    */
   onLongPressBackground?: (
-    props: { date: string; isAllDay?: boolean },
+    props: DateOrDateTime,
     event: GestureResponderEvent
   ) => void;
 
@@ -124,45 +150,42 @@ export interface ActionsProviderProps {
   /**
    * Callback when the event is pressed
    */
-  onPressEvent?: (event: EventItem) => void;
+  onPressEvent?: (event: OnEventResponse) => void;
 
   /**
    * Callback when the drag event is started
    */
-  onDragEventStart?: (event: DragEventProps) => void;
+  onDragEventStart?: (event: OnEventResponse) => void;
 
   /**
    * Callback when the drag event is ended
    */
-  onDragEventEnd?: (event: DragEventProps) => Promise<void> | void;
+  onDragEventEnd?: (event: OnEventResponse) => Promise<void> | void;
 
   /**
    * Callback when the event is long pressed
    */
-  onLongPressEvent?: (event: EventItem) => void;
+  onLongPressEvent?: (event: OnEventResponse) => void;
 
   /**
    * Callback when the selected event is dragged
    */
-  onDragSelectedEventStart?: (event: DragEventProps) => void;
+  onDragSelectedEventStart?: (event: SelectedEventType) => void;
 
   /**
    * Callback when the selected event is dragged
    */
-  onDragSelectedEventEnd?: (event: DragEventProps) => Promise<void> | void;
+  onDragSelectedEventEnd?: (event: SelectedEventType) => Promise<void> | void;
 
   /**
    * Callback when the drag create event is started
    */
-  onDragCreateEventStart?: (event: { start: string; end: string }) => void;
+  onDragCreateEventStart?: (event: OnCreateEventResponse) => void;
 
   /**
    * Callback when the drag create event is ended
    */
-  onDragCreateEventEnd?: (event: {
-    start: string;
-    end: string;
-  }) => Promise<void> | void;
+  onDragCreateEventEnd?: (event: OnCreateEventResponse) => Promise<void> | void;
 
   /**
    * Use all day event
@@ -319,7 +342,7 @@ export interface CalendarProviderProps extends ActionsProviderProps {
   /**
    * Custom time zone
    */
-  timezone?: string;
+  timeZone?: string;
 
   /**
    * Show week number
@@ -408,7 +431,7 @@ export interface CalendarProviderProps extends ActionsProviderProps {
   /**
    * Selected event
    */
-  selectedEvent?: DragEventProps;
+  selectedEvent?: SelectedEventType;
 
   /**
    * Specify the number of pages to render ahead and behind the current page.
@@ -430,25 +453,37 @@ export interface CalendarProviderProps extends ActionsProviderProps {
   defaultDuration?: number;
 }
 
-export interface DateRange<T extends DateType = DateType> {
-  start: T;
-  end: T;
-}
-
-export interface DragEventProps extends Partial<EventItem> {
-  start: string;
-  end: string;
-}
-
 export interface EventItem extends Record<string, any> {
-  /** Unique ID for the event. */
+  /** ID for the event. */
   id: string;
-  /** Start date of the event */
-  start: DateType;
-  /** End date of the event */
-  end: DateType;
+
+  /** Start date of the event
+   *
+   * Need to provide either `dateTime` or `date`
+   *
+   * dateTime: ISOString (e.g. '2024-05-01T00:00:00.000Z') - Not all day event
+   *
+   * timeZone: Timezone of the event (e.g. 'Asia/Tokyo') - Not all day event
+   *
+   * date: 'YYYY-MM-DD' (e.g. '2024-05-01') - All day event
+   */
+  start: DateOrDateTime;
+
+  /** End date of the event
+   *
+   * Need to provide either `dateTime` or `date`
+   *
+   * dateTime: ISOString (e.g. '2024-05-01T00:00:00.000Z') - Not all day event
+   *
+   * timeZone: Timezone of the event (e.g. 'Asia/Tokyo') - Not all day event
+   *
+   * date: 'YYYY-MM-DD' (e.g. '2024-05-01') - All day event
+   */
+  end: DateOrDateTime;
+
   /** Title of the event */
   title?: string;
+
   /** Background color of the event */
   color?: string;
 
@@ -458,7 +493,40 @@ export interface EventItem extends Record<string, any> {
   /** Container style of the event */
   containerStyle?: StyleProp<ViewStyle>;
 
-  isAllDay?: boolean;
+  /**
+   * Recurrence rule for the event.
+   */
+  recurrence?: string;
+
+  /**
+   * Unique ID for the recurring event.
+   */
+  recurringEventId?: string;
+
+  /**
+   * Dates to exclude from the recurring event.
+   */
+  excludeDates?: string[];
+
+  /**
+   * Original start time of the event.
+   */
+  originalStartTime?: DateOrDateTime;
+
+  /**
+   * Original recurring event.
+   */
+  originalRecurringEvent?: EventItem;
+
+  /**
+   * Key for the event, use for drag/drop event, automatically generated
+   */
+  localId?: string;
+
+  /**
+   * Whether the event is the first occurrence of the recurring event.
+   */
+  isFirstOccurrence?: boolean;
 }
 
 export interface HighlightDateProps {
@@ -492,6 +560,9 @@ export interface CalendarDayBarProps {
    */
   dayBarHeight?: number;
 
+  /**
+   * Custom day bar item
+   */
   renderDayBarItem?: (props: {
     index: number;
     startUnix: number;
@@ -558,27 +629,25 @@ export interface LocaleConfigsProps {
 }
 
 export interface EventItemInternal extends EventItem {
+  localId: string;
   _internal: {
     startUnix: number;
     endUnix: number;
     duration: number;
-    id: string;
-    originalStartUnix: number;
-    originalEndUnix: number;
     startMinutes?: number;
     index: number;
     weekStart?: number;
   };
 }
 
-export interface PackedEvent extends EventItem {
+export interface PackedEvent extends EventItemInternal {
   _internal: EventItemInternal['_internal'] & {
     total: number;
     columnSpan: number;
   };
 }
 
-export interface PackedAllDayEvent extends EventItem {
+export interface PackedAllDayEvent extends EventItemInternal {
   _internal: EventItemInternal['_internal'] & {
     rowIndex: number;
     startIndex: number;

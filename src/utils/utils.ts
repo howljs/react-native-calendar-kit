@@ -9,7 +9,7 @@ type CalendarRangeOptions = {
   firstDay: WeekdayNumbers;
   isSingleDay: boolean;
   hideWeekDays?: WeekdayNumbers[];
-  timezone?: string;
+  timeZone?: string;
 };
 
 export type DataByMode = {
@@ -30,9 +30,9 @@ export type DataByMode = {
 export const prepareCalendarRange = (
   props: CalendarRangeOptions
 ): DataByMode => {
-  const { minDate, maxDate, firstDay, isSingleDay, timezone } = props;
-  const minIsoDate = parseDateTime(minDate, { zone: timezone }).toISODate();
-  const maxIsoDate = parseDateTime(maxDate, { zone: timezone }).toISODate();
+  const { minDate, maxDate, firstDay, isSingleDay, timeZone } = props;
+  const minIsoDate = parseDateTime(minDate, { zone: timeZone }).toISODate();
+  const maxIsoDate = parseDateTime(maxDate, { zone: timeZone }).toISODate();
   let min = parseDateTime(minIsoDate);
   let max = parseDateTime(maxIsoDate);
   const originalMinDateUnix = min.toMillis();
@@ -188,7 +188,7 @@ type PrepareMonthDataOptions = {
   minDate: DateType;
   maxDate: DateType;
   firstDay: WeekdayNumbers;
-  timezone?: string;
+  timeZone?: string;
 };
 
 export type MonthData = {
@@ -202,10 +202,10 @@ export type MonthData = {
 
 export const prepareMonthData = (props: PrepareMonthDataOptions): MonthData => {
   const minDateStr = parseDateTime(props.minDate, {
-    zone: props.timezone,
+    zone: props.timeZone,
   }).toISODate();
   const maxDateStr = parseDateTime(props.maxDate, {
-    zone: props.timezone,
+    zone: props.timeZone,
   }).toISODate();
   const minDate = parseDateTime(minDateStr);
   const maxDate = parseDateTime(maxDateStr);

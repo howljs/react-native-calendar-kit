@@ -2803,6 +2803,7 @@ __metadata:
     react-native-haptic-feedback: ^2.3.1
     react-native-reanimated: ^3.6.2
     release-it: ^15.0.0
+    rrule: ^2.8.1
     typescript: ^5.2.2
   peerDependencies:
     expo-haptics: "*"
@@ -16796,6 +16797,15 @@ __metadata:
   bin:
     rimraf: ./bin.js
   checksum: 3ea587b981a19016297edb96d1ffe48af7e6af69660e3b371dbfc73722a73a0b0e9be5c88089fbeeb866c389c1098e07f64929c7414290504b855f54f901ab10
+  languageName: node
+  linkType: hard
+
+"rrule@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "rrule@npm:2.8.1"
+  dependencies:
+    tslib: ^2.4.0
+  checksum: 77f3750d90f7ec76f2435d4e0b5f860e20b94d8b0cedf2e94803f8050f8f7e3898153db9790cd4e3aaaf0c2db99b0a912e955fbd0200368ffd4318ec3bc0c88f
   languageName: node
   linkType: hard
 

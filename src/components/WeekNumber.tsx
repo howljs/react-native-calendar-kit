@@ -8,14 +8,14 @@ import {
 import { useTheme } from '../context/ThemeProvider';
 import { getWeekNumberOfYear } from '../utils/dateUtils';
 import Text from './Text';
-import { useTimezone } from '../context/TimezoneProvider';
+import { useTimezone } from '../context/TimeZoneProvider';
 
 interface WeekNumberProps {
   date: SharedValue<number>;
 }
 
 const WeekNumber = ({ date }: WeekNumberProps) => {
-  const { timezone } = useTimezone();
+  const { timeZone } = useTimezone();
   const theme = useTheme((state) => ({
     weekNumberBackgroundColor:
       state.weekNumberBackgroundColor || state.colors.surface,
@@ -26,7 +26,7 @@ const WeekNumber = ({ date }: WeekNumberProps) => {
   const [value, setValue] = useState<string | number>('');
 
   const _getWeekNumber = (newValue: number) => {
-    setValue(getWeekNumberOfYear(newValue, timezone));
+    setValue(getWeekNumberOfYear(newValue, timeZone));
   };
 
   useAnimatedReaction(

@@ -36,7 +36,7 @@ import { LoadingContext } from './context/LoadingContext';
 import LocaleProvider from './context/LocaleProvider';
 import NowIndicatorProvider from './context/NowIndicatorProvider';
 import ThemeProvider from './context/ThemeProvider';
-import TimezoneProvider from './context/TimezoneProvider';
+import TimezoneProvider from './context/TimeZoneProvider';
 import UnavailableHoursProvider from './context/UnavailableHoursProvider';
 import VisibleDateProvider from './context/VisibleDateProvider';
 import useLatestCallback from './hooks/useLatestCallback';
@@ -87,7 +87,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     minTimeIntervalHeight = 60,
     allowPinchToZoom = false,
     initialTimeIntervalHeight = 60,
-    timezone: initialTimezone,
+    timeZone: initialTimeZone,
     showWeekNumber = false,
     onChange,
     onDateChanged,
@@ -127,14 +127,14 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     throw new Error('The maximum number of days is 7');
   }
 
-  const timezone = useMemo(() => {
-    const parsedTimezone = parseDateTime(initialTimezone);
-    if (!parsedTimezone.isValid) {
-      console.warn('Timezone is invalid, using local timezone');
+  const timeZone = useMemo(() => {
+    const parsedTimeZone = parseDateTime(undefined, { zone: initialTimeZone });
+    if (!parsedTimeZone.isValid) {
+      console.warn('TimeZone is invalid, using local timeZone');
       return 'local';
     }
-    return initialTimezone || 'local';
-  }, [initialTimezone]);
+    return initialTimeZone || 'local';
+  }, [initialTimeZone]);
 
   const hapticService = useRef(new HapticService()).current;
   const [hideWeekDays, setHideWeekDays] = useState(initialHideWeekDays ?? []);
@@ -188,9 +188,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         firstDay,
         isSingleDay,
         hideWeekDays,
-        timezone,
+        timeZone,
       }),
-    [minDate, maxDate, firstDay, isSingleDay, hideWeekDays, timezone]
+    [minDate, maxDate, firstDay, isSingleDay, hideWeekDays, timeZone]
   );
 
   const hours = useMemo(
@@ -222,7 +222,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   // Current visible date
   const visibleDateUnix = useLazyRef(() => {
     const zonedInitialDate = parseDateTime(initialDate, {
-      zone: timezone,
+      zone: timeZone,
     }).toISODate();
     let date;
     if (scrollByDay) {
@@ -286,7 +286,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const startOffset = useDerivedValue(() => start * minuteHeight.value);
 
   const goToDate = useLatestCallback((props?: GoToDateOptions) => {
-    const date = parseDateTime(props?.date, { zone: timezone });
+    const date = parseDateTime(props?.date, { zone: timeZone });
     const isoDate = date.toISODate();
     let targetDateUnix = parseDateTime(isoDate).toMillis();
     if (!scrollByDay) {
@@ -445,7 +445,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   );
 
   const setVisibleDate = useLatestCallback((initDate: DateType) => {
-    const dateObj = parseDateTime(initDate, { zone: timezone });
+    const dateObj = parseDateTime(initDate, { zone: timeZone });
     const isoDate = dateObj.toISODate();
     const targetDateUnix = parseDateTime(isoDate).toMillis();
     const visibleDates = calendarData.visibleDatesArray;
@@ -478,7 +478,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       if (!date) {
         return null;
       }
-      const dateObj = forceUpdateZone(date, timezone);
+      const dateObj = forceUpdateZone(date, timeZone);
       return dateTimeToISOString(dateObj);
     }
   );
@@ -678,7 +678,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   return (
     <CalendarProvider value={value}>
       <LocaleProvider initialLocales={initialLocales} locale={locale}>
-        <TimezoneProvider timezone={timezone}>
+        <TimezoneProvider timeZone={timeZone}>
           <NowIndicatorProvider>
             <ThemeProvider theme={theme}>
               <ActionsProvider {...actionsProps}>
@@ -687,14 +687,14 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                     <HighlightDatesProvider highlightDates={highlightDates}>
                       <UnavailableHoursProvider
                         unavailableHours={unavailableHours}
-                        timezone={timezone}
+                        timeZone={timeZone}
                         pagesPerSide={pagesPerSide}
                       >
                         <EventsProvider
                           ref={eventsRef}
                           events={events}
                           firstDay={firstDay}
-                          timezone={timezone}
+                          timeZone={timeZone}
                           useAllDayEvent={useAllDayEvent}
                           pagesPerSide={pagesPerSide}
                           hideWeekDays={hideWeekDays}
