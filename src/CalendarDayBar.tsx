@@ -204,7 +204,7 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
     };
   }, [calendarData.visibleDatesArray, numberOfDays]);
 
-  const extraWidth = numberOfDays > 1 ? hourWidth : 0;
+  const leftSize = numberOfDays > 1 ? hourWidth : 0;
 
   return (
     <View style={[styles.dayBarContainer, { width: calendarLayout.width }]}>
@@ -226,8 +226,8 @@ const CalendarDayBar: React.FC<CalendarDayBarProps> = ({
               style={[
                 styles.absolute,
                 {
-                  left: extraWidth - 1,
-                  width: calendarLayout.width - extraWidth,
+                  left: Math.max(0, leftSize - 1),
+                  width: calendarGridWidth,
                 },
               ]}
             >

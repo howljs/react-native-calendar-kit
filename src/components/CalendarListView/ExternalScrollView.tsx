@@ -1,7 +1,10 @@
 import React from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
-import { BaseScrollView, ScrollViewDefaultProps } from '../../recyclerlistview';
+import {
+  BaseScrollView,
+  ScrollViewDefaultProps,
+} from '../../service/recyclerlistview';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 

@@ -3,6 +3,7 @@ import React, { FC, PropsWithChildren } from 'react';
 import Animated, { AnimatedRef, SharedValue } from 'react-native-reanimated';
 import { CalendarListViewHandle } from '../components/CalendarListView';
 import { ScrollType } from '../constants';
+import HapticService from '../service/HapticService';
 import { DataByMode } from '../utils/utils';
 
 export interface CalendarContextProps {
@@ -52,6 +53,7 @@ export interface CalendarContextProps {
   pagesPerSide: number;
   hideWeekDays: WeekdayNumbers[];
   useAllDayEvent: boolean;
+  hapticService: HapticService;
 }
 
 export const CalendarContext = React.createContext<

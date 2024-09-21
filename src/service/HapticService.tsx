@@ -1,13 +1,8 @@
-import {
-  ExpoHapticProxy,
-  ReactNativeHapticFeedbackProxy,
-} from '../dependencies/HapticProxy';
+import { ExpoHapticProxy, ReactNativeHapticFeedbackProxy } from './HapticProxy';
 
-class HapticService {
-  public isHapticFeedbackEnabled: boolean = false;
-  public useExpoHaptics: boolean = false;
-  public isReactNativeHapticFeedbackAvailable = false;
-  public isExpoHapticsAvailable = false;
+class HapticDependency {
+  public isReactNativeHapticFeedbackAvailable: boolean = false;
+  public isExpoHapticsAvailable: boolean = false;
 
   constructor() {
     try {
@@ -20,12 +15,21 @@ class HapticService {
       this.isExpoHapticsAvailable = true;
     } catch (error) {}
   }
+}
+
+const hapticDependency = new HapticDependency();
+
+class HapticService {
+  public isHapticFeedbackEnabled: boolean = false;
+  public useExpoHaptics: boolean = false;
+
+  constructor() {}
 
   public setEnabled(isEnabled: boolean) {
     if (isEnabled) {
-      if (this.isExpoHapticsAvailable) {
+      if (hapticDependency.isExpoHapticsAvailable) {
         this.useExpoHaptics = true;
-      } else if (this.isReactNativeHapticFeedbackAvailable) {
+      } else if (hapticDependency.isReactNativeHapticFeedbackAvailable) {
         this.useExpoHaptics = false;
       } else {
         throw new Error(
@@ -57,7 +61,6 @@ class HapticService {
     if (!this.isHapticFeedbackEnabled) {
       return;
     }
-
     if (this.useExpoHaptics) {
       return ExpoHapticProxy.selectionAsync();
     }
@@ -69,6 +72,4 @@ class HapticService {
   }
 }
 
-const Haptic = new HapticService();
-
-export default Haptic;
+export default HapticService;

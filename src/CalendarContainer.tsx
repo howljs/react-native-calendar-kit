@@ -1,4 +1,3 @@
-import { Settings } from 'luxon';
 import React, {
   forwardRef,
   useEffect,
@@ -55,15 +54,13 @@ import {
   parseDateTime,
   startOfWeek,
 } from './utils/dateUtils';
-import Haptic from './utils/HapticService';
+import HapticService from './service/HapticService';
 import {
   calculateSlots,
   clampValues,
   findNearestNumber,
   prepareCalendarRange,
 } from './utils/utils';
-
-Settings.throwOnInvalid = true;
 
 const CalendarContainer: React.ForwardRefRenderFunction<
   CalendarKitHandle,
@@ -90,7 +87,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     minTimeIntervalHeight = 60,
     allowPinchToZoom = false,
     initialTimeIntervalHeight = 60,
-    timezone = 'local',
+    timezone: initialTimezone,
     showWeekNumber = false,
     onChange,
     onDateChanged,
@@ -130,6 +127,16 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     throw new Error('The maximum number of days is 7');
   }
 
+  const timezone = useMemo(() => {
+    const parsedTimezone = parseDateTime(initialTimezone);
+    if (!parsedTimezone.isValid) {
+      console.warn('Timezone is invalid, using local timezone');
+      return 'local';
+    }
+    return initialTimezone || 'local';
+  }, [initialTimezone]);
+
+  const hapticService = useRef(new HapticService()).current;
   const [hideWeekDays, setHideWeekDays] = useState(initialHideWeekDays ?? []);
   const hideWeekDaysRef = useRef(initialHideWeekDays ?? []);
   useEffect(() => {
@@ -170,8 +177,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   );
 
   useEffect(() => {
-    Haptic.setEnabled(useHaptic);
-  }, [useHaptic]);
+    hapticService.setEnabled(useHaptic);
+  }, [hapticService, useHaptic]);
 
   const calendarData = useMemo(
     () =>
@@ -200,8 +207,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       return calendarLayout.width;
     }
 
-    return columnWidth * columns;
-  }, [calendarLayout.width, columnWidth, isSingleDay, columns]);
+    return calendarLayout.width - hourWidth;
+  }, [isSingleDay, calendarLayout.width, hourWidth]);
 
   const calendarListRef = useRef<CalendarListViewHandle>(null);
   const verticalListRef = useAnimatedRef<Animated.ScrollView>();
@@ -602,6 +609,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       hideWeekDays,
       visibleWeeks,
       useAllDayEvent,
+      hapticService,
     }),
     [
       calendarLayout,
@@ -645,6 +653,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       hideWeekDays,
       visibleWeeks,
       useAllDayEvent,
+      hapticService,
     ]
   );
 
@@ -696,6 +705,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                             selectedEvent={selectedEvent}
                             allowDragToCreate={allowDragToCreate}
                             defaultDuration={defaultDuration}
+                            hapticService={hapticService}
                           >
                             {children}
                           </DragEventProvider>

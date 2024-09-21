@@ -6,7 +6,7 @@ import {
   RecyclerListView,
   type RecyclerListViewProps,
   type RecyclerListViewState,
-} from '../../recyclerlistview';
+} from '../../service/recyclerlistview';
 import ExternalScrollView from './ExternalScrollView';
 
 interface CalendarListViewProps {

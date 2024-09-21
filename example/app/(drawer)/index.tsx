@@ -517,7 +517,7 @@ const Calendar = () => {
         start={60}
         end={23 * 60}
         defaultDuration={60}
-        onDragEventEnd={(event) => {
+        onDragEventEnd={async (event) => {
           if (event.id) {
             let filteredEvents = events.filter((item) => item.id !== event.id);
             const newEvent = { ...event, id: event.id };
@@ -525,8 +525,13 @@ const Calendar = () => {
             setEvents(filteredEvents);
           }
           setSelectedEvent(event);
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(true);
+            }, 100);
+          });
         }}
-        onDragSelectedEventEnd={(event) => {
+        onDragSelectedEventEnd={async (event) => {
           if (event.id) {
             let filteredEvents = events.filter((item) => item.id !== event.id);
             const newEvent = { ...event, id: event.id };
@@ -534,6 +539,11 @@ const Calendar = () => {
             setEvents(filteredEvents);
           }
           setSelectedEvent(event);
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(true);
+            }, 100);
+          });
         }}
         onDragCreateEventEnd={(event) => {
           const newEvent = {

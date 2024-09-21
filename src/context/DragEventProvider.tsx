@@ -28,7 +28,7 @@ import {
   forceUpdateZone,
   parseDateTime,
 } from '../utils/dateUtils';
-import Haptic from '../utils/HapticService';
+import HapticService from '../service/HapticService';
 import { useActions } from './ActionsProvider';
 import { useCalendar } from './CalendarProvider';
 import { useTimezone } from './TimezoneProvider';
@@ -110,6 +110,7 @@ const DragEventProvider: FC<
     selectedEvent?: DragEventProps;
     allowDragToCreate: boolean;
     defaultDuration: number;
+    hapticService: HapticService;
   }>
 > = ({
   children,
@@ -118,6 +119,7 @@ const DragEventProvider: FC<
   selectedEvent,
   allowDragToCreate,
   defaultDuration,
+  hapticService,
 }) => {
   // Contexts
   const { timezone } = useTimezone();
@@ -308,7 +310,7 @@ const DragEventProvider: FC<
   );
 
   const _triggerHaptic = () => {
-    Haptic.selection();
+    hapticService.selection();
   };
 
   useAnimatedReaction(
@@ -448,8 +450,6 @@ const DragEventProvider: FC<
         roundedDragStartUnix.value = targetUnix;
         offsetX.value = nextOffset;
       })();
-
-      Haptic.selection();
     };
 
     autoHScrollTimer.current = setInterval(

@@ -1,12 +1,9 @@
-import React, { FC, memo, useCallback, useEffect } from 'react';
+import React, { FC, memo, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
-  runOnUI,
   SharedValue,
   useAnimatedStyle,
   useDerivedValue,
-  useSharedValue,
-  withTiming,
 } from 'react-native-reanimated';
 import { useBody } from '../../context/BodyContext';
 import { useTheme } from '../../context/ThemeProvider';
@@ -102,35 +99,14 @@ const UnavailableHourItem = ({
 }: UnavailableHourItemProps) => {
   const { minuteHeight, columnWidthAnim } = useBody();
 
-  const totalMinutesAnim = useSharedValue(totalMinutes);
-  const diffMinutesAnim = useSharedValue(diffMinutes);
-  const diffDaysAnim = useSharedValue(diffDays);
-
-  useEffect(() => {
-    runOnUI(() => {
-      totalMinutesAnim.value = withTiming(totalMinutes, { duration: 250 });
-      diffMinutesAnim.value = withTiming(diffMinutes, { duration: 250 });
-      diffDaysAnim.value = withTiming(diffDays, { duration: 250 });
-    });
-  }, [
-    diffDays,
-    diffDaysAnim,
-    diffMinutes,
-    diffMinutesAnim,
-    totalMinutes,
-    totalMinutesAnim,
-  ]);
-
-  const height = useDerivedValue(
-    () => minuteHeight.value * totalMinutesAnim.value
-  );
+  const height = useDerivedValue(() => minuteHeight.value * totalMinutes);
 
   const animView = useAnimatedStyle(() => {
     return {
       width: columnWidthAnim.value,
       height: height.value,
-      top: minuteHeight.value * diffMinutesAnim.value,
-      left: columnWidthAnim.value * diffDaysAnim.value,
+      top: minuteHeight.value * diffMinutes,
+      left: columnWidthAnim.value * diffDays,
     };
   });
 

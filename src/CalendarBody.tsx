@@ -107,8 +107,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     }
   }, [onRefresh, visibleDateUnix]);
 
-  const extraWidth = numberOfDays > 1 ? hourWidth : 0;
-
   const extraData = useMemo(() => {
     return {
       minDate: calendarData.minDateUnix,
@@ -228,6 +226,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     dragToCreateGesture
   );
 
+  const leftSize = numberOfDays > 1 ? hourWidth : 0;
+
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
@@ -261,8 +261,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                   style={[
                     styles.absolute,
                     {
-                      left: extraWidth - 1,
-                      width: calendarLayout.width - extraWidth,
+                      left: Math.max(0, leftSize - 1),
+                      width: calendarGridWidth,
                     },
                   ]}
                 >

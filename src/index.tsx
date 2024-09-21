@@ -14,4 +14,6 @@ export { WeekdayNumbers } from 'luxon';
 
 export { parseDateTime } from './utils/dateUtils';
 
+export * from './service/rrule';
+
 export * from './types';

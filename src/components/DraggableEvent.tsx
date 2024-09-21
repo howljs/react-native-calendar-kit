@@ -74,8 +74,6 @@ const DraggableEventInner = ({
   const topEdgeGesture = Gesture.Tap()
     .runOnJS(true)
     .onTouchesDown(() => {
-      console.log('ss');
-
       triggerDragSelectedEvent({ startIndex: index, type: 'top' });
     })
     .onTouchesUp(() => {
