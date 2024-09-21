@@ -12,4 +12,6 @@ export { useCalendar } from './context/CalendarProvider';
 
 export { WeekdayNumbers } from 'luxon';
 
+export { parseDateTime } from './utils/dateUtils';
+
 export * from './types';

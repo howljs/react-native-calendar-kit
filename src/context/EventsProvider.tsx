@@ -1,9 +1,11 @@
 import type { WeekdayNumbers } from 'luxon';
 import React, {
-  FC,
+  forwardRef,
+  ForwardRefRenderFunction,
   useCallback,
   useContext,
   useEffect,
+  useImperativeHandle,
   type PropsWithChildren,
 } from 'react';
 import { MILLISECONDS_IN_DAY } from '../constants';
@@ -48,16 +50,26 @@ interface EventsProviderProps {
   defaultOffset?: number;
 }
 
-const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
-  pagesPerSide,
-  events = [],
-  children,
-  timezone,
-  firstDay,
-  useAllDayEvent,
-  hideWeekDays,
-  defaultOffset = 7,
-}) => {
+export interface EventsRef {
+  getEventsByDate: (date: string) => PackedEvent[];
+}
+
+const EventsProvider: ForwardRefRenderFunction<
+  EventsRef,
+  PropsWithChildren<EventsProviderProps>
+> = (
+  {
+    pagesPerSide,
+    events = [],
+    children,
+    timezone,
+    firstDay,
+    useAllDayEvent,
+    hideWeekDays,
+    defaultOffset = 7,
+  },
+  ref
+) => {
   const eventStore = useLazyRef(() =>
     createStore<EventsState>({
       allDayEvents: {},
@@ -203,6 +215,24 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
     ]
   );
 
+  useImperativeHandle(ref, () => ({
+    getEventsByDate: (date: string) => {
+      const dateObj = parseDateTime(date);
+      const dateUnix = dateObj.startOf('day').toMillis();
+      const regularEvents = eventStore.getState().regularEvents[dateUnix];
+      if (!regularEvents) {
+        return [];
+      }
+      const targetUnix = forceUpdateZone(dateObj, timezone).toMillis();
+      const filteredEvents = regularEvents.filter((event) => {
+        const eventStart = parseDateTime(event.start).toMillis();
+        const eventEnd = parseDateTime(event.end).toMillis();
+        return eventStart <= targetUnix && eventEnd >= targetUnix;
+      });
+      return filteredEvents;
+    },
+  }));
+
   useEffect(() => {
     notifyDataChanged(currentStartDate);
   }, [events, notifyDataChanged, currentStartDate]);
@@ -214,7 +244,7 @@ const EventsProvider: FC<PropsWithChildren<EventsProviderProps>> = ({
   );
 };
 
-export default EventsProvider;
+export default forwardRef(EventsProvider);
 
 export const useAllDayEvents = (
   date: number,

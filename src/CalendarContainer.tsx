@@ -30,7 +30,7 @@ import CalendarProvider, {
   CalendarContextProps,
 } from './context/CalendarProvider';
 import DragEventProvider from './context/DragEventProvider';
-import EventsProvider from './context/EventsProvider';
+import EventsProvider, { EventsRef } from './context/EventsProvider';
 import HighlightDatesProvider from './context/HighlightDatesProvider';
 import LayoutProvider, { useLayout } from './context/LayoutProvider';
 import { LoadingContext } from './context/LoadingContext';
@@ -46,9 +46,15 @@ import type {
   CalendarKitHandle,
   CalendarProviderProps,
   DateType,
+  EventItem,
   GoToDateOptions,
 } from './types';
-import { parseDateTime, startOfWeek } from './utils/dateUtils';
+import {
+  dateTimeToISOString,
+  forceUpdateZone,
+  parseDateTime,
+  startOfWeek,
+} from './utils/dateUtils';
 import Haptic from './utils/HapticService';
 import {
   calculateSlots,
@@ -258,6 +264,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const offsetX = useSharedValue(initialOffset);
   const scrollVisibleHeightAnim = useSharedValue(0);
   const timeIntervalHeight = useSharedValue(initialTimeIntervalHeight);
+  const eventsRef = useRef<EventsRef>(null);
 
   const totalSlots = hours.length;
   const extraHeight = spaceFromTop + spaceFromBottom;
@@ -440,6 +447,65 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     visibleDateUnixAnim.value = nearestUnix;
   });
 
+  const getDateByOffset = useLatestCallback(
+    (position: { x: number; y: number }) => {
+      const visibleDatesArray = calendarData.visibleDatesArray;
+      const dayIndex = visibleDatesArray.indexOf(visibleDateUnix.current);
+      if (dayIndex === -1) {
+        return;
+      }
+      const columnIndex = Math.floor(position.x / columnWidth);
+      const dateUnixByIndex =
+        calendarData.visibleDatesArray[dayIndex + columnIndex];
+      if (!dateUnixByIndex) {
+        return;
+      }
+      const minutes = Math.floor(position.y / minuteHeight.value) + start;
+      return parseDateTime(dateUnixByIndex).plus({ minutes });
+    }
+  );
+
+  const getDateStringByOffset = useLatestCallback(
+    (position: { x: number; y: number }) => {
+      const date = getDateByOffset(position);
+      if (!date) {
+        return null;
+      }
+      const dateObj = forceUpdateZone(date, timezone);
+      return dateTimeToISOString(dateObj);
+    }
+  );
+
+  const getEventByOffset = useLatestCallback(
+    (position: { x: number; y: number }) => {
+      const date = getDateByOffset(position);
+      if (!date) {
+        return null;
+      }
+      const columnIndex = Math.floor(position.x / columnWidth);
+      const dateString = dateTimeToISOString(date);
+      const eventsByDate = eventsRef.current?.getEventsByDate(dateString) ?? [];
+      for (let i = 0; i < eventsByDate.length; i++) {
+        const event = eventsByDate[i]!;
+        const { total, index } = event._internal;
+        const eventWidth = columnWidth / total;
+        const eventX = index * eventWidth;
+        const targetX = position.x - columnIndex * columnWidth;
+        if (targetX >= eventX && targetX <= eventX + eventWidth) {
+          let clonedEvent = { ...event } as EventItem;
+          delete clonedEvent._internal;
+          return clonedEvent;
+        }
+      }
+      return null;
+    }
+  );
+
+  const getSizeByDuration = useLatestCallback((duration: number) => {
+    const height = duration * minuteHeight.value;
+    return { width: columnWidth, height };
+  });
+
   useImperativeHandle(
     ref,
     () => ({
@@ -449,8 +515,21 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       goToPrevPage,
       zoom,
       setVisibleDate,
+      getDateByOffset: getDateStringByOffset,
+      getEventByOffset,
+      getSizeByDuration,
     }),
-    [goToDate, goToHour, goToNextPage, goToPrevPage, setVisibleDate, zoom]
+    [
+      getDateStringByOffset,
+      getEventByOffset,
+      getSizeByDuration,
+      goToDate,
+      goToHour,
+      goToNextPage,
+      goToPrevPage,
+      setVisibleDate,
+      zoom,
+    ]
   );
 
   useEffect(() => {
@@ -603,6 +682,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                         pagesPerSide={pagesPerSide}
                       >
                         <EventsProvider
+                          ref={eventsRef}
                           events={events}
                           firstDay={firstDay}
                           timezone={timezone}

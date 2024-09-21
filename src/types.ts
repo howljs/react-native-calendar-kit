@@ -70,6 +70,13 @@ export interface CalendarKitHandle {
    */
   zoom: (props?: { scale?: number; height?: number }) => void;
   setVisibleDate: (date: string) => void;
+  getDateByOffset: (position: { x: number; y: number }) => string | null;
+  getEventByOffset: (position: { x: number; y: number }) => EventItem | null;
+  /**
+   *
+   * @param duration Minutes
+   */
+  getSizeByDuration: (duration: number) => { width: number; height: number };
 }
 
 /**
