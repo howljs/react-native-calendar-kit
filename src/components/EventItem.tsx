@@ -116,7 +116,7 @@ const EventItem: FC<EventItemProps> = ({
 
   const eventPosX = useDerivedValue(() => {
     let left = data.diffDays * columnWidthAnim.value;
-    left += (eventWidth.value + overlapEventsSpacing) * index;
+    left += (eventWidth.value + overlapEventsSpacing) * (index / columnSpan);
     return withTiming(left, { duration: 150 });
   }, [data.diffDays, overlapEventsSpacing, rightEdgeSpacing, index, total]);
 
