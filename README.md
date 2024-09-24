@@ -1,12 +1,29 @@
 # 📅 React Native Calendar Kit
 
-## Status: Development
+## Status: In Progress
 
 React Native Calendar component, fully implemented using react-native-gesture-handler and react-native-reanimated. Support pinch to zoom, drag and drop to create/update event.
 
 [![Version][npm-shield]][npm-link]
 [![PayPal_Me][paypal-me-shield]][paypal-me]
 [![ko-fi][ko-fi-shield]][ko-fi-profile]
+
+## Features
+- Support all day events.
+- Support drag/drop to create/edit event.
+- Support hiding the days of the week.
+- Support scrolling by day.
+- Support Pinch to zoom.
+- Support recurring events.
+
+## Demo:
+### iOS:
+
+https://github.com/user-attachments/assets/9a099b37-6898-4e05-87d9-c8fd82e16c63
+
+### Android:
+
+https://github.com/user-attachments/assets/3896a8c8-4cde-4f76-8621-168be4cba74b
 
 ## Installation
 
@@ -68,6 +85,10 @@ Using NPM:
 ```
 $ npm install --save react-native-haptic-feedback
 ```
+
+## Documentation
+
+The documentation for version 2.0.0 hasn’t been updated yet, so follow the code from the [example](https://github.com/howljs/react-native-calendar-kit) if you want to use the library early.
 
 ## TODO:
 - [ ] Update documentation
