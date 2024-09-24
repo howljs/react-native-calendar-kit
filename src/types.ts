@@ -1,205 +1,359 @@
-import type {
-  GestureResponderEvent,
-  StyleProp,
-  TextStyle,
-  ViewStyle,
-} from 'react-native';
-import type { SharedValue } from 'react-native-reanimated';
-import type { TimeZone, timeZoneData } from './assets/timeZone';
+import type { DateTime, WeekdayNumbers } from 'luxon';
+import type { GestureResponderEvent, TextStyle, ViewStyle } from 'react-native';
+import { SharedValue } from 'react-native-reanimated';
+import { DraggableEventProps } from './components/DraggableEvent';
+import { DraggingEventProps } from './components/DraggingEvent';
 
-export interface TimelineCalendarHandle {
-  goToDate: (props?: {
-    date?: string;
-    hourScroll?: boolean;
-    animatedDate?: boolean;
-    animatedHour?: boolean;
-  }) => void;
-  goToNextPage: (animated?: boolean) => void;
-  goToPrevPage: (animated?: boolean) => void;
-  getZones: () => {
-    name: string;
-    alternativeName: string;
-    raw: string;
-    countryName: string;
-  }[];
-  getZone: (zoneName: keyof typeof timeZoneData) => {
-    name: string;
-    alternativeName: string;
-    raw: string;
-    countryName: string;
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
+
+export interface ThemeConfigs {
+  colors: {
+    /**
+     * Default color
+     */
+    primary: string;
+    /**
+     * Default color on primary color
+     */
+    onPrimary: string;
+    /**
+     * Default background color
+     */
+    background: string;
+    /**
+     * Default color on background color
+     */
+    onBackground: string;
+    /**
+     * Default border color
+     */
+    border: string;
+    /**
+     * Default text color
+     */
+    text: string;
+
+    /**
+     * Default surface color (e.g: week number background color, unavailable hour background color)
+     */
+    surface: string;
+
+    /**
+     * Default color on surface color
+     */
+    onSurface: string;
   };
-  getHour: () => number;
-  getDate: () => string;
+  /**
+   * Default text style
+   */
+  textStyle?: TextStyle;
+
+  // Hour column
+  hourBackgroundColor?: string;
+  hourTextStyle?: TextStyle;
+
+  // Day bar
+  headerBackgroundColor?: string;
+  headerContainer?: ViewStyle;
+  dayBarContainer?: ViewStyle;
+
+  dayContainer?: ViewStyle;
+  dayName?: TextStyle;
+  dayNumber?: TextStyle;
+  dayNumberContainer?: ViewStyle;
+  todayName?: TextStyle;
+  todayNumber?: TextStyle;
+  todayNumberContainer?: ViewStyle;
+
+  allDayEventsContainer?: ViewStyle;
+  headerBottomContainer?: ViewStyle;
+  countContainer?: ViewStyle;
+  countText?: TextStyle;
+
+  singleDayContainer?: ViewStyle;
+  singleDayEventsContainer?: ViewStyle;
+
+  // Week number
+  weekNumber?: TextStyle;
+  weekNumberContainer?: ViewStyle;
+
+  /**
+   * Default color: `colors.primary`
+   */
+  nowIndicatorColor?: string;
+
+  /**
+   * Default background color: `colors.surface`
+   */
+  outOfRangeBackgroundColor?: string;
+
+  /**
+   * Default background color: `colors.surface`
+   */
+  unavailableHourBackgroundColor?: string;
+
+  /** Default container style of the event */
+  eventContainerStyle?: ViewStyle;
+
+  /** Default style of the event */
+  eventTitleStyle?: TextStyle;
+}
+
+export type GoToDateOptions = {
+  date?: DateType;
+  animatedDate?: boolean;
+  hourScroll?: boolean;
+  animatedHour?: boolean;
+};
+
+export interface CalendarKitHandle {
+  goToDate: (props?: GoToDateOptions) => void;
   goToHour: (hour: number, animated?: boolean) => void;
-  forceUpdateNowIndicator: (customDate?: string) => void;
+  goToNextPage: (animated?: boolean, forceScrollByDay?: boolean) => void;
+  goToPrevPage: (animated?: boolean, forceScrollByDay?: boolean) => void;
   /**
    * * scale: Change `timeIntervalHeight` by scale value
    * * height: Change `timeIntervalHeight` to height value
    * * props is `undefined`: Change `timeIntervalHeight` to initialTimeIntervalHeight
    */
   zoom: (props?: { scale?: number; height?: number }) => void;
+  setVisibleDate: (date: string) => void;
+  getDateByOffset: (position: { x: number; y: number }) => string | null;
+  getEventByOffset: (position: { x: number; y: number }) => EventItem | null;
+  /**
+   *
+   * @param duration Minutes
+   */
+  getSizeByDuration: (duration: number) => { width: number; height: number };
 }
 
-export interface TimelineCalendarProps
-  extends TimelineProps,
-    TimelineProviderProps {}
+/**
+ * Type of date
+ ** Date
+ ** string: ISOString or 'YYYY-MM-DD'
+ ** number: Unix timestamps in milliseconds
+ */
+export type DateType = Date | number | string | DateTime;
 
-export interface TimelineProps {
-  /** Custom header component */
-  renderDayBarItem?: (props: DayBarItemProps) => JSX.Element;
-  /** Callback function will be called when day in header is pressed */
-  onPressDayNum?: (date: string) => void;
-  /** Callback function will be called when the create box is dropped */
-  onDragCreateEnd?: (props: RangeTime) => void;
-  /** Callback function will be called when time slots view is pressed */
-  onPressBackground?: (date: string, event: GestureResponderEvent) => void;
-  /** Callback function will be called when time slots view is long pressed */
-  onLongPressBackground?: (date: string, event: GestureResponderEvent) => void;
-  /** Callback function will be called when time slots view is pressed out */
-  onPressOutBackground?: (date: string, event: GestureResponderEvent) => void;
-  /** Callback function will be called when the event item is long pressed */
+export type DateOnlyType = { date: string; dateTime?: never; timeZone?: never };
+export type DateTimeType = {
+  dateTime: string;
+  timeZone?: string;
+  date?: never;
+};
+
+export type DateOrDateTime = DateOnlyType | DateTimeType;
+
+export interface OnEventResponse extends EventItem {
+  localId: string;
+}
+
+export interface SelectedEventType extends Omit<EventItem, 'id'> {
+  id?: string;
+}
+
+export interface DraggingEventType extends Omit<EventItem, 'id'> {
+  id?: string;
+}
+
+export interface OnCreateEventResponse {
+  start: DateTimeType;
+  end: DateTimeType;
+}
+
+export interface ActionsProviderProps {
+  /**
+   * Callback when the date is changed (scrolling)
+   */
+  onChange?: (date: string) => void;
+  /**
+   * Callback when the date is changed
+   */
   onDateChanged?: (date: string) => void;
-  /** Show loading bar */
-  isLoading?: boolean;
-  /** Set unavailable days
-   *
-   * Format of the item in the array: `YYYY-MM-DD`
+  /**
+   * Callback when the background is pressed
    */
-  holidays?: string[];
-  /** Events will be displayed in the timeline view. events is a array of {@link EventItem}*/
-  events?: EventItem[];
-  /** Callback function will be called when the event item is pressed */
-  onPressEvent?: (eventItem: PackedEvent) => void;
-  /** Callback function will be called when the event item is long pressed */
-  onLongPressEvent?: (eventItem: PackedEvent) => void;
-  /** Custom component rendered inside an event */
-  renderEventContent?: (
-    event: PackedEvent,
-    timeIntervalHeight: SharedValue<number>
-  ) => JSX.Element;
-  /** Custom component rendered inside an selected event */
-  renderSelectedEventContent?: (
-    event: PackedEvent,
-    timeIntervalHeight: SharedValue<number>
-  ) => JSX.Element;
-  /** When selectedEvent is declared, edit mode will be enabled */
-  selectedEvent?: PackedEvent;
-  /** Callback function will be called when the selected event item is dropped*/
-  onEndDragSelectedEvent?: (event: PackedEvent) => void;
-  /** Custom Unavailable Item */
-  renderCustomUnavailableItem?: (props: UnavailableItemProps) => JSX.Element;
-  /** Custom style of day bar by date ([#Example](https://howljs.github.io/react-native-calendar-kit/docs/guides/custom-header#highlightdates)) */
-  highlightDates?: HighlightDates;
-  /** Callback function will be called when index changed */
-  onChange?: (props: OnChangeProps) => void;
+  onPressBackground?: (
+    props: DateOrDateTime,
+    event: GestureResponderEvent
+  ) => void;
 
-  /** Enable drag with selected event.
-   *
-   * Default: `true
+  /**
+   * Callback when the background is long pressed
    */
-  editEventGestureEnabled?: boolean;
+  onLongPressBackground?: (
+    props: DateOrDateTime,
+    event: GestureResponderEvent
+  ) => void;
 
-  /** Custom Component of the change height handle */
-  EditIndicatorComponent?: JSX.Element;
+  /**
+   * Callback when the day number is pressed
+   */
+  onPressDayNumber?: (date: string) => void;
+  /**
+   * Enable pull to refresh
+   */
+  onRefresh?: (date: string) => void;
 
-  /** Custom line in the middle of the interval. */
-  renderHalfLineCustom?: (width: number) => JSX.Element;
+  /**
+   * Callback when the event is pressed
+   */
+  onPressEvent?: (event: OnEventResponse) => void;
 
-  /** Container style of the line in the middle of the interval. */
-  halfLineContainerStyle?: ViewStyle;
+  /**
+   * Callback when the drag event is started
+   */
+  onDragEventStart?: (event: OnEventResponse) => void;
 
-  /** Callback function will be called when the time interval height is changed */
-  onTimeIntervalHeightChange?: (height: number) => void;
+  /**
+   * Callback when the drag event is ended
+   */
+  onDragEventEnd?: (event: OnEventResponse) => Promise<void> | void;
+
+  /**
+   * Callback when the event is long pressed
+   */
+  onLongPressEvent?: (event: OnEventResponse) => void;
+
+  /**
+   * Callback when the selected event is dragged
+   */
+  onDragSelectedEventStart?: (event: SelectedEventType) => void;
+
+  /**
+   * Callback when the selected event is dragged
+   */
+  onDragSelectedEventEnd?: (event: SelectedEventType) => Promise<void> | void;
+
+  /**
+   * Callback when the drag create event is started
+   */
+  onDragCreateEventStart?: (event: OnCreateEventResponse) => void;
+
+  /**
+   * Callback when the drag create event is ended
+   */
+  onDragCreateEventEnd?: (event: OnCreateEventResponse) => Promise<void> | void;
+
+  /**
+   * Use all day event
+   *
+   * Default: `false`
+   */
+  useAllDayEvent?: boolean;
+
+  /**
+   * Spacing at the right edge of events.
+   *
+   * Default is `1`
+   */
+  rightEdgeSpacing?: number;
+
+  /**
+   * Spacing between overlapping events.
+   *
+   * Default is 1
+   */
+  overlapEventsSpacing?: number;
+
+  /**
+   * Minimum minutes to calculate height of regular event
+   *
+   * Default is `1`
+   */
+  minRegularEventMinutes?: number;
 }
 
-export interface UnavailableItemProps {
-  timeIntervalHeight: SharedValue<number>;
-  hour: number;
-  width: number;
-}
-
-export type CalendarViewMode = 'day' | 'week' | 'threeDays' | 'workWeek';
-
-export interface TimelineProviderProps {
-  /** Calendar view mode.
-   *
-   * * Default: `week`
+export interface CalendarProviderProps extends ActionsProviderProps {
+  /**
+   * Calendar width
    */
-  viewMode?: CalendarViewMode;
+  calendarWidth?: number;
 
-  /** First day of the week.
+  /**
+   * Number of days to display
+   *
+   * Default: `7`
+   */
+  numberOfDays?: number;
+
+  /**
+   * Enable scroll by day
+   *
+   * Default: `false`
+   */
+  scrollByDay?: boolean;
+
+  /** First day of the week. (1 - Monday ... 7 - Sunday)
    *
    ** Default: `1` (Monday)
    */
-  firstDay?: number;
+  firstDay?: WeekdayNumbers;
+
+  /** Hide week days */
+  hideWeekDays?: WeekdayNumbers[];
 
   /** Minimum display date.
    *
-   ** Format: YYYY-MM-DD.
    ** Default: 2 year ago from today
    */
-  minDate?: string;
+  minDate?: DateType;
 
   /** Maximum display date.
    *
-   ** Format: YYYY-MM-DD.
    ** Default: 2 year later from today
    */
-  maxDate?: string;
+  maxDate?: DateType;
 
   /** Initial display date.
    *
-   ** Format: YYYY-MM-DD.
    ** Default: today  */
-  initialDate?: string;
+  initialDate?: DateType;
 
-  /** Day start time (in hours)
-   *
-   ** Default: `0`
-   */
-  start?: number;
-
-  /** Day end time (in hours)
-   *
-   ** Default: `24`
-   */
-  end?: number;
-
-  /** Width of hour column.
-   *
-   ** Default: `53`
+  /**
+   * Hour width
    */
   hourWidth?: number;
 
-  /** The interval of time slots in timeline. (in minutes)
+  /** Theme of calendar */
+  theme?: DeepPartial<ThemeConfigs>;
+
+  /**
+   * Calendar Localization
    *
-   ** Default: `60`
-   */
-  timeInterval?: number;
-
-  /** Initial time interval height
+   * Default:
+   * ```
+   * {
+   *   en: { weekDayShort: 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_') },
+   * }
+   * ```
    *
-   ** Default: `60`
-   */
-  initialTimeIntervalHeight?: number;
-
-  /** Minimum time interval height. If you don't specify it, it will automatically scale to fit the screen */
-  minTimeIntervalHeight?: number;
-
-  /** Maximum time interval height.
    *
-   ** Default: `116`
-   */
-  maxTimeIntervalHeight?: number;
+   * You can add more locales as needed, example usage:
+   * ```
+    const initialLocales = {
+      ja: {
+        weekDayShort: '日_月_火_水_木_金_土'.split('_'),
+      },
+      vi: {
+        weekDayShort: 'CN_T2_T3_T4_T5_T6_T7'.split('_'),
+      },
+    };
 
-  /** Auto scroll header when scroll time slots view.
+    <CalendarKit initialLocales={initialLocales} locale="ja" />
+   * ```
+   */
+  initialLocales?: { [locale: string]: DeepPartial<LocaleConfigsProps> };
+
+  /** Current locale
    *
-   ** Default: `true`
+   ** Default: `en`
    */
-  syncedLists?: boolean;
-
-  /** Theme of the calendar */
-  theme?: ThemeProperties;
+  locale?: string;
 
   /** Space between header view and time slots view.
    *
@@ -213,235 +367,426 @@ export interface TimelineProviderProps {
    */
   spaceFromBottom?: number;
 
-  /** Show a line in the middle of the interval.
+  /** Calendar start time (in minutes)
    *
-   ** Default: `true`
+   ** Default: `0`
    */
-  isShowHalfLine?: boolean;
+  start?: number;
 
-  /** Enable drag and drop to create event */
-  allowDragToCreate?: boolean;
+  /** Calendar end time (in minutes)
+   *
+   ** Default: `1440` (24 hours)
+   */
+  end?: number;
+
+  /** The interval of time slots in timeline. (in minutes)
+   *
+   ** Default: `60`
+   */
+  timeInterval?: number;
+
+  /** Initial time interval height
+   *
+   ** Default: `60`
+   */
+  timeIntervalHeight?: number;
+
+  /** Maximum time interval height.
+   *
+   ** Default: `116`
+   */
+  maxTimeIntervalHeight?: number;
+
+  /** Initial time interval height
+   *
+   ** Default: `60`
+   */
+  initialTimeIntervalHeight?: number;
+
+  /** Minimum time interval height.
+   *
+   ** Default: `60`
+   */
+  minTimeIntervalHeight?: number;
 
   /** Enable pinch to scale height of the calendar */
   allowPinchToZoom?: boolean;
 
-  /** Initial time interval (in minutes) when you drag to create event.
-   *
-   ** Default: `60`
+  /**
+   * Custom time zone
    */
-  dragCreateInterval?: number;
+  timeZone?: string;
 
-  /** Handle the navigation to next/previous time (in minutes) while dragging event to create/edit.
-   *
-   ** Default: `10`
+  /**
+   * Show week number
    */
-  dragStep?: number;
+  showWeekNumber?: boolean;
 
-  /** Set unavailable hours of the calendar
+  /**
+   * Show loading progress
+   */
+  isLoading?: boolean;
+
+  /**
+   * RTL mode
+   */
+  // isRTL?: boolean;
+
+  /**
+   * Unavailable hours
    *
-   ** All days in a week ([#Example](https://howljs.github.io/react-native-calendar-kit/docs/guides/unavailable-time#set-unavailable-hours-for-all-days-in-a-week))
-   ** By week day. ([#Example](https://howljs.github.io/react-native-calendar-kit/docs/guides/unavailable-time#set-unavailable-hours-by-week-day))
+   * Example:
+   *
+   * All days
+   * ```
+   * [
+   *   { start: 0, end: 8 },
+   *   { start: 12, end: 24 },
+   * ],
+   * ```
+   *
+   * Specific day
+   * ```
+   * {
+   *  '2024-04-26': [
+   *   { start: 0, end: 8 },
+   *   { start: 12, end: 24 },
+   *  ],
+   *  /// Day of week (1 - Monday ... 7 - Sunday)
+   *  '7': [
+   *   { start: 0, end: 24 },
+   *  ],
+   * }
+   * ```
+   *
    */
   unavailableHours?:
-    | UnavailableHour[]
-    | { [weekDay: string]: UnavailableHour[] };
+    | Record<string, UnavailableHourProps[]>
+    | UnavailableHourProps[];
 
-  /** Show a line at current time.
-   *
-   ** Default: `true`
-   * */
-  showNowIndicator?: boolean;
-
-  /** Spacing at the right edge of events.
-   *
-   ** Default: `1`
+  /**
+   * Style for day bar item
    */
-  rightEdgeSpacing?: number;
+  highlightDates?: Record<string, HighlightDateProps>;
 
-  /** Spacing between overlapping events.
-   *
-   ** Default: `1`
+  /**
+   * Events list
    */
-  overlapEventsSpacing?: number;
+  events?: EventItem[];
 
-  /** Auto scroll to current time when mounted.
+  /**
+   * Auto scroll to current time.
+   * Please set to `false` if you want custom initial scroll behavior.
    *
-   ** Default: `true`
+   * Default: `true`
    */
   scrollToNow?: boolean;
 
-  /** Changing locale globally
-   *
-   ** Default: `en`
-   *
-   If you want to use a custom locale, please use it with `MomentConfig`
-
-   Example:
-   ```javascript
-    import {MomentConfig} from '@howljs/calendar-kit';
-    MomentConfig.updateLocale('ja', {
-        weekdaysShort: '日_月_火_水_木_金_土'.split('_'),
-    });
-   ```
-   */
-  locale?: LocaleType;
-
-  /** Show/Hide header component.
-   *
-   ** Default: `true`
-   */
-  isShowHeader?: boolean;
-
-  /** Hour format.
-   *
-   ** Default: HH:mm
-   */
-  hourFormat?: string;
-
-  /** How long the animation should last when the style of the event is changed.
-   *
-   ** Default: `250` */
-  eventAnimatedDuration?: number;
-
   /**
-   * Use Haptic Feedback when drag to create/edit.
+   * Use haptic feedback
    *
-   * Only support **Bare React Native project**
-   *
-   **/
+   * Default is `false`
+   */
   useHaptic?: boolean;
 
-  /** Use calendar in different time zones */
-  timeZone?: TimeZone;
-
-  /** Update indicator at specified intervals (in milliseconds).
-   *
-   ** Default: `1000`
+  /**
+   * Allow drag to edit event
    */
-  nowIndicatorInterval?: number;
+  allowDragToEdit?: boolean;
 
   /**
-   * Handle the navigation time (in milliseconds) when navigating to previous/next page while dragging
+   * Drag step
    *
-   ** Default: **1000**
+   * Default is `15` minutes
    */
-  navigateDelay?: number;
+  dragStep?: number;
 
-  /** Width of calendar */
-  calendarWidth?: number;
+  /**
+   * Selected event
+   */
+  selectedEvent?: SelectedEventType;
+
+  /**
+   * Specify the number of pages to render ahead and behind the current page.
+   *
+   * Default is `2`
+   */
+  pagesPerSide?: number;
+
+  /**
+   * Allow drag to create event
+   */
+  allowDragToCreate?: boolean;
+
+  /**
+   * Default duration when creating event
+   *
+   * Default is `30` minutes
+   */
+  defaultDuration?: number;
 }
 
-export interface DayBarItemProps {
-  width: number;
-  startDate: string;
-  columnWidth: number;
-  viewMode: CalendarViewMode;
-  hourWidth: number;
-  onPressDayNum?: (date: string) => void;
-  theme: ThemeProperties;
-  locale: LocaleType;
-  highlightDates?: HighlightDates;
-  tzOffset: string;
-  currentDate: string;
+export interface EventItem extends Record<string, any> {
+  /** ID for the event. */
+  id: string;
+
+  /** Start date of the event
+   *
+   * Need to provide either `dateTime` or `date`
+   *
+   * dateTime: ISOString (e.g. '2024-05-01T00:00:00.000Z') - Not all day event
+   *
+   * timeZone: Timezone of the event (e.g. 'Asia/Tokyo') - Not all day event
+   *
+   * date: 'YYYY-MM-DD' (e.g. '2024-05-01') - All day event
+   */
+  start: DateOrDateTime;
+
+  /** End date of the event
+   *
+   * Need to provide either `dateTime` or `date`
+   *
+   * dateTime: ISOString (e.g. '2024-05-01T00:00:00.000Z') - Not all day event
+   *
+   * timeZone: Timezone of the event (e.g. 'Asia/Tokyo') - Not all day event
+   *
+   * date: 'YYYY-MM-DD' (e.g. '2024-05-01') - All day event
+   */
+  end: DateOrDateTime;
+
+  /** Title of the event */
+  title?: string;
+
+  /** Background color of the event */
+  color?: string;
+
+  /**
+   * Recurrence rule for the event.
+   */
+  recurrence?: string;
+
+  /**
+   * Unique ID for the recurring event.
+   */
+  recurringEventId?: string;
+
+  /**
+   * Dates to exclude from the recurring event.
+   */
+  excludeDates?: string[];
+
+  /**
+   * Original start time of the event.
+   */
+  originalStartTime?: DateOrDateTime;
+
+  /**
+   * Original recurring event.
+   */
+  originalRecurringEvent?: EventItem;
+
+  /**
+   * Key for the event, use for drag/drop event, automatically generated
+   */
+  localId?: string;
+
+  /**
+   * Whether the event is the first occurrence of the recurring event.
+   */
+  isFirstOccurrence?: boolean;
 }
 
-export interface ThemeProperties {
-  /** Border color of the calendar */
-  cellBorderColor?: string;
-  /** Background color of the calendar */
-  backgroundColor?: string;
-  /** Background color of the create box when dragging to create */
-  dragCreateItemBackgroundColor?: string;
-  /** The color of the loading bar */
-  loadingBarColor?: string;
-  /** Background color of unavailable hours */
-  unavailableBackgroundColor?: string;
-  /** Color of the change height handle */
-  editIndicatorColor?: string;
-  /** Color of the now indicator */
-  nowIndicatorColor?: string;
-
-  // Hour Column
-  hourText?: TextStyle;
-  dragHourContainer?: ViewStyle;
-  dragHourText?: TextStyle;
-
-  //Header style
+export interface HighlightDateProps {
   dayName?: TextStyle;
   dayNumber?: TextStyle;
   dayNumberContainer?: ViewStyle;
-  todayName?: TextStyle;
-  todayNumber?: TextStyle;
-  todayNumberContainer?: ViewStyle;
-  saturdayName?: TextStyle;
-  saturdayNumber?: TextStyle;
-  saturdayNumberContainer?: ViewStyle;
-  sundayName?: TextStyle;
-  sundayNumber?: TextStyle;
-  sundayNumberContainer?: ViewStyle;
-
-  //Event
-  eventTitle?: TextStyle;
-  minimumEventHeight?: number;
-
-  allowFontScaling?: boolean;
+  isTodayOverride?: boolean;
 }
 
-export interface RangeTime {
-  start: string;
-  end: string;
-}
-
-export interface UnavailableHour {
+export interface UnavailableHourProps extends Record<string, any> {
+  /**
+   * Start hour (in minutes)
+   */
   start: number;
+
+  /**
+   * Start hour (in minutes)
+   */
   end: number;
+  enableBackgroundInteraction?: boolean;
+  backgroundColor?: string;
 }
 
-export type UnavailableHoursStyle = Record<
-  string,
-  {
-    top: number;
-    height: number;
-  }[]
->;
+export interface OutOfRangeProps extends SizeAnimation {}
 
-export interface EventItem {
-  /** Unique ID for the event. */
-  id: string;
-  /** Start date of the event. (ISOString) */
-  start: string;
-  /** End date of the event. (ISOString) */
-  end: string;
-  /** Title of the event */
-  title?: string;
-  /** Background color of the event */
-  color?: string;
-  /** Container style of the event */
-  containerStyle?: StyleProp<ViewStyle>;
-  [key: string]: any;
+export interface CalendarHeaderProps {
+  /**
+   * Day bar height
+   *
+   ** Default: `60`
+   */
+  dayBarHeight?: number;
+
+  /**
+   * Custom header item
+   */
+  renderHeaderItem?: (props: {
+    index: number;
+    startUnix: number;
+    extra: Record<string, any>;
+  }) => React.ReactElement | null;
+
+  /**
+   * Custom expand icon
+   */
+  renderExpandIcon?: (props: {
+    isExpanded: SharedValue<boolean>;
+  }) => React.ReactElement | null;
+
+  /**
+   * Custom event item
+   */
+  renderEvent?: (
+    event: PackedAllDayEvent,
+    size: SizeAnimation
+  ) => React.ReactNode;
+
+  /**
+   * Custom left area (multiple days)
+   */
+  LeftAreaComponent?: React.ReactElement | null | undefined;
+
+  /**
+   * Header bottom height
+   */
+  headerBottomHeight?: number;
+
+  /**
+   *
+   */
+  collapsedItems?: number;
+
+  /**
+   * Minimum minutes to calculate height of all day event (scale by timeInterval)
+   *
+   * Default: `15`
+   */
+  eventMinMinutes?: number;
+
+  /**
+   * Maximum minutes to calculate height of all day event (scale by timeInterval)
+   *
+   * Default: `30`
+   */
+  eventMaxMinutes?: number;
+
+  /**
+   * Initial minutes to calculate height of all day event (scale by timeInterval)
+   *
+   * Default: `20`
+   */
+  eventInitialMinutes?: number;
 }
 
-export interface PackedEvent extends EventItem {
-  left: number;
-  startHour: number;
-  width: number;
-  duration: number;
-  leftByIndex?: number;
+export interface CalendarBodyProps {
+  /**
+   * Custom hour text
+   */
+  hourFormat?: string;
+
+  /**
+   * Custom hour text
+   */
+  renderHour?: (props: RenderHourProps) => React.ReactElement | null;
+
+  renderDraggingHour?: (props: RenderHourProps) => React.ReactElement | null;
+
+  /**
+   * Show now indicator
+   */
+  showNowIndicator?: boolean;
+
+  /** Custom Out of Range item */
+  renderCustomOutOfRange?: (
+    props: OutOfRangeProps
+  ) => React.ReactElement | null;
+
+  /** Custom Unavailable Item */
+  renderCustomUnavailableHour?: (
+    props: UnavailableHourProps & {
+      width: SharedValue<number>;
+      height: SharedValue<number>;
+    }
+  ) => React.ReactElement | null;
+
+  /**
+   * Custom event item
+   */
+  renderEvent?: (
+    event: PackedEvent,
+    size: SizeAnimation
+  ) => React.ReactElement | null;
+
+  /**
+   * Custom draggable event item
+   */
+  renderDraggableEvent?: (
+    props: DraggableEventProps
+  ) => React.ReactElement | null;
+
+  /**
+   * Custom dragging event item
+   */
+  renderDraggingEvent?: (
+    props: DraggingEventProps
+  ) => React.ReactElement | null;
+
+  /**
+   * Custom now indicator
+   */
+  NowIndicatorComponent?: React.ReactElement | null;
 }
 
-export type LocaleType = string;
+export interface RenderHourProps {
+  hourStr: string;
+  minutes: number;
+  style: TextStyle;
+}
 
-export type HighlightDates = {
-  [date: string]: {
-    dayNumberColor?: string;
-    dayNumberBackgroundColor?: string;
-    dayNameColor?: string;
+export interface LocaleConfigsProps {
+  weekDayShort: string[];
+  meridiem: { ante: string; post: string };
+  more: string;
+}
+
+export interface EventItemInternal extends EventItem {
+  localId: string;
+  _internal: {
+    startUnix: number;
+    endUnix: number;
+    duration: number;
+    startMinutes?: number;
+    index: number;
+    weekStart?: number;
   };
-};
+}
 
-export interface OnChangeProps {
-  date: string;
-  index: number;
-  length: number;
-  prevIndex: number | null;
+export interface PackedEvent extends EventItemInternal {
+  _internal: EventItemInternal['_internal'] & {
+    total: number;
+    columnSpan: number;
+  };
+}
+
+export interface PackedAllDayEvent extends EventItemInternal {
+  _internal: EventItemInternal['_internal'] & {
+    rowIndex: number;
+    startIndex: number;
+    columnSpan: number;
+  };
+}
+
+export interface SizeAnimation {
+  width: SharedValue<number>;
+  height: SharedValue<number>;
 }
