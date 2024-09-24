@@ -68,30 +68,28 @@ export const toHourStr = (
   originalMinutes: number,
   hourFormat: string,
   meridiem: { ante: string; post: string }
-) => {
-  'worklet';
+): string => {
   const hours = Math.floor(originalMinutes / 60);
   const minutes = Math.floor(originalMinutes % 60);
   const formatTokens: Record<string, string | number> = {
     HH: hours.toString().padStart(2, '0'),
-    hh: (hours % 12 || 12).toString().padStart(2, '0'),
-    kk: (hours + 1).toString().padStart(2, '0'),
-    mm: minutes.toString().padStart(2, '0'),
-    ss: '00',
     H: hours,
+    hh: (hours % 12 || 12).toString().padStart(2, '0'),
     h: hours % 12 || 12,
-    k: hours + 1,
+    kk: (hours === 24 ? 24 : (hours % 24) + 1).toString().padStart(2, '0'),
+    k: hours === 24 ? 24 : (hours % 24) + 1,
+    mm: minutes.toString().padStart(2, '0'),
     m: minutes,
+    ss: '00',
     s: '0',
     A: hours >= 12 ? meridiem.post.toUpperCase() : meridiem.ante.toUpperCase(),
-    a: hours >= 12 ? meridiem.post : meridiem.ante,
+    a: hours >= 12 ? meridiem.post.toLowerCase() : meridiem.ante.toLowerCase(),
   };
 
-  let formattedTime = hourFormat;
-  for (const [token, value] of Object.entries(formatTokens)) {
-    formattedTime = formattedTime.replace(token, value.toString());
-  }
-  return formattedTime;
+  return hourFormat.replace(
+    /HH|H|hh|h|kk|k|mm|m|ss|s|A|a/g,
+    (match) => formatTokens[match]?.toString() || match
+  );
 };
 
 export const getWeekNumberOfYear = (date: number, timeZone: string) => {

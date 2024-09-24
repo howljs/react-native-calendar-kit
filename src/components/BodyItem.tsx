@@ -1,9 +1,12 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useDerivedValue,
+} from 'react-native-reanimated';
 import { EXTRA_HEIGHT } from '../constants';
 import { useBody } from '../context/BodyContext';
-import DraggableEvent from './DraggableEvent';
+import DraggableEvent, { DraggableEventProps } from './DraggableEvent';
 import Events from './Events';
 import LoadingOverlay from './Loading/Overlay';
 import NowIndicator from './NowIndicator';
@@ -12,9 +15,16 @@ import TimelineBoard from './TimelineBoard';
 interface MultipleBodyItemProps {
   pageIndex: number;
   startUnix: number;
+  renderDraggableEvent?: (
+    props: DraggableEventProps
+  ) => React.ReactElement | null;
 }
 
-const BodyItem = ({ pageIndex, startUnix }: MultipleBodyItemProps) => {
+const BodyItem = ({
+  pageIndex,
+  startUnix,
+  renderDraggableEvent,
+}: MultipleBodyItemProps) => {
   const {
     spaceFromTop,
     timelineHeight,
@@ -44,8 +54,12 @@ const BodyItem = ({ pageIndex, startUnix }: MultipleBodyItemProps) => {
 
   const leftSpacing = numberOfDays === 1 ? hourWidth : 0;
 
+  const height = useDerivedValue(() => {
+    return timelineHeight.value - spaceFromTop - spaceFromBottom;
+  }, [spaceFromTop, spaceFromBottom]);
+
   const animView = useAnimatedStyle(() => ({
-    height: timelineHeight.value - spaceFromTop - spaceFromBottom,
+    height: height.value,
   }));
 
   return (
@@ -59,13 +73,20 @@ const BodyItem = ({ pageIndex, startUnix }: MultipleBodyItemProps) => {
         pointerEvents="box-none"
         style={[
           styles.content,
-          { left: leftSpacing, top: EXTRA_HEIGHT + spaceFromTop },
+          {
+            left: Math.max(0, leftSpacing - 1),
+            top: EXTRA_HEIGHT + spaceFromTop,
+          },
           animView,
         ]}
       >
         <Events startUnix={startUnix} visibleDates={visibleDates} />
         <NowIndicator startUnix={startUnix} visibleDates={visibleDates} />
-        <DraggableEvent startUnix={startUnix} visibleDates={visibleDates} />
+        <DraggableEvent
+          startUnix={startUnix}
+          visibleDates={visibleDates}
+          renderDraggableEvent={renderDraggableEvent}
+        />
       </Animated.View>
       <LoadingOverlay />
     </View>

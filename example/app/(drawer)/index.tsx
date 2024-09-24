@@ -1,11 +1,9 @@
 import {
   CalendarBody,
   CalendarContainer,
-  CalendarDayBar,
+  CalendarHeader,
   DateOrDateTime,
   EventItem,
-  OutOfRangeProps,
-  PackedEvent,
   SelectedEventType,
   type CalendarKitHandle,
   type LocaleConfigsProps,
@@ -19,18 +17,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from 'react-native';
+import { Dimensions, StyleSheet, View, useColorScheme } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../../components/Header';
-import OutOfRange from '../../components/OutOfRange';
 import { useAppContext } from '../../context/AppProvider';
 
 type SearchParams = { viewMode: string; numberOfDays: string };
@@ -78,7 +68,7 @@ const CALENDAR_THEME = {
   },
 };
 
-const initialLocales: Record<string, LocaleConfigsProps> = {
+const initialLocales: Record<string, Partial<LocaleConfigsProps>> = {
   en: {
     weekDayShort: 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_'),
     meridiem: { ante: 'am', post: 'pm' },
@@ -119,7 +109,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 0',
     color: '#5428F2',
-    titleColor: 'white',
   },
   {
     id: 'event_0x',
@@ -131,7 +120,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 0x',
     color: '#5428F2',
-    titleColor: 'white',
   },
   {
     id: 'event_1',
@@ -143,7 +131,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 1',
     color: '#5428F2',
-    titleColor: 'white',
   },
   {
     id: 'event_1x',
@@ -155,7 +142,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 1x',
     color: '#5428F2',
-    titleColor: 'white',
   },
   {
     id: 'event_2',
@@ -167,7 +153,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 2',
     color: '#8EBB85',
-    titleColor: 'white',
   },
   {
     id: 'event_2x',
@@ -179,7 +164,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 2x',
     color: '#5428F2',
-    titleColor: 'white',
   },
   {
     id: 'event_3c',
@@ -191,7 +175,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 3',
     color: '#B70100',
-    titleColor: 'white',
   },
   {
     id: 'event_3xx',
@@ -203,7 +186,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 3xx',
     color: '#5428F2',
-    titleColor: 'white',
   },
   {
     id: 'event_3x',
@@ -215,7 +197,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 3x',
     color: '#5428F2',
-    titleColor: 'white',
   },
   {
     id: 'event_4',
@@ -227,7 +208,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 4',
     color: '#B70100',
-    titleColor: 'white',
   },
   {
     id: 'event_5',
@@ -239,7 +219,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 5',
     color: '#EAAB7E',
-    titleColor: 'white',
   },
   {
     id: 'event_6',
@@ -251,7 +230,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 6x',
     color: '#AC2A57',
-    titleColor: 'white',
   },
   {
     id: 'event_7',
@@ -263,7 +241,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 7',
     color: '#DC1F98',
-    titleColor: 'white',
   },
   {
     id: 'event_8',
@@ -275,7 +252,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 8',
     color: '#6E911C',
-    titleColor: 'white',
   },
   {
     id: 'event_9',
@@ -287,7 +263,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 9',
     color: '#BE1459',
-    titleColor: 'white',
   },
   {
     id: 'event_10',
@@ -299,7 +274,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 10',
     color: '#BA3D9D',
-    titleColor: 'white',
   },
   {
     id: 'event_11',
@@ -311,7 +285,6 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event 11',
     color: '#BA3D9D',
-    titleColor: 'white',
   },
   {
     id: 'event_2xx3',
@@ -323,7 +296,7 @@ const allDayEvents: EventItem[] = [
     },
     title: 'All day Recurring',
     color: '#BA3D9D',
-    titleColor: 'white',
+
     recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
     excludeDates: ['2024-09-16', '2024-09-22'],
   },
@@ -339,7 +312,7 @@ const allDayEvents: EventItem[] = [
     },
     title: 'Event Recurring',
     color: '#BA3D9D',
-    titleColor: 'white',
+
     recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
     excludeDates: ['2024-09-16T05:00:00.000Z', '2024-09-22T05:00:00.000Z'],
   },
@@ -367,7 +340,6 @@ const generateEvents = () => {
         },
         title: `Event ${index + 1}`,
         color: randomColor(),
-        titleColor: 'white',
       } as EventItem;
     })
     .concat(allDayEvents);
@@ -426,10 +398,6 @@ const Calendar = () => {
     []
   );
 
-  const _renderCustomOutOfRange = useCallback((props: OutOfRangeProps) => {
-    return <OutOfRange {...props} />;
-  }, []);
-
   const _onPressBackground = (props: DateOrDateTime) => {
     // if (selectedEvent) {
     //   const startISO = new Date(date).toISOString();
@@ -455,10 +423,6 @@ const Calendar = () => {
     setSelectedEvent(undefined);
   };
 
-  const _renderEvent = useCallback((props: PackedEvent) => {
-    return <Text>{props.title}</Text>;
-  }, []);
-
   const isWorkWeek = params.viewMode === 'week' && params.numberOfDays === '5';
   const hideWeekDays: WeekdayNumbers[] = isWorkWeek ? [6, 7] : [];
 
@@ -474,6 +438,7 @@ const Calendar = () => {
         hideWeekDays={hideWeekDays}
         initialLocales={initialLocales}
         locale="en"
+        minRegularEventMinutes={5}
         theme={
           configs.themeMode === 'auto'
             ? colorScheme === 'dark'
@@ -502,6 +467,8 @@ const Calendar = () => {
         allowDragToEdit
         allowDragToCreate
         useAllDayEvent
+        rightEdgeSpacing={4}
+        overlapEventsSpacing={1}
         onLongPressEvent={(event) => {
           if (event.id !== selectedEvent?.id) {
             setSelectedEvent(undefined);
@@ -510,6 +477,7 @@ const Calendar = () => {
         selectedEvent={selectedEvent}
         start={60}
         end={23 * 60}
+        spaceFromBottom={safeBottom}
         defaultDuration={60}
         onDragEventEnd={async (event) => {
           const { originalRecurringEvent, ...rest } = event;
@@ -558,48 +526,16 @@ const Calendar = () => {
             ...event,
             id: `event_${events.length + 1}`,
             title: `Event ${events.length + 1}`,
-            color: randomColor(),
+            color: '#23cfde',
           };
           const newEvents = [...events, newEvent];
           setEvents(newEvents);
           setSelectedEvent(newEvent);
         }}
       >
-        <CalendarDayBar />
-        <CalendarBody
-          renderCustomOutOfRange={_renderCustomOutOfRange}
-          renderEvent={_renderEvent}
-          rightEdgeSpacing={4}
-          overlapEventsSpacing={1}
-        />
+        <CalendarHeader />
+        <CalendarBody />
       </CalendarContainer>
-      <View style={[styles.actions, { paddingBottom: safeBottom }]}>
-        <TouchableOpacity
-          style={styles.btn}
-          onPress={() => {
-            const newEvents = generateEvents();
-            setEvents(newEvents);
-          }}
-        >
-          <Text>Random events</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.btn}
-          onPress={() => {
-            calendarRef.current?.goToPrevPage(true);
-          }}
-        >
-          <Text>Prev</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.btn}
-          onPress={() => {
-            calendarRef.current?.goToNextPage(true);
-          }}
-        >
-          <Text>Next</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };

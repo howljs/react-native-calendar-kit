@@ -41,6 +41,7 @@ import UnavailableHoursProvider from './context/UnavailableHoursProvider';
 import VisibleDateProvider from './context/VisibleDateProvider';
 import useLatestCallback from './hooks/useLatestCallback';
 import useLazyRef from './hooks/useLazyRef';
+import HapticService from './service/HapticService';
 import type {
   CalendarKitHandle,
   CalendarProviderProps,
@@ -54,7 +55,6 @@ import {
   parseDateTime,
   startOfWeek,
 } from './utils/dateUtils';
-import HapticService from './service/HapticService';
 import {
   calculateSlots,
   clampValues,
@@ -117,6 +117,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     onDragCreateEventStart,
     onDragCreateEventEnd,
     useAllDayEvent = false,
+    rightEdgeSpacing = 1,
+    overlapEventsSpacing = 1,
+    minRegularEventMinutes = 1,
   },
   ref
 ) => {
@@ -193,10 +196,11 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     [minDate, maxDate, firstDay, isSingleDay, hideWeekDays, timeZone]
   );
 
-  const hours = useMemo(
+  const slots = useMemo(
     () => calculateSlots(start, end, timeInterval),
     [start, end, timeInterval]
   );
+  const totalSlots = slots.length;
 
   const columnWidth = useMemo(() => {
     return (calendarLayout.width - hourWidth) / numberOfDays;
@@ -207,8 +211,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       return calendarLayout.width;
     }
 
-    return calendarLayout.width - hourWidth;
-  }, [isSingleDay, calendarLayout.width, hourWidth]);
+    return columnWidth * columns;
+  }, [calendarLayout.width, columnWidth, isSingleDay, columns]);
 
   const calendarListRef = useRef<CalendarListViewHandle>(null);
   const verticalListRef = useAnimatedRef<Animated.ScrollView>();
@@ -273,7 +277,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const timeIntervalHeight = useSharedValue(initialTimeIntervalHeight);
   const eventsRef = useRef<EventsRef>(null);
 
-  const totalSlots = hours.length;
   const extraHeight = spaceFromTop + spaceFromBottom;
   const maxTimelineHeight = totalSlots * maxTimeIntervalHeight + extraHeight;
 
@@ -584,7 +587,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       spaceFromTop,
       spaceFromBottom,
       timelineHeight,
-      hours,
+      slots,
       totalSlots,
       start,
       end,
@@ -610,6 +613,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       visibleWeeks,
       useAllDayEvent,
       hapticService,
+      rightEdgeSpacing,
+      overlapEventsSpacing,
     }),
     [
       calendarLayout,
@@ -632,7 +637,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       spaceFromTop,
       spaceFromBottom,
       timelineHeight,
-      hours,
+      slots,
       totalSlots,
       start,
       end,
@@ -654,6 +659,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       visibleWeeks,
       useAllDayEvent,
       hapticService,
+      rightEdgeSpacing,
+      overlapEventsSpacing,
     ]
   );
 
@@ -697,6 +704,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                           timeZone={timeZone}
                           useAllDayEvent={useAllDayEvent}
                           pagesPerSide={pagesPerSide}
+                          minRegularEventMinutes={minRegularEventMinutes}
                           hideWeekDays={hideWeekDays}
                         >
                           <DragEventProvider

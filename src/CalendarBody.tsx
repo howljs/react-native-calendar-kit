@@ -15,19 +15,24 @@ import {
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import BodyItem from './components/BodyItem';
 import CalendarListView from './components/CalendarListView';
-import DragEventPlaceholder from './components/DragEventPlaceholder';
+import DragEventPlaceholder from './components/DraggingEvent';
 import DraggingHour from './components/DraggingHour';
 import TimeColumn from './components/TimeColumn';
 import { EXTRA_HEIGHT, ScrollType } from './constants';
 import { useActions } from './context/ActionsProvider';
 import { BodyContext, type BodyContextProps } from './context/BodyContext';
 import { useCalendar } from './context/CalendarProvider';
+import { useLocale } from './context/LocaleProvider';
 import useDragEventGesture from './hooks/useDragEventGesture';
 import useDragToCreateGesture from './hooks/useDragToCreateGesture';
 import usePinchToZoom from './hooks/usePinchToZoom';
 import useSyncedList from './hooks/useSyncedList';
 import type { CalendarBodyProps } from './types';
-import { dateTimeToISOString, parseDateTime } from './utils/dateUtils';
+import {
+  dateTimeToISOString,
+  parseDateTime,
+  toHourStr,
+} from './utils/dateUtils';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -38,8 +43,10 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   renderCustomOutOfRange,
   renderCustomUnavailableHour,
   renderEvent,
-  rightEdgeSpacing = 1,
-  overlapEventsSpacing = 1,
+  renderDraggableEvent,
+  renderDraggingEvent,
+  renderDraggingHour,
+  NowIndicatorComponent,
 }) => {
   const {
     calendarLayout,
@@ -56,7 +63,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     spaceFromTop,
     spaceFromBottom,
     timelineHeight,
-    hours,
+    slots,
     totalSlots,
     start,
     end,
@@ -77,8 +84,10 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     scrollVisibleHeightAnim,
     visibleDateUnixAnim,
     pagesPerSide,
+    rightEdgeSpacing,
+    overlapEventsSpacing,
   } = useCalendar();
-
+  const locale = useLocale();
   const { onRefresh } = useActions();
 
   const { onScroll, onVisibleColumnChanged } = useSyncedList({
@@ -114,6 +123,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       numberOfDays,
       columns,
       visibleDatesArray: calendarData.visibleDatesArray,
+      renderDraggableEvent,
     };
   }, [
     calendarData.minDateUnix,
@@ -121,6 +131,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     isRTL,
     numberOfDays,
     columns,
+    renderDraggableEvent,
   ]);
 
   const _renderTimeSlots = useCallback(
@@ -131,7 +142,13 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
         return null;
       }
 
-      return <BodyItem pageIndex={pageIndex} startUnix={dateUnixByIndex} />;
+      return (
+        <BodyItem
+          pageIndex={pageIndex}
+          startUnix={dateUnixByIndex}
+          renderDraggableEvent={extra.renderDraggableEvent}
+        />
+      );
     },
     []
   );
@@ -146,6 +163,15 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       visibleColumns: numberOfDays,
     };
   }, [calendarData.visibleDatesArray, numberOfDays]);
+
+  const hours = useMemo(() => {
+    return slots.map((slot) => {
+      return {
+        slot,
+        time: toHourStr(slot, hourFormat, locale.meridiem),
+      };
+    });
+  }, [hourFormat, locale.meridiem, slots]);
 
   const value = useMemo<BodyContextProps>(
     () => ({
@@ -182,6 +208,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       rightEdgeSpacing,
       overlapEventsSpacing,
       visibleDateUnixAnim,
+      NowIndicatorComponent,
     }),
     [
       renderHour,
@@ -217,6 +244,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       rightEdgeSpacing,
       overlapEventsSpacing,
       visibleDateUnixAnim,
+      NowIndicatorComponent,
     ]
   );
 
@@ -262,7 +290,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                     styles.absolute,
                     {
                       left: Math.max(0, leftSize - 1),
-                      width: calendarGridWidth,
+                      width: calendarLayout.width - leftSize,
                     },
                   ]}
                 >
@@ -293,8 +321,10 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                     styles.dragContainer,
                   ]}
                 >
-                  <DragEventPlaceholder />
-                  <DraggingHour />
+                  <DragEventPlaceholder
+                    renderDraggingEvent={renderDraggingEvent}
+                  />
+                  <DraggingHour renderHour={renderDraggingHour} />
                 </View>
               </View>
             </Animated.View>

@@ -49,6 +49,7 @@ interface EventsProviderProps {
   pagesPerSide: number;
   hideWeekDays: WeekdayNumbers[];
   defaultOffset?: number;
+  minRegularEventMinutes?: number;
 }
 
 export interface EventsRef {
@@ -68,6 +69,7 @@ const EventsProvider: ForwardRefRenderFunction<
     useAllDayEvent: showAllDay,
     hideWeekDays,
     defaultOffset = 7,
+    minRegularEventMinutes = 1,
   },
   ref
 ) => {
@@ -104,7 +106,7 @@ const EventsProvider: ForwardRefRenderFunction<
           minUnix,
           maxUnix,
           timeZone,
-          divideEvents
+          (e, tz) => divideEvents(e, tz, minRegularEventMinutes)
         );
         processedEvents.forEach((evt) => {
           const dayStart = parseDateTime(evt._internal.startUnix)
@@ -162,6 +164,7 @@ const EventsProvider: ForwardRefRenderFunction<
       events,
       firstDay,
       hideWeekDays,
+      minRegularEventMinutes,
       pagesPerSide,
       showAllDay,
       timeZone,

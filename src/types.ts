@@ -1,11 +1,8 @@
 import type { DateTime, WeekdayNumbers } from 'luxon';
-import type {
-  GestureResponderEvent,
-  StyleProp,
-  TextStyle,
-  ViewStyle,
-} from 'react-native';
+import type { GestureResponderEvent, TextStyle, ViewStyle } from 'react-native';
 import { SharedValue } from 'react-native-reanimated';
+import { DraggableEventProps } from './components/DraggableEvent';
+import { DraggingEventProps } from './components/DraggingEvent';
 
 export type DeepPartial<T> = T extends object
   ? {
@@ -15,14 +12,44 @@ export type DeepPartial<T> = T extends object
 
 export interface ThemeConfigs {
   colors: {
+    /**
+     * Default color
+     */
     primary: string;
+    /**
+     * Default color on primary color
+     */
     onPrimary: string;
+    /**
+     * Default background color
+     */
     background: string;
+    /**
+     * Default color on background color
+     */
     onBackground: string;
-    surface: string;
+    /**
+     * Default border color
+     */
     border: string;
+    /**
+     * Default text color
+     */
     text: string;
+
+    /**
+     * Default surface color (e.g: week number background color, unavailable hour background color)
+     */
+    surface: string;
+
+    /**
+     * Default color on surface color
+     */
+    onSurface: string;
   };
+  /**
+   * Default text style
+   */
   textStyle?: TextStyle;
 
   // Hour column
@@ -30,25 +57,50 @@ export interface ThemeConfigs {
   hourTextStyle?: TextStyle;
 
   // Day bar
-  dayBarBackgroundColor?: string;
-  todayName?: TextStyle;
-  todayNumber?: TextStyle;
-  todayNumberContainer?: ViewStyle;
+  headerBackgroundColor?: string;
+  headerContainer?: ViewStyle;
+  dayBarContainer?: ViewStyle;
+
+  dayContainer?: ViewStyle;
   dayName?: TextStyle;
   dayNumber?: TextStyle;
   dayNumberContainer?: ViewStyle;
+  todayName?: TextStyle;
+  todayNumber?: TextStyle;
+  todayNumberContainer?: ViewStyle;
+
+  allDayEventsContainer?: ViewStyle;
+  headerBottomContainer?: ViewStyle;
+  countContainer?: ViewStyle;
+  countText?: TextStyle;
+
+  singleDayContainer?: ViewStyle;
+  singleDayEventsContainer?: ViewStyle;
 
   // Week number
   weekNumber?: TextStyle;
   weekNumberContainer?: ViewStyle;
 
+  /**
+   * Default color: `colors.primary`
+   */
   nowIndicatorColor?: string;
 
+  /**
+   * Default background color: `colors.surface`
+   */
   outOfRangeBackgroundColor?: string;
 
-  weekNumberBackgroundColor?: string;
-
+  /**
+   * Default background color: `colors.surface`
+   */
   unavailableHourBackgroundColor?: string;
+
+  /** Default container style of the event */
+  eventContainerStyle?: ViewStyle;
+
+  /** Default style of the event */
+  eventTitleStyle?: TextStyle;
 }
 
 export type GoToDateOptions = {
@@ -193,6 +245,27 @@ export interface ActionsProviderProps {
    * Default: `false`
    */
   useAllDayEvent?: boolean;
+
+  /**
+   * Spacing at the right edge of events.
+   *
+   * Default is `1`
+   */
+  rightEdgeSpacing?: number;
+
+  /**
+   * Spacing between overlapping events.
+   *
+   * Default is 1
+   */
+  overlapEventsSpacing?: number;
+
+  /**
+   * Minimum minutes to calculate height of regular event
+   *
+   * Default is `1`
+   */
+  minRegularEventMinutes?: number;
 }
 
 export interface CalendarProviderProps extends ActionsProviderProps {
@@ -274,7 +347,7 @@ export interface CalendarProviderProps extends ActionsProviderProps {
     <CalendarKit initialLocales={initialLocales} locale="ja" />
    * ```
    */
-  initialLocales?: { [locale: string]: LocaleConfigsProps };
+  initialLocales?: { [locale: string]: DeepPartial<LocaleConfigsProps> };
 
   /** Current locale
    *
@@ -487,12 +560,6 @@ export interface EventItem extends Record<string, any> {
   /** Background color of the event */
   color?: string;
 
-  /** Text color of the event */
-  titleColor?: string;
-
-  /** Container style of the event */
-  containerStyle?: StyleProp<ViewStyle>;
-
   /**
    * Recurrence rule for the event.
    */
@@ -552,7 +619,7 @@ export interface UnavailableHourProps extends Record<string, any> {
 
 export interface OutOfRangeProps extends SizeAnimation {}
 
-export interface CalendarDayBarProps {
+export interface CalendarHeaderProps {
   /**
    * Day bar height
    *
@@ -561,13 +628,64 @@ export interface CalendarDayBarProps {
   dayBarHeight?: number;
 
   /**
-   * Custom day bar item
+   * Custom header item
    */
-  renderDayBarItem?: (props: {
+  renderHeaderItem?: (props: {
     index: number;
     startUnix: number;
     extra: Record<string, any>;
-  }) => JSX.Element | null;
+  }) => React.ReactElement | null;
+
+  /**
+   * Custom expand icon
+   */
+  renderExpandIcon?: (props: {
+    isExpanded: SharedValue<boolean>;
+  }) => React.ReactElement | null;
+
+  /**
+   * Custom event item
+   */
+  renderEvent?: (
+    event: PackedAllDayEvent,
+    size: SizeAnimation
+  ) => React.ReactNode;
+
+  /**
+   * Custom left area (multiple days)
+   */
+  LeftAreaComponent?: React.ReactElement | null | undefined;
+
+  /**
+   * Header bottom height
+   */
+  headerBottomHeight?: number;
+
+  /**
+   *
+   */
+  collapsedItems?: number;
+
+  /**
+   * Minimum minutes to calculate height of all day event (scale by timeInterval)
+   *
+   * Default: `15`
+   */
+  eventMinMinutes?: number;
+
+  /**
+   * Maximum minutes to calculate height of all day event (scale by timeInterval)
+   *
+   * Default: `30`
+   */
+  eventMaxMinutes?: number;
+
+  /**
+   * Initial minutes to calculate height of all day event (scale by timeInterval)
+   *
+   * Default: `20`
+   */
+  eventInitialMinutes?: number;
 }
 
 export interface CalendarBodyProps {
@@ -579,7 +697,9 @@ export interface CalendarBodyProps {
   /**
    * Custom hour text
    */
-  renderHour?: (props: RenderHourProps) => React.ReactNode;
+  renderHour?: (props: RenderHourProps) => React.ReactElement | null;
+
+  renderDraggingHour?: (props: RenderHourProps) => React.ReactElement | null;
 
   /**
    * Show now indicator
@@ -587,7 +707,9 @@ export interface CalendarBodyProps {
   showNowIndicator?: boolean;
 
   /** Custom Out of Range item */
-  renderCustomOutOfRange?: (props: OutOfRangeProps) => React.ReactNode;
+  renderCustomOutOfRange?: (
+    props: OutOfRangeProps
+  ) => React.ReactElement | null;
 
   /** Custom Unavailable Item */
   renderCustomUnavailableHour?: (
@@ -595,30 +717,38 @@ export interface CalendarBodyProps {
       width: SharedValue<number>;
       height: SharedValue<number>;
     }
-  ) => React.ReactNode;
+  ) => React.ReactElement | null;
 
   /**
    * Custom event item
    */
-  renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
+  renderEvent?: (
+    event: PackedEvent,
+    size: SizeAnimation
+  ) => React.ReactElement | null;
 
   /**
-   * Spacing at the right edge of events.
-   *
-   * Default is `1`
+   * Custom draggable event item
    */
-  rightEdgeSpacing?: number;
+  renderDraggableEvent?: (
+    props: DraggableEventProps
+  ) => React.ReactElement | null;
 
   /**
-   * Spacing between overlapping events.
-   *
-   * Default is 1
+   * Custom dragging event item
    */
-  overlapEventsSpacing?: number;
+  renderDraggingEvent?: (
+    props: DraggingEventProps
+  ) => React.ReactElement | null;
+
+  /**
+   * Custom now indicator
+   */
+  NowIndicatorComponent?: React.ReactElement | null;
 }
 
 export interface RenderHourProps {
-  hour: string;
+  hourStr: string;
   minutes: number;
   style: TextStyle;
 }
@@ -626,6 +756,7 @@ export interface RenderHourProps {
 export interface LocaleConfigsProps {
   weekDayShort: string[];
   meridiem: { ante: string; post: string };
+  more: string;
 }
 
 export interface EventItemInternal extends EventItem {

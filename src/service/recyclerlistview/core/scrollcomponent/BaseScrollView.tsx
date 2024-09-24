@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { CSSProperties } from 'react';
+import { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { Dimension } from '../LayoutProvider';
 
 export interface ScrollViewDefaultProps {
-  onScroll: (event: ScrollEvent) => void;
+  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   horizontal: boolean;
   style?: CSSProperties | null;
 }

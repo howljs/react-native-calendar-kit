@@ -1,33 +1,33 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import Animated, {
-  runOnUI,
+  SharedValue,
   useAnimatedStyle,
   useDerivedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { COUNT_CONTAINER_HEIGHT } from '../constants';
-import { useDayBar } from '../context/DayBarContext';
 import { useTheme } from '../context/ThemeProvider';
 
 interface ExpandButtonProps {
+  isExpanded: SharedValue<boolean>;
+  isShowExpandButton: SharedValue<boolean>;
   containerStyle?: ViewStyle;
+  renderExpandIcon?: (props: {
+    isExpanded: SharedValue<boolean>;
+  }) => JSX.Element | null;
 }
 
-const ExpandButton = ({ containerStyle }: ExpandButtonProps) => {
+const ExpandButton = ({
+  isExpanded,
+  isShowExpandButton,
+  containerStyle,
+  renderExpandIcon,
+}: ExpandButtonProps) => {
   const borderColor = useTheme(useCallback(({ colors }) => colors.border, []));
-  const { isExpanded, isShowExpandButton } = useDayBar();
-
-  const _toggleExpand = () => {
-    runOnUI(() => {
-      isExpanded.value = !isExpanded.value;
-    })();
-  };
 
   const animStyle = useAnimatedStyle(() => {
     return {
-      height: isShowExpandButton.value ? COUNT_CONTAINER_HEIGHT : 0,
-      opacity: isShowExpandButton.value ? 1 : 0,
+      display: isShowExpandButton.value ? 'flex' : 'none',
     };
   });
 
@@ -41,25 +41,39 @@ const ExpandButton = ({ containerStyle }: ExpandButtonProps) => {
     };
   });
 
+  const toggleExpand = () => {
+    isExpanded.value = !isExpanded.value;
+  };
+
+  const _renderExpandIcon = () => {
+    if (renderExpandIcon) {
+      return renderExpandIcon({ isExpanded });
+    }
+
+    return (
+      <Animated.View style={[styles.expandIcon, expandIcon]}>
+        <View
+          style={[
+            styles.chevron,
+            styles.chevronLeft,
+            { backgroundColor: borderColor },
+          ]}
+        />
+        <View
+          style={[
+            styles.chevron,
+            styles.chevronRight,
+            { backgroundColor: borderColor },
+          ]}
+        />
+      </Animated.View>
+    );
+  };
+
   return (
     <Animated.View style={[styles.btnContainer, containerStyle, animStyle]}>
-      <TouchableOpacity hitSlop={8} onPress={_toggleExpand} activeOpacity={0.6}>
-        <Animated.View style={[styles.expandIcon, expandIcon]}>
-          <View
-            style={[
-              styles.chevron,
-              styles.chevronLeft,
-              { backgroundColor: borderColor },
-            ]}
-          />
-          <View
-            style={[
-              styles.chevron,
-              styles.chevronRight,
-              { backgroundColor: borderColor },
-            ]}
-          />
-        </Animated.View>
+      <TouchableOpacity hitSlop={8} onPress={toggleExpand} activeOpacity={0.6}>
+        {_renderExpandIcon()}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -75,7 +89,6 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
   expandIcon: {
     width: 20,

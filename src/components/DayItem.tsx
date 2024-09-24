@@ -23,6 +23,7 @@ const selectDayItemTheme = (state: ThemeConfigs) => ({
     backgroundColor: state.colors.primary,
   },
   todayNumber: state.todayNumber || { color: state.colors.onPrimary },
+  dayContainer: state.dayContainer,
 });
 
 const DayItem: React.FC<DayItemProps> = ({ dateUnix }) => {
@@ -41,6 +42,7 @@ const DayItem: React.FC<DayItemProps> = ({ dateUnix }) => {
     todayName,
     todayNumberContainer,
     todayNumber,
+    dayContainer,
   } = useTheme(selectDayItemTheme);
 
   const isToday = dateUnix === currentDateUnix;
@@ -82,7 +84,7 @@ const DayItem: React.FC<DayItemProps> = ({ dateUnix }) => {
       disabled={!onPressDayNumber}
       onPress={_onDayPress}
     >
-      <View style={styles.dayContainer}>
+      <View style={[styles.dayContainer, dayContainer]}>
         <Text
           style={[
             styles.weekDayText,

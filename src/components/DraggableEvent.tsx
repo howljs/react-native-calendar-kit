@@ -1,10 +1,12 @@
 import React, { FC, useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
+  SharedValue,
   useAnimatedReaction,
   useAnimatedStyle,
+  useDerivedValue,
 } from 'react-native-reanimated';
 import { MILLISECONDS_IN_DAY, MILLISECONDS_IN_MINUTE } from '../constants';
 import { useBody } from '../context/BodyContext';
@@ -13,52 +15,85 @@ import {
   useDragEventActions,
 } from '../context/DragEventProvider';
 import { useTheme } from '../context/ThemeProvider';
+import { SelectedEventType } from '../types';
 import { parseDateTime } from '../utils/dateUtils';
 import DragDot from './DragDot';
 
-interface DraggableInnerEventProps {
+export interface DraggableEventProps {
   index: number;
   startUnix: number;
   visibleDates: Record<string, { diffDays: number; unix: number }>;
+  renderEvent?: (
+    event: SelectedEventType,
+    options: {
+      width: SharedValue<number>;
+      height: SharedValue<number>;
+    }
+  ) => React.ReactElement | null;
+  TopEdgeComponent?: React.ReactElement | null;
+  BottomEdgeComponent?: React.ReactElement | null;
+  containerStyle?: ViewStyle;
 }
 
-const DraggableEventInner = ({
+export const DraggableEvent: FC<DraggableEventProps> = ({
   startUnix,
   visibleDates,
   index,
-}: DraggableInnerEventProps) => {
-  const { primaryColor } = useTheme(
+  renderEvent,
+  TopEdgeComponent,
+  BottomEdgeComponent,
+  containerStyle,
+}) => {
+  const theme = useTheme(
     useCallback((state) => {
-      return { primaryColor: state.colors.primary };
+      return {
+        primaryColor: state.colors.primary,
+        eventContainerStyle: state.eventContainerStyle,
+        eventTitleStyle: state.eventTitleStyle,
+      };
     }, [])
   );
-  const { minuteHeight, columnWidthAnim, start } = useBody();
+  const { minuteHeight, columnWidthAnim, start, numberOfDays } = useBody();
   const {
+    dragStartUnix,
     dragSelectedStartUnix,
     dragSelectedDuration,
     dragSelectedStartMinutes,
-    isDraggingSelectedEvent,
     selectedEvent,
     isDraggingAnim,
   } = useDragEvent();
   const { triggerDragSelectedEvent } = useDragEventActions();
 
-  const animView = useAnimatedStyle(() => {
+  const left = useDerivedValue(() => {
     const diffDays = visibleDates[startUnix]?.diffDays ?? 1;
-    let top = (dragSelectedStartMinutes.value - start) * minuteHeight.value;
+    return (diffDays - 1) * columnWidthAnim.value;
+  }, [visibleDates, startUnix]);
+
+  const top = useDerivedValue(() => {
     if (index > 0) {
-      const dragStartUnix =
+      const dragSelectedStart =
         dragSelectedStartUnix.value +
         dragSelectedStartMinutes.value * MILLISECONDS_IN_MINUTE;
-      const diffMinutes = (startUnix - dragStartUnix) / MILLISECONDS_IN_MINUTE;
-      top = (0 - diffMinutes - start) * minuteHeight.value;
+      const diffMinutes =
+        (startUnix - dragSelectedStart) / MILLISECONDS_IN_MINUTE;
+      return (0 - diffMinutes - start) * minuteHeight.value;
     }
+    return (dragSelectedStartMinutes.value - start) * minuteHeight.value;
+  }, [startUnix, start, index]);
+
+  const eventHeight = useDerivedValue(
+    () => dragSelectedDuration.value * minuteHeight.value
+  );
+
+  const isDragging = useDerivedValue(() => dragStartUnix.value !== -1);
+
+  const animView = useAnimatedStyle(() => {
     return {
-      top,
-      height: dragSelectedDuration.value * minuteHeight.value,
+      top: top.value,
+      height: eventHeight.value,
       width: columnWidthAnim.value,
-      left: (diffDays - 1) * columnWidthAnim.value,
-      opacity: isDraggingSelectedEvent.value ? 0 : 1,
+      left: left.value,
+      opacity: isDragging.value ? 0 : 1,
     };
   });
 
@@ -97,26 +132,61 @@ const DraggableEventInner = ({
             StyleSheet.absoluteFill,
             styles.event,
             {
-              backgroundColor: selectedEvent?.color ?? 'transparent',
-              borderColor: primaryColor,
+              backgroundColor:
+                selectedEvent?.color ??
+                (Platform.OS === 'android'
+                  ? theme.primaryColor
+                  : 'transparent'),
+              borderColor: theme.primaryColor,
             },
+            theme.eventContainerStyle,
+            containerStyle,
           ]}
         >
-          <Text>{selectedEvent.title}</Text>
+          {renderEvent ? (
+            renderEvent(selectedEvent, {
+              width: columnWidthAnim,
+              height: eventHeight,
+            })
+          ) : (
+            <Text style={[styles.eventTitle, theme.eventTitleStyle]}>
+              {selectedEvent.title}
+            </Text>
+          )}
         </View>
       )}
       <GestureDetector gesture={gesture}>
         <View style={StyleSheet.absoluteFill} />
       </GestureDetector>
       <GestureDetector gesture={topEdgeGesture}>
-        <View style={[styles.dot, styles.dotLeft]}>
-          <DragDot />
-        </View>
+        {TopEdgeComponent ? (
+          TopEdgeComponent
+        ) : (
+          <View
+            style={[
+              styles.dot,
+              styles.dotLeft,
+              numberOfDays === 1 && styles.dotLeftSingle,
+            ]}
+          >
+            <DragDot />
+          </View>
+        )}
       </GestureDetector>
       <GestureDetector gesture={bottomEdgeGesture}>
-        <View style={[styles.dot, styles.dotRight]}>
-          <DragDot />
-        </View>
+        {BottomEdgeComponent ? (
+          BottomEdgeComponent
+        ) : (
+          <View
+            style={[
+              styles.dot,
+              styles.dotRight,
+              numberOfDays === 1 && styles.dotRightSingle,
+            ]}
+          >
+            <DragDot />
+          </View>
+        )}
       </GestureDetector>
     </Animated.View>
   );
@@ -139,16 +209,31 @@ const styles = StyleSheet.create({
   },
   dotLeft: { top: -12, left: -12 },
   dotRight: { bottom: -12, right: -12 },
+  eventTitle: { fontSize: 12, paddingHorizontal: 2 },
+  dotLeftSingle: { left: 0 },
+  dotRightSingle: { right: 0 },
 });
 
-interface DraggableEventProps {
+interface DraggableEventWrapperProps {
   startUnix: number;
   visibleDates: Record<string, { diffDays: number; unix: number }>;
+  renderEvent?: (
+    event: SelectedEventType,
+    options: {
+      width: SharedValue<number>;
+      height: SharedValue<number>;
+    }
+  ) => React.ReactElement | null;
+  renderDraggableEvent?: (
+    event: DraggableEventProps
+  ) => React.ReactElement | null;
 }
 
-const DraggableEvent: FC<DraggableEventProps> = ({
+const DraggableEventWrapper: FC<DraggableEventWrapperProps> = ({
   startUnix,
   visibleDates,
+  renderEvent,
+  renderDraggableEvent,
 }) => {
   const [draggableDates, setDraggableDates] = useState<number[]>([]);
   const {
@@ -225,15 +310,29 @@ const DraggableEvent: FC<DraggableEventProps> = ({
       return null;
     }
 
+    if (renderDraggableEvent) {
+      return (
+        <React.Fragment key={`${date}-${index}`}>
+          {renderDraggableEvent({
+            startUnix: date,
+            visibleDates,
+            index,
+            renderEvent,
+          })}
+        </React.Fragment>
+      );
+    }
+
     return (
-      <DraggableEventInner
+      <DraggableEvent
         key={`${date}-${index}`}
         startUnix={date}
         visibleDates={visibleDates}
         index={index}
+        renderEvent={renderEvent}
       />
     );
   });
 };
 
-export default DraggableEvent;
+export default DraggableEventWrapper;

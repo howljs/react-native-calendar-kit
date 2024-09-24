@@ -2,14 +2,14 @@ import merge from 'lodash.merge';
 import React, { useMemo, type PropsWithChildren } from 'react';
 import { DEFAULT_LOCALES } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
-import type { LocaleConfigsProps } from '../types';
+import type { DeepPartial, LocaleConfigsProps } from '../types';
 
 const LocaleContext = React.createContext<LocaleConfigsProps | undefined>(
   undefined
 );
 
 interface LocaleProviderProps {
-  initialLocales?: { [locale: string]: LocaleConfigsProps };
+  initialLocales?: { [locale: string]: DeepPartial<LocaleConfigsProps> };
   locale?: string;
 }
 
@@ -18,7 +18,7 @@ const LocaleProvider: React.FC<PropsWithChildren<LocaleProviderProps>> = ({
   locale = 'en',
   children,
 }) => {
-  const locales = useLazyRef(() => merge(DEFAULT_LOCALES, initialLocales));
+  const locales = useLazyRef(() => merge({}, DEFAULT_LOCALES, initialLocales));
   const localeConfig = useMemo(
     () => locales.current[locale] || locales.current.en!,
     [locale, locales]

@@ -121,7 +121,11 @@ export const buildInstanceId = (id: string, date: DateTime) => {
   return `${id}_${date.toUTC().toFormat("yyyyMMdd'T'HHmmss'Z'")}`;
 };
 
-export const divideEvents = (event: EventItemInternal, timeZone?: string) => {
+export const divideEvents = (
+  event: EventItemInternal,
+  timeZone?: string,
+  minRegularEventMinutes?: number
+) => {
   let events: EventItemInternal[] = [];
   const eventStart = parseDateTime(event.start.dateTime, {
     zone: event.start.timeZone,
@@ -153,8 +157,11 @@ export const divideEvents = (event: EventItemInternal, timeZone?: string) => {
         id = `${event.localId}_${startUnix}`;
       }
     }
-    const duration = (endUnix - startUnix) / MILLISECONDS_IN_MINUTE;
-
+    let duration = (endUnix - startUnix) / MILLISECONDS_IN_MINUTE;
+    if (minRegularEventMinutes && duration < minRegularEventMinutes) {
+      duration = minRegularEventMinutes;
+      endUnix = startUnix + duration * MILLISECONDS_IN_MINUTE;
+    }
     const nextEvent: EventItemInternal = {
       ...event,
       localId: id,

@@ -1,17 +1,17 @@
 import React, { forwardRef } from 'react';
 import CalendarBody from './CalendarBody';
 import CalendarContainer from './CalendarContainer';
-import CalendarDayBar from './CalendarDayBar';
+import CalendarDayBar from './CalendarHeader';
 import {
   CalendarBodyProps,
-  CalendarDayBarProps,
+  CalendarHeaderProps,
   CalendarKitHandle,
   CalendarProviderProps,
 } from './types';
 
 type CalendarKitProps = CalendarProviderProps &
   CalendarBodyProps &
-  CalendarDayBarProps;
+  CalendarHeaderProps;
 
 const CalendarKit: React.ForwardRefRenderFunction<
   CalendarKitHandle,
@@ -25,8 +25,6 @@ const CalendarKit: React.ForwardRefRenderFunction<
     renderCustomOutOfRange,
     renderCustomUnavailableHour,
     renderEvent,
-    rightEdgeSpacing,
-    overlapEventsSpacing,
     ...rest
   } = props;
 
@@ -41,8 +39,6 @@ const CalendarKit: React.ForwardRefRenderFunction<
     renderCustomOutOfRange,
     renderCustomUnavailableHour,
     renderEvent,
-    rightEdgeSpacing,
-    overlapEventsSpacing,
   };
 
   return (

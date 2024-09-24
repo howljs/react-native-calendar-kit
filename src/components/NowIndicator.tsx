@@ -1,7 +1,10 @@
-import React, { FC } from 'react';
+import React, { FC, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useDerivedValue,
+} from 'react-native-reanimated';
 import { useBody } from '../context/BodyContext';
 import { useNowIndicator } from '../context/NowIndicatorProvider';
 import { useTheme } from '../context/ThemeProvider';
@@ -12,20 +15,32 @@ interface NowIndicatorProps {
 }
 
 const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
-  const { minuteHeight, start, end, startOffset, columnWidthAnim } = useBody();
+  const {
+    minuteHeight,
+    start,
+    end,
+    startOffset,
+    columnWidthAnim,
+    NowIndicatorComponent,
+  } = useBody();
   const nowIndicatorColor = useTheme(
-    (state) => state.nowIndicatorColor || state.colors.primary
+    useCallback((state) => state.nowIndicatorColor || state.colors.primary, [])
   );
-  const animView = useAnimatedStyle(() => {
-    const top = currentTime.value * minuteHeight.value - startOffset.value;
-    const opacity =
-      currentTime.value >= start && currentTime.value <= end ? 1 : 0;
 
+  const left = useDerivedValue(() => {
+    return dayIndex * columnWidthAnim.value;
+  }, [dayIndex]);
+
+  const opacity = useDerivedValue(() => {
+    return currentTime.value >= start && currentTime.value <= end ? 1 : 0;
+  }, [start, end]);
+
+  const animView = useAnimatedStyle(() => {
     return {
       width: columnWidthAnim.value,
-      left: dayIndex * columnWidthAnim.value,
-      top,
-      opacity,
+      left: left.value,
+      top: currentTime.value * minuteHeight.value - startOffset.value,
+      opacity: opacity.value,
     };
   });
 
@@ -34,8 +49,14 @@ const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
       pointerEvents="box-none"
       style={[styles.container, animView]}
     >
-      <View style={[styles.line, { backgroundColor: nowIndicatorColor }]} />
-      <View style={[styles.dot, { backgroundColor: nowIndicatorColor }]} />
+      {NowIndicatorComponent ? (
+        NowIndicatorComponent
+      ) : (
+        <View style={styles.lineContainer}>
+          <View style={[styles.line, { backgroundColor: nowIndicatorColor }]} />
+          <View style={[styles.dot, { backgroundColor: nowIndicatorColor }]} />
+        </View>
+      )}
     </Animated.View>
   );
 };
@@ -65,7 +86,7 @@ const NowIndicator: FC<{
 export default React.memo(NowIndicator);
 
 const styles = StyleSheet.create({
-  container: { position: 'absolute', justifyContent: 'center' },
+  container: { position: 'absolute' },
   line: {
     position: 'absolute',
     height: 2,
@@ -79,5 +100,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#007aff',
     position: 'absolute',
     left: -4,
+  },
+  lineContainer: {
+    justifyContent: 'center',
   },
 });

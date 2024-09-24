@@ -1,24 +1,23 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   GestureResponderEvent,
   StyleSheet,
+  TextStyle,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
+  ViewStyle,
 } from 'react-native';
 import Animated, {
-  runOnUI,
   SharedValue,
   useAnimatedStyle,
-  withTiming,
+  useDerivedValue,
 } from 'react-native-reanimated';
-import { COLLAPSED_ROW_COUNT, COUNT_CONTAINER_HEIGHT } from '../constants';
 import { useActions } from '../context/ActionsProvider';
-import { useDayBar } from '../context/DayBarContext';
+import { useHeader } from '../context/DayBarContext';
 import { useAllDayEvents } from '../context/EventsProvider';
 import { useTheme } from '../context/ThemeProvider';
 import { useTimezone } from '../context/TimeZoneProvider';
-import { OnEventResponse, PackedAllDayEvent } from '../types';
+import { OnEventResponse, PackedAllDayEvent, SizeAnimation } from '../types';
 import {
   dateTimeToISOString,
   forceUpdateZone,
@@ -32,24 +31,40 @@ import Text from './Text';
 interface MultiDayBarItemProps {
   pageIndex: number;
   startUnix: number;
+  renderEvent?: (
+    event: PackedAllDayEvent,
+    size: SizeAnimation
+  ) => React.ReactNode;
 }
 
 const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
   pageIndex,
   startUnix,
+  renderEvent,
 }) => {
+  const dayBarStyles = useTheme(
+    useCallback(
+      (state) => ({
+        borderColor: state.colors.border,
+        dayBarContainer: state.dayBarContainer,
+        allDayEventsContainer: state.allDayEventsContainer,
+        headerBottomContainer: state.headerBottomContainer,
+        countContainer: state.countContainer,
+        countText: state.countText,
+      }),
+      []
+    )
+  );
+
   const {
     columnWidthAnim,
-    height,
-    isRTL,
+    dayBarHeight,
     calendarData,
     columns,
     numberOfDays,
-    eventHeight,
-    isExpanded,
     allDayEventsHeight,
     columnWidth,
-  } = useDayBar();
+  } = useHeader();
   const { timeZone } = useTimezone();
   const { onPressEvent, onPressBackground, onLongPressBackground } =
     useActions();
@@ -66,79 +81,11 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
     return data;
   }, [calendarData.visibleDatesArray, columns, pageIndex]);
 
-  const colors = useTheme((state) => state.colors);
   const { data: events, eventCounts } = useAllDayEvents(
     startUnix,
     numberOfDays,
     visibleDates
   );
-
-  const animStyle = useAnimatedStyle(() => ({
-    width: columnWidthAnim.value,
-  }));
-
-  const _renderColumn = (date: string) => {
-    return (
-      <Animated.View
-        key={`column_${visibleDates[date]!.unix}`}
-        pointerEvents="box-none"
-        style={animStyle}
-      >
-        <DayItem dateUnix={visibleDates[date]!.unix} />
-      </Animated.View>
-    );
-  };
-
-  const _toggleExpand = () => {
-    runOnUI(() => {
-      isExpanded.value = !isExpanded.value;
-    })();
-  };
-
-  const countContainerStyle = useAnimatedStyle(() => ({
-    width: columnWidthAnim.value,
-    height: isExpanded.value ? 0 : COUNT_CONTAINER_HEIGHT,
-  }));
-
-  const _renderCount = (date: string) => {
-    const count = eventCounts[date];
-    if (!count || count <= COLLAPSED_ROW_COUNT) {
-      return null;
-    }
-
-    return (
-      <Animated.View key={`count_${date}`} style={countContainerStyle}>
-        <TouchableOpacity
-          style={[StyleSheet.absoluteFill, styles.countContainer]}
-          onPress={_toggleExpand}
-        >
-          <Text style={styles.countText}>+{count - COLLAPSED_ROW_COUNT}</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  };
-
-  const containerStyle = useAnimatedStyle(() => ({
-    height: height + allDayEventsHeight.value + 8,
-    width: '100%',
-  }));
-
-  const direction = isRTL ? 'rtl' : 'ltr';
-
-  const eventsContainerStyle = useAnimatedStyle(() => ({
-    height: allDayEventsHeight.value,
-  }));
-
-  const _renderLine = (date: string, index: number) => {
-    return (
-      <BottomLine
-        key={`line_${date}`}
-        index={index}
-        columnWidth={columnWidthAnim}
-        color={colors.border}
-      />
-    );
-  };
 
   const _onPressBackground = (event: GestureResponderEvent) => {
     const columnIndex = Math.floor(event.nativeEvent.locationX / columnWidth);
@@ -162,39 +109,88 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
     }
   };
 
+  const eventsContainerStyle = useAnimatedStyle(() => ({
+    height: allDayEventsHeight.value,
+  }));
+
+  const animStyle = useAnimatedStyle(() => ({
+    width: columnWidthAnim.value,
+  }));
+
+  const _renderDayItem = (date: string) => {
+    return (
+      <Animated.View
+        key={`column_${visibleDates[date]!.unix}`}
+        pointerEvents="box-none"
+        style={animStyle}
+      >
+        <DayItem dateUnix={visibleDates[date]!.unix} />
+      </Animated.View>
+    );
+  };
+
+  const _renderEvent = (event: PackedAllDayEvent) => {
+    return (
+      <EventItem
+        key={event.localId}
+        event={event}
+        onPressEvent={onPressEvent}
+        renderEvent={renderEvent}
+      />
+    );
+  };
+
+  const _renderBottomColumn = (date: string) => {
+    const count = eventCounts[date];
+    return (
+      <BottomColumn
+        key={`bottom_${date}`}
+        count={count}
+        columnWidth={columnWidthAnim}
+        borderColor={dayBarStyles.borderColor}
+        countContainerStyle={dayBarStyles.countContainer}
+        countTextStyle={dayBarStyles.countText}
+      />
+    );
+  };
+
+  const height = useDerivedValue(() => {
+    return dayBarHeight + allDayEventsHeight.value;
+  }, [dayBarHeight]);
+
+  const containerHeight = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+
   return (
-    <Animated.View style={containerStyle}>
-      <View style={[styles.container, { direction }]}>
-        {Object.keys(visibleDates).map(_renderColumn)}
+    <Animated.View style={containerHeight}>
+      <View
+        style={[
+          styles.container,
+          dayBarStyles.dayBarContainer,
+          { height: dayBarHeight },
+        ]}
+      >
+        {Object.keys(visibleDates).map(_renderDayItem)}
       </View>
-      <Animated.View style={[styles.eventsContainer, eventsContainerStyle]}>
-        <TouchableWithoutFeedback
+      <Animated.View
+        style={[dayBarStyles.allDayEventsContainer, eventsContainerStyle]}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
           onPress={_onPressBackground}
           onLongPress={
             onLongPressBackground ? _onLongPressBackground : undefined
           }
           disabled={!onLongPressBackground && !onPressBackground}
-        >
-          <View style={styles.eventsInnerContainer}>
-            {events.map((event) => (
-              <EventItem
-                key={event.localId}
-                event={event}
-                columnWidth={columnWidthAnim}
-                visibleColumns={columns}
-                eventHeight={eventHeight}
-                isExpanded={isExpanded}
-                onPressEvent={onPressEvent}
-              />
-            ))}
-          </View>
-        </TouchableWithoutFeedback>
-        <View style={styles.countsContainer}>
-          {Object.keys(visibleDates).map(_renderCount)}
-        </View>
+          style={StyleSheet.absoluteFill}
+        />
+        {events.map(_renderEvent)}
       </Animated.View>
-      <View style={styles.linesContainer}>
-        {Object.keys(visibleDates).map(_renderLine)}
+      <View
+        style={[styles.bottomContainer, dayBarStyles.headerBottomContainer]}
+      >
+        {Object.keys(visibleDates).map(_renderBottomColumn)}
       </View>
       <LoadingOverlay />
       <ProgressBar />
@@ -204,50 +200,107 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
 
 export default MultiDayBarItem;
 
-const BottomLine = ({
-  index,
+const BottomColumn = ({
   columnWidth,
-  color,
+  borderColor,
+  count,
+  countContainerStyle,
+  countTextStyle,
 }: {
-  index: number;
   columnWidth: SharedValue<number>;
-  color: string;
+  borderColor: string;
+  count?: number;
+  countContainerStyle?: ViewStyle;
+  countTextStyle?: TextStyle;
 }) => {
+  const { collapsedItems, isExpanded, headerBottomHeight } = useHeader();
+  const isShowCount = count && count > collapsedItems;
   const animStyle = useAnimatedStyle(() => ({
-    left: index * columnWidth.value,
+    width: columnWidth.value,
+  }));
+
+  const countStyle = useAnimatedStyle(() => ({
+    display: isExpanded.value ? 'none' : 'flex',
+    width: '100%',
   }));
 
   return (
-    <Animated.View
-      style={[styles.bottomLine, animStyle, { backgroundColor: color }]}
-    />
+    <Animated.View style={animStyle}>
+      <View style={[styles.bottomLine, { backgroundColor: borderColor }]} />
+      {isShowCount && (
+        <Animated.View
+          style={[
+            styles.countContainer,
+            countContainerStyle,
+            { height: headerBottomHeight },
+            countStyle,
+          ]}
+        >
+          <Text style={[styles.countText, countTextStyle]}>
+            +{count - collapsedItems}
+          </Text>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            onPress={() => {
+              isExpanded.value = true;
+            }}
+          />
+        </Animated.View>
+      )}
+    </Animated.View>
   );
 };
 
 const EventItem = ({
   event,
-  columnWidth,
-  eventHeight,
-  isExpanded,
   onPressEvent,
+  renderEvent,
 }: {
   event: PackedAllDayEvent;
-  columnWidth: SharedValue<number>;
-  visibleColumns: number;
-  eventHeight: SharedValue<number>;
-  isExpanded: SharedValue<boolean>;
   onPressEvent?: (event: OnEventResponse) => void;
+  renderEvent?: (
+    event: PackedAllDayEvent,
+    size: SizeAnimation
+  ) => React.ReactNode;
 }) => {
+  const {
+    rightEdgeSpacing,
+    columnWidthAnim,
+    eventHeight: height,
+    isExpanded,
+    overlapEventsSpacing,
+  } = useHeader();
   const { _internal, ...rest } = event;
+
+  const eventWidth = useDerivedValue(
+    () => _internal.columnSpan * columnWidthAnim.value - rightEdgeSpacing,
+    [_internal.columnSpan, rightEdgeSpacing]
+  );
+
+  const isShow = useDerivedValue(() => {
+    return isExpanded.value || _internal.rowIndex < 2;
+  }, [_internal.rowIndex]);
+
+  const eventHeight = useDerivedValue(() => {
+    return isShow.value ? height.value - overlapEventsSpacing : 0;
+  }, [overlapEventsSpacing]);
+
+  const left = useDerivedValue(() => {
+    return _internal.startIndex * columnWidthAnim.value;
+  }, [_internal.startIndex]);
+
+  const top = useDerivedValue(() => {
+    return _internal.rowIndex * height.value;
+  }, [_internal.rowIndex]);
+
   const eventContainerStyle = useAnimatedStyle(() => {
-    const isShow = isExpanded.value || _internal.rowIndex < 2;
     return {
       position: 'absolute',
-      left: _internal.startIndex * columnWidth.value,
-      width: _internal.columnSpan * columnWidth.value,
-      top: _internal.rowIndex * eventHeight.value,
-      height: isShow ? eventHeight.value : 0,
-      opacity: withTiming(isShow ? 1 : 0),
+      left: left.value,
+      width: eventWidth.value,
+      top: top.value,
+      height: eventHeight.value,
+      opacity: isShow.value ? 1 : 0,
     };
   });
 
@@ -263,47 +316,46 @@ const EventItem = ({
         activeOpacity={0.6}
         disabled={!onPressEvent}
         onPress={_onPressEvent}
+        style={[
+          styles.eventContent,
+          { backgroundColor: rest.color ?? '#ccc' },
+          rest.containerStyle,
+        ]}
       >
-        <View
-          style={[
-            styles.eventContent,
-            { backgroundColor: rest.color ?? '#ccc' },
-          ]}
-        >
-          <Text numberOfLines={1} style={styles.eventTitle}>
-            {rest.title}
-          </Text>
-        </View>
+        {renderEvent ? (
+          renderEvent(event, {
+            width: eventWidth,
+            height: eventHeight,
+          })
+        ) : (
+          <Text style={[styles.eventTitle, rest.titleStyle]}>{rest.title}</Text>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row' },
-  absolute: { position: 'absolute' },
-  eventsContainer: {
-    marginTop: 4,
-  },
+  container: { flexDirection: 'row', alignItems: 'center' },
   eventContent: {
-    width: ' 100%',
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
     borderRadius: 2,
+    paddingHorizontal: 2,
+    paddingVertical: 1,
   },
-  eventTitle: { fontSize: 12, color: '#FFF', paddingHorizontal: 2 },
-  eventsInnerContainer: { flexGrow: 1 },
-  linesContainer: {
-    flexDirection: 'row',
-  },
+  eventTitle: { fontSize: 10, color: '#FFF', paddingHorizontal: 2 },
   bottomLine: {
     position: 'absolute',
-    height: 20,
+    height: 16,
     width: 1,
     bottom: 0,
+    left: 0,
   },
-  countsContainer: {
+  bottomContainer: {
     flexDirection: 'row',
+    position: 'absolute',
+    bottom: 0,
   },
   countContainer: {
     justifyContent: 'center',

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, PropsWithChildren } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -6,10 +6,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { EXTRA_HEIGHT, HOUR_SHORT_LINE_WIDTH } from '../constants';
 import { useBody } from '../context/BodyContext';
-import { useLocale } from '../context/LocaleProvider';
 import { useTheme } from '../context/ThemeProvider';
 import { ThemeConfigs } from '../types';
-import { toHourStr } from '../utils/dateUtils';
 import Text from './Text';
 
 const selectTimeColumnTheme = (state: ThemeConfigs) => ({
@@ -22,7 +20,6 @@ const selectTimeColumnTheme = (state: ThemeConfigs) => ({
 const TimeColumn = () => {
   const {
     hours,
-    hourFormat,
     maxTimelineHeight,
     spaceFromTop,
     spaceFromBottom,
@@ -32,49 +29,42 @@ const TimeColumn = () => {
     minuteHeight,
     start,
   } = useBody();
-  const locale = useLocale();
   const { cellBorderColor, hourTextColor, hourTextStyle, hourBackgroundColor } =
     useTheme(selectTimeColumnTheme);
 
   const fontSize = hourTextStyle?.fontSize ?? 10;
   const style = StyleSheet.flatten([
     styles.hourText,
-    { color: hourTextColor },
+    { top: -fontSize / 2, color: hourTextColor },
     hourTextStyle,
   ]);
 
-  const _renderHour = (minutes: number) => {
-    const hourStr = toHourStr(minutes, hourFormat, locale.meridiem);
+  const _renderHour = (hour: { slot: number; time: string }, index: number) => {
     let children: React.ReactNode;
     if (renderHour) {
-      children = renderHour({ hour: hourStr, minutes, style });
+      children = renderHour({ hourStr: hour.time, minutes: hour.slot, style });
     } else {
-      children = <Text style={style}>{hourStr}</Text>;
+      children = <Text style={style}>{hour.time}</Text>;
     }
 
     return (
-      <View
-        style={[
-          styles.absolute,
-          styles.hour,
-          { right: HOUR_SHORT_LINE_WIDTH + 8, top: -fontSize / 2 },
-        ]}
-      >
-        {children}
-      </View>
-    );
-  };
-
-  const _renderHourWrapper = (minutes: number, index: number) => {
-    return (
       <HourWrapper
-        key={index !== undefined ? minutes : undefined}
-        minutes={minutes}
+        key={index !== undefined ? hour.slot : undefined}
+        minutes={hour.slot}
         height={minuteHeight}
         cellBorderColor={cellBorderColor}
-        renderHour={_renderHour}
         start={start}
-      />
+      >
+        <View
+          style={[
+            styles.absolute,
+            styles.hour,
+            { right: HOUR_SHORT_LINE_WIDTH + 8 },
+          ]}
+        >
+          {children}
+        </View>
+      </HourWrapper>
     );
   };
 
@@ -104,7 +94,7 @@ const TimeColumn = () => {
           animView,
         ]}
       >
-        {hours.map(_renderHourWrapper)}
+        {hours.map(_renderHour)}
       </Animated.View>
       <View style={[styles.rightLine, { backgroundColor: cellBorderColor }]} />
     </View>
@@ -117,15 +107,14 @@ interface HourWrapperProps {
   height: SharedValue<number>;
   minutes: number;
   cellBorderColor: string;
-  renderHour: (minutes: number) => React.ReactNode;
   start: number;
 }
 
-const HourWrapper: React.FC<HourWrapperProps> = ({
+const HourWrapper: React.FC<PropsWithChildren<HourWrapperProps>> = ({
   height,
   minutes,
   cellBorderColor,
-  renderHour,
+  children,
   start,
 }) => {
   const animStyle = useAnimatedStyle(() => ({
@@ -135,7 +124,7 @@ const HourWrapper: React.FC<HourWrapperProps> = ({
 
   return (
     <Animated.View style={[styles.absolute, animStyle]}>
-      {renderHour(minutes)}
+      {children}
       <View
         style={[
           styles.absolute,
@@ -161,5 +150,11 @@ const styles = StyleSheet.create({
   },
   hour: { left: 0 },
   shortLine: { height: 1, right: 0 },
-  hourText: { fontSize: 10, textAlign: 'right' },
+  hourText: {
+    fontSize: 10,
+    textAlign: 'right',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+  },
 });

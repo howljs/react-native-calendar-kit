@@ -1,13 +1,12 @@
 import React, { forwardRef, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { AnimatedRef } from 'react-native-reanimated';
 import {
   LayoutProvider,
   RecyclerListView,
   type RecyclerListViewProps,
   type RecyclerListViewState,
 } from '../../service/recyclerlistview';
-import ExternalScrollView from './ExternalScrollView';
 
 interface CalendarListViewProps {
   count: number;
@@ -20,7 +19,7 @@ interface CalendarListViewProps {
   ) => JSX.Element | JSX.Element[] | null;
   initialOffset?: number;
   renderAheadItem?: number;
-  animatedRef?: React.RefObject<Animated.ScrollView>;
+  animatedRef?: AnimatedRef<Animated.ScrollView>;
   scrollEventThrottle?: number;
   scrollEnabled?: boolean;
   onScroll?: any;
@@ -135,8 +134,8 @@ const CalendarListView = forwardRef<
         bounces: false,
         scrollEventThrottle: scrollEventThrottle,
         scrollRefExternal: animatedRef,
-        _onScrollExternal: onScroll,
         overScrollMode: 'never',
+        _onScrollExternal: onScroll,
         onMomentumScrollBegin: () => {},
         style: inverted ? styles.invertedTransform : {},
       }}
@@ -145,7 +144,6 @@ const CalendarListView = forwardRef<
       scrollEventThrottle={16}
       extendedState={extraData}
       onVisibleIndicesChanged={onVisibleIndicesChanged}
-      externalScrollView={animatedRef ? ExternalScrollView : undefined}
       columnsPerPage={columnsPerPage}
       onVisibleColumnChanged={onVisibleColumnChanged}
       extraScrollData={extraScrollData}

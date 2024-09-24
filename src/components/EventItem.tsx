@@ -1,5 +1,5 @@
 import isEqual from 'lodash.isequal';
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -10,6 +10,7 @@ import { MILLISECONDS_IN_DAY } from '../constants';
 import { useBody } from '../context/BodyContext';
 import { useTheme } from '../context/ThemeProvider';
 import { OnEventResponse, PackedEvent, SizeAnimation } from '../types';
+import Text from './Text';
 
 interface EventItemProps {
   event: PackedEvent;
@@ -30,7 +31,15 @@ const EventItem: FC<EventItemProps> = ({
   isDragging,
   visibleDates,
 }) => {
-  const textStyle = useTheme((state) => state.textStyle);
+  const theme = useTheme(
+    useCallback((state) => {
+      return {
+        eventContainerStyle: state.eventContainerStyle,
+        eventTitleStyle: state.eventTitleStyle,
+      };
+    }, [])
+  );
+
   const {
     minuteHeight,
     columnWidthAnim,
@@ -149,7 +158,7 @@ const EventItem: FC<EventItemProps> = ({
           style={[
             styles.contentContainer,
             { backgroundColor: event.color },
-            event.containerStyle,
+            theme.eventContainerStyle,
             { opacity },
           ]}
         >
@@ -159,11 +168,9 @@ const EventItem: FC<EventItemProps> = ({
               height: eventHeight,
             })
           ) : (
-            <Animated.Text
-              style={[textStyle, styles.title, { color: event.titleColor }]}
-            >
+            <Text style={[styles.title, theme.eventTitleStyle]}>
               {event.title}
-            </Animated.Text>
+            </Text>
           )}
         </View>
       </TouchableOpacity>
@@ -185,6 +192,6 @@ export default React.memo(EventItem, (prev, next) => {
 
 const styles = StyleSheet.create({
   container: { position: 'absolute', overflow: 'hidden' },
-  title: { fontSize: 10 },
+  title: { fontSize: 12, paddingHorizontal: 2 },
   contentContainer: { borderRadius: 2, width: '100%', height: '100%' },
 });

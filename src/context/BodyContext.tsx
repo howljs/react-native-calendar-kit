@@ -21,7 +21,7 @@ export interface BodyContextProps {
   allowPinchToZoom: boolean;
   spaceFromTop: number;
   spaceFromBottom: number;
-  hours: number[];
+  hours: { slot: number; time: string }[];
   hourFormat: string;
   timelineHeight: Readonly<SharedValue<number>>;
   totalSlots: number;
@@ -49,6 +49,7 @@ export interface BodyContextProps {
   rightEdgeSpacing: number;
   overlapEventsSpacing: number;
   visibleDateUnixAnim: SharedValue<number>;
+  NowIndicatorComponent?: React.ReactElement | null;
 }
 
 export const BodyContext = React.createContext<BodyContextProps | undefined>(

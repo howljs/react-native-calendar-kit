@@ -62,7 +62,7 @@ const DrawerLayout = () => {
       <Drawer.Screen
         name="index"
         options={{ headerShown: false }}
-        initialParams={{ viewMode: 'week', numberOfDays: '7' }}
+        initialParams={{ viewMode: 'week', numberOfDays: 7 }}
       />
     </Drawer>
   );

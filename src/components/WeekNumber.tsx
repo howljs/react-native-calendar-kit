@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   runOnJS,
@@ -16,12 +16,16 @@ interface WeekNumberProps {
 
 const WeekNumber = ({ date }: WeekNumberProps) => {
   const { timeZone } = useTimezone();
-  const theme = useTheme((state) => ({
-    weekNumberBackgroundColor:
-      state.weekNumberBackgroundColor || state.colors.surface,
-    weekNumber: state.weekNumber,
-    weekNumberContainer: state.weekNumberContainer,
-  }));
+  const theme = useTheme(
+    useCallback(
+      (state) => ({
+        weekNumberBackgroundColor: state.colors.surface,
+        weekNumber: state.weekNumber,
+        weekNumberContainer: state.weekNumberContainer,
+      }),
+      []
+    )
+  );
 
   const [value, setValue] = useState<string | number>('');
 

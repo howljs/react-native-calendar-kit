@@ -3,8 +3,8 @@ import type { SharedValue } from 'react-native-reanimated';
 import { DataByMode } from '../utils/utils';
 import type { Size } from './LayoutProvider';
 
-export interface DayBarContextProps {
-  height: number;
+export interface HeaderContextProps {
+  dayBarHeight: number;
   numberOfDays: number;
   columnWidthAnim: SharedValue<number>;
   calendarLayout: Size;
@@ -17,17 +17,21 @@ export interface DayBarContextProps {
   calendarData: DataByMode;
   isExpanded: SharedValue<boolean>;
   allDayEventsHeight: Readonly<SharedValue<number>>;
-  isShowExpandButton: SharedValue<boolean>;
   columnWidth: number;
   useAllDayEvent: boolean;
+  isShowExpandButton: SharedValue<boolean>;
+  headerBottomHeight: number;
+  collapsedItems: number;
+  rightEdgeSpacing: number;
+  overlapEventsSpacing: number;
 }
 
-export const DayBarContext = React.createContext<
-  DayBarContextProps | undefined
+export const HeaderContext = React.createContext<
+  HeaderContextProps | undefined
 >(undefined);
 
-export const useDayBar = () => {
-  const context = React.useContext(DayBarContext);
+export const useHeader = () => {
+  const context = React.useContext(HeaderContext);
 
   if (context === undefined) {
     throw new Error('DayBarContext is not available');

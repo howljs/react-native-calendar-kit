@@ -1,15 +1,11 @@
 import * as React from 'react';
+import { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { Dimension } from '../LayoutProvider';
-import BaseScrollView, {
-  ScrollEvent,
-  ScrollViewDefaultProps,
-} from './BaseScrollView';
 
 export interface ScrollComponentProps {
-  onScroll: (offsetX: number, rawEvent: ScrollEvent) => void;
+  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   contentHeight: number;
   contentWidth: number;
-  externalScrollView?: { new (props: ScrollViewDefaultProps): BaseScrollView };
   scrollEventThrottle?: number;
   renderContentContainer?: (
     props?: object,

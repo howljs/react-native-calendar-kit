@@ -471,7 +471,13 @@ const DragEventProvider: FC<
   useAnimatedReaction(
     () => dragPosition.value.x,
     (dragX, prevX) => {
-      if (isDraggingAnim.value && dragX !== prevX && dragX !== -1) {
+      if (
+        isDraggingAnim.value &&
+        dragX !== prevX &&
+        dragX !== -1 &&
+        dragSelectedType.value !== 'top' &&
+        dragSelectedType.value !== 'bottom'
+      ) {
         const isAtLeftEdge = dragX <= hourWidth - 10;
         const width = columnWidthAnim.value * numberOfDays + hourWidth;
         const isAtRightEdge = width - dragX <= 24;

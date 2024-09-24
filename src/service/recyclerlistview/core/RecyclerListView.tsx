@@ -1,23 +1,24 @@
 import debounce from 'lodash.debounce';
 import * as React from 'react';
-import { ScrollViewProps } from 'react-native';
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollViewProps,
+} from 'react-native';
 import { ComponentCompat } from '../utils/ComponentCompat';
 import { isNullOrUndefined } from '../utils/utils';
+import { Layout, LayoutManager, Point } from './LayoutManager';
+import { BaseLayoutProvider, Dimension } from './LayoutProvider';
+import BaseScrollComponent from './scrollcomponent/BaseScrollComponent';
+import { ScrollEvent } from './scrollcomponent/BaseScrollView';
+import ScrollComponent from './scrollcomponent/ScrollComponent';
 import { TOnColumnChanged, TOnItemStatusChanged } from './ViewabilityTracker';
+import ViewRenderer from './ViewRenderer';
 import VirtualRenderer, {
   RenderStack,
   RenderStackItem,
   RenderStackParams,
 } from './VirtualRenderer';
-import { BaseLayoutProvider, Dimension } from './LayoutProvider';
-import { Layout, LayoutManager, Point } from './LayoutManager';
-import BaseScrollComponent from './scrollcomponent/BaseScrollComponent';
-import BaseScrollView, {
-  ScrollEvent,
-  ScrollViewDefaultProps,
-} from './scrollcomponent/BaseScrollView';
-import ScrollComponent from './scrollcomponent/ScrollComponent';
-import ViewRenderer from './ViewRenderer';
 
 export interface RecyclerListViewProps {
   layoutProvider: BaseLayoutProvider;
@@ -27,10 +28,9 @@ export interface RecyclerListViewProps {
     extendedState?: object
   ) => JSX.Element | JSX.Element[] | null;
   renderAheadOffset?: number;
-  onScroll?: (rawEvent: ScrollEvent, offsetX: number) => void;
+  onScroll?: (rawEvent: ScrollEvent) => void;
   onVisibleIndicesChanged?: TOnItemStatusChanged;
   onVisibleColumnChanged?: TOnColumnChanged;
-  externalScrollView?: { new (props: ScrollViewDefaultProps): BaseScrollView };
   initialOffset?: number;
   scrollEventThrottle?: number;
   extendedState?: object;
@@ -50,6 +50,7 @@ export interface RecyclerListViewProps {
   columnsPerPage?: number;
   visibleColumns?: number;
   extraScrollData?: Record<string, any>;
+  initialScroll?: (offsetX: number) => void;
 }
 
 export interface RecyclerListViewState {
@@ -273,10 +274,7 @@ export default class RecyclerListView<
   public renderCompat(): JSX.Element {
     return (
       <ScrollComponent
-        ref={(scrollComponent) =>
-          (this._scrollComponent =
-            scrollComponent as BaseScrollComponent | null)
-        }
+        ref={(scrollComponent) => (this._scrollComponent = scrollComponent)}
         {...this.props}
         {...this.props.scrollViewProps}
         onScroll={this._onScroll}
@@ -308,7 +306,11 @@ export default class RecyclerListView<
           const offset = this._pendingScrollToOffset;
           this._pendingScrollToOffset = null;
           offset.y = 0;
-          this.scrollToOffset(offset.x, false);
+          if (this.props.initialScroll) {
+            this.props.initialScroll(offset.x);
+          } else {
+            this.scrollToOffset(offset.x, false);
+          }
           if (this._pendingRenderStack) {
             this._renderStackWhenReady(this._pendingRenderStack);
             this._pendingRenderStack = undefined;
@@ -348,7 +350,6 @@ export default class RecyclerListView<
 
   private _refreshViewability(initialOffset: number): void {
     this._virtualRenderer.refreshWithOffset(initialOffset);
-    this._virtualRenderer.refresh();
     this._queueStateRefresh();
   }
 
@@ -467,11 +468,14 @@ export default class RecyclerListView<
     return renderedItems;
   }
 
-  private _onScroll = (offsetX: number, rawEvent: ScrollEvent): void => {
-    this._virtualRenderer.updateOffset(offsetX, true);
+  private _onScroll = (
+    event: NativeSyntheticEvent<NativeScrollEvent>
+  ): void => {
+    const contentOffset = event.nativeEvent.contentOffset;
+    this._virtualRenderer.updateOffset(contentOffset.x, true);
 
     if (this.props.onScroll) {
-      this.props.onScroll(rawEvent, offsetX);
+      this.props.onScroll(event);
     }
   };
 }

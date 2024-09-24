@@ -160,14 +160,14 @@ export const isNumbersEqual = (
 };
 
 export const calculateSlots = (start: number, end: number, step: number) => {
-  const hours = [];
+  const slots = [];
   const endInMinutes = end;
   let tempStart = start;
   while (tempStart < endInMinutes) {
-    hours.push(tempStart);
+    slots.push(tempStart);
     tempStart += step;
   }
-  return hours;
+  return slots;
 };
 
 export const clampValues = (value: number, min: number, max: number) => {

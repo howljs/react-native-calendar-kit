@@ -1,15 +1,24 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useCallback } from 'react';
+import {
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import Animated, {
+  SharedValue,
   useAnimatedStyle,
+  useDerivedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { COLLAPSED_ROW_COUNT, COUNT_CONTAINER_HEIGHT } from '../constants';
+import { COLLAPSED_ITEMS } from '../constants';
 import { useActions } from '../context/ActionsProvider';
-import { useDayBar } from '../context/DayBarContext';
+import { useHeader } from '../context/DayBarContext';
 import { useAllDayEventsByDay } from '../context/EventsProvider';
+import { useLocale } from '../context/LocaleProvider';
 import { useTheme } from '../context/ThemeProvider';
-import { OnEventResponse, PackedAllDayEvent } from '../types';
+import { OnEventResponse, PackedAllDayEvent, SizeAnimation } from '../types';
 import DayItem from './DayItem';
 import ExpandButton from './ExpandButton';
 import LoadingOverlay from './Loading/Overlay';
@@ -18,18 +27,43 @@ import Text from './Text';
 
 interface SingleDayBarItemProps {
   startUnix: number;
+  renderExpandIcon?: (props: {
+    isExpanded: SharedValue<boolean>;
+  }) => React.ReactElement | null;
+  renderEvent?: (
+    event: PackedAllDayEvent,
+    size: SizeAnimation
+  ) => React.ReactNode;
 }
 
-const SingleDayBarItem = ({ startUnix }: SingleDayBarItemProps) => {
-  const colors = useTheme((state) => state.colors);
-  const { hourWidth, height, allDayEventsHeight, useAllDayEvent } = useDayBar();
+const SingleDayBarItem = ({
+  startUnix,
+  renderExpandIcon,
+  renderEvent,
+}: SingleDayBarItemProps) => {
+  const dayBarStyles = useTheme(
+    useCallback(
+      (state) => ({
+        borderColor: state.colors.border,
+        singleDayContainer: state.singleDayContainer,
+        singleDayEventsContainer: state.singleDayEventsContainer,
+        countContainer: state.countContainer,
+        countText: state.countText,
+      }),
+      []
+    )
+  );
+  const {
+    hourWidth,
+    dayBarHeight,
+    allDayEventsHeight,
+    useAllDayEvent,
+    isExpanded,
+    isShowExpandButton,
+    headerBottomHeight,
+  } = useHeader();
   const { data: events, eventCounts } = useAllDayEventsByDay(startUnix);
   const { onPressEvent } = useActions();
-  const containerStyle = useAnimatedStyle(() => {
-    return {
-      height: Math.max(height, height + allDayEventsHeight.value),
-    };
-  });
 
   const _renderEvent = (event: PackedAllDayEvent) => {
     return (
@@ -37,40 +71,80 @@ const SingleDayBarItem = ({ startUnix }: SingleDayBarItemProps) => {
         key={event.localId}
         event={event}
         onPressEvent={onPressEvent}
+        renderEvent={renderEvent}
       />
     );
   };
 
-  return (
-    <View>
-      <Animated.View style={[styles.container, containerStyle]}>
-        {!useAllDayEvent ? (
-          <View style={styles.dayContainer}>
+  const height = useDerivedValue(() => {
+    return Math.max(
+      dayBarHeight,
+      allDayEventsHeight.value +
+        (isExpanded.value ? 10 : headerBottomHeight + 10)
+    );
+  }, [dayBarHeight, headerBottomHeight]);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+
+  const eventsContainerStyle = useAnimatedStyle(() => ({
+    height: allDayEventsHeight.value,
+  }));
+
+  const _renderSingleDay = () => {
+    if (useAllDayEvent) {
+      return (
+        <View style={styles.container}>
+          <View
+            style={[
+              styles.dayItemContainer,
+              { width: hourWidth, borderRightColor: dayBarStyles.borderColor },
+            ]}
+          >
             <DayItem dateUnix={startUnix} />
+            <ExpandButton
+              isExpanded={isExpanded}
+              isShowExpandButton={isShowExpandButton}
+              renderExpandIcon={renderExpandIcon}
+            />
           </View>
-        ) : (
-          <>
-            <View
+          <View style={styles.rightContainer}>
+            <Animated.View
               style={[
-                styles.dayItemContainer,
-                { width: hourWidth, borderRightColor: colors.border },
+                dayBarStyles.singleDayEventsContainer,
+                eventsContainerStyle,
               ]}
             >
-              <DayItem dateUnix={startUnix} />
-              <ExpandButton />
-            </View>
-            <View style={[styles.eventsContainer]}>
-              <View style={styles.events}>{events.map(_renderEvent)}</View>
-              {eventCounts > COLLAPSED_ROW_COUNT && (
-                <EventCounts eventCounts={eventCounts} />
-              )}
-            </View>
-          </>
-        )}
-      </Animated.View>
+              {events.map(_renderEvent)}
+            </Animated.View>
+            {eventCounts > COLLAPSED_ITEMS && (
+              <EventCounts
+                eventCounts={eventCounts}
+                countContainerStyle={dayBarStyles.countContainer}
+                countTextStyle={dayBarStyles.countText}
+              />
+            )}
+          </View>
+        </View>
+      );
+    }
+
+    return <DayItem dateUnix={startUnix} />;
+  };
+
+  return (
+    <Animated.View
+      style={[
+        styles.container,
+        dayBarStyles.singleDayContainer,
+        containerStyle,
+      ]}
+    >
+      {_renderSingleDay()}
       <LoadingOverlay />
       <ProgressBar />
-    </View>
+    </Animated.View>
   );
 };
 
@@ -79,20 +153,41 @@ export default SingleDayBarItem;
 const EventItem = ({
   event,
   onPressEvent,
+  renderEvent,
 }: {
   event: PackedAllDayEvent;
   onPressEvent?: (event: OnEventResponse) => void;
+  renderEvent?: (
+    event: PackedAllDayEvent,
+    size: SizeAnimation
+  ) => React.ReactNode;
 }) => {
-  const { eventHeight, isExpanded } = useDayBar();
+  const {
+    eventHeight: height,
+    isExpanded,
+    columnWidthAnim,
+    rightEdgeSpacing,
+    overlapEventsSpacing,
+  } = useHeader();
   const { _internal, ...rest } = event;
-  const eventContainerStyle = useAnimatedStyle(() => {
-    const isShow = isExpanded.value || _internal.rowIndex < 2;
-    return {
-      height: isShow ? eventHeight.value - 2 : 0,
-      opacity: withTiming(isShow ? 1 : 0),
-      marginBottom: 2,
-    };
+  const eventWidth = useDerivedValue(() => {
+    return columnWidthAnim.value - rightEdgeSpacing;
   });
+
+  const isShow = useDerivedValue(() => {
+    return isExpanded.value || _internal.rowIndex < 2;
+  }, [_internal.rowIndex]);
+
+  const eventHeight = useDerivedValue(() => {
+    return isShow.value ? height.value - overlapEventsSpacing : 0;
+  }, [overlapEventsSpacing]);
+
+  const eventContainerStyle = useAnimatedStyle(() => ({
+    width: eventWidth.value,
+    height: eventHeight.value,
+    marginBottom: 2,
+    opacity: withTiming(isShow.value ? 1 : 0),
+  }));
 
   const _onPressEvent = () => {
     if (onPressEvent) {
@@ -102,64 +197,88 @@ const EventItem = ({
 
   return (
     <Animated.View style={eventContainerStyle}>
-      <TouchableOpacity activeOpacity={0.6} onPress={_onPressEvent}>
-        <View
-          style={[
-            styles.eventContent,
-            { backgroundColor: rest.color ?? '#ccc' },
-          ]}
-        >
-          <Text numberOfLines={1} style={styles.eventTitle}>
-            {rest.title}
-          </Text>
-        </View>
+      <TouchableOpacity
+        activeOpacity={0.6}
+        disabled={!onPressEvent}
+        onPress={_onPressEvent}
+        style={[
+          styles.eventContent,
+          { backgroundColor: rest.color ?? '#ccc' },
+          rest.containerStyle,
+        ]}
+      >
+        {renderEvent ? (
+          renderEvent(event, {
+            width: eventWidth,
+            height: eventHeight,
+          })
+        ) : (
+          <Text style={[styles.eventTitle, rest.titleStyle]}>{rest.title}</Text>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );
 };
 
-const EventCounts = ({ eventCounts }: { eventCounts: number }) => {
-  const { isExpanded } = useDayBar();
+const EventCounts = ({
+  eventCounts,
+  countContainerStyle,
+  countTextStyle,
+}: {
+  eventCounts: number;
+  countContainerStyle?: ViewStyle;
+  countTextStyle?: TextStyle;
+}) => {
+  const { isExpanded, headerBottomHeight } = useHeader();
+  const locale = useLocale();
 
-  const countContainerStyle = useAnimatedStyle(() => ({
-    height: isExpanded.value ? 0 : COUNT_CONTAINER_HEIGHT - 10,
+  const countStyle = useAnimatedStyle(() => ({
+    display: isExpanded.value ? 'none' : 'flex',
   }));
 
   return (
-    <Animated.View style={[styles.countContainer, countContainerStyle]}>
+    <Animated.View
+      style={[
+        styles.countContainer,
+        countContainerStyle,
+        { height: headerBottomHeight },
+        countStyle,
+      ]}
+    >
+      <Text style={[styles.countText, countTextStyle]}>
+        {locale.more.replace('{count}', `${eventCounts - COLLAPSED_ITEMS}`)}
+      </Text>
       <TouchableOpacity
+        style={StyleSheet.absoluteFill}
         onPress={() => {
           isExpanded.value = true;
         }}
-        style={StyleSheet.absoluteFill}
-      >
-        <Text style={styles.countText}>
-          {eventCounts - COLLAPSED_ROW_COUNT} more
-        </Text>
-      </TouchableOpacity>
+      />
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row' },
+  container: {
+    flexDirection: 'row',
+  },
   dayItemContainer: { borderRightWidth: 1 },
-  eventsContainer: { flexGrow: 1, paddingTop: 10 },
+  rightContainer: { flexGrow: 1 },
   eventContent: {
     width: ' 100%',
     height: '100%',
     overflow: 'hidden',
     borderRadius: 2,
   },
-  events: { flexShrink: 1 },
   countContainer: {
-    paddingHorizontal: 4,
+    justifyContent: 'center',
+    paddingHorizontal: 2,
   },
   eventTitle: { fontSize: 12, color: '#FFF', paddingHorizontal: 2 },
   countText: { fontSize: 12, paddingHorizontal: 8 },
   dayContainer: {
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     flexGrow: 1,
   },
 });

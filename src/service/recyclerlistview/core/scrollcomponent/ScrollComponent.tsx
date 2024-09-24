@@ -2,25 +2,21 @@ import * as React from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
-  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
-import TSCast from '../../utils/TSCast';
+import { ScrollView } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import BaseScrollComponent, {
   ScrollComponentProps,
 } from './BaseScrollComponent';
-/***
- * The responsibility of a scroll component is to report its size, scroll events and provide a way to scroll to a given offset.
- * RecyclerListView works on top of this interface and doesn't care about the implementation. To support web we only had to provide
- * another component written on top of web elements
- */
+
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 export default class ScrollComponent extends BaseScrollComponent {
   public static defaultProps = {
     contentHeight: 0,
     contentWidth: 0,
-    externalScrollView: TSCast.cast(ScrollView), //TSI
     scrollEventThrottle: 16,
   };
 
@@ -48,9 +44,6 @@ export default class ScrollComponent extends BaseScrollComponent {
   }
 
   public render(): JSX.Element {
-    const Scroller: any = TSCast.cast<ScrollView>(
-      this.props.externalScrollView
-    ); //TSI
     const renderContentContainer = this.props.renderContentContainer
       ? this.props.renderContentContainer
       : this._defaultContainer;
@@ -66,18 +59,18 @@ export default class ScrollComponent extends BaseScrollComponent {
     };
 
     return (
-      <Scroller
-        ref={this._getScrollViewRef}
+      <AnimatedScrollView
         removeClippedSubviews={false}
         scrollEventThrottle={this.props.scrollEventThrottle}
         {...this.props}
         horizontal
         onScroll={this._onScroll}
+        ref={this._getScrollViewRef}
       >
         <View style={styles.container}>
           {renderContentContainer(contentContainerProps, this.props.children)}
         </View>
-      </Scroller>
+      </AnimatedScrollView>
     );
   }
 
@@ -90,6 +83,8 @@ export default class ScrollComponent extends BaseScrollComponent {
 
   private _getScrollViewRef = (scrollView: any) => {
     this._scrollViewRef = scrollView as ScrollView | null;
+    (this.props as any)?.scrollRefExternal(scrollView);
+    return scrollView;
   };
 
   private _onScroll = (
@@ -98,7 +93,7 @@ export default class ScrollComponent extends BaseScrollComponent {
     if (event) {
       const contentOffset = event.nativeEvent.contentOffset;
       this._offset = contentOffset.x;
-      this.props.onScroll(contentOffset.x, event);
+      this.props.onScroll(event);
     }
   };
 }

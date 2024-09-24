@@ -27,7 +27,7 @@ export interface CalendarContextProps {
   allowPinchToZoom: boolean;
   spaceFromTop: number;
   spaceFromBottom: number;
-  hours: number[];
+  slots: number[];
   timelineHeight: Readonly<SharedValue<number>>;
   totalSlots: number;
   start: number;
@@ -51,6 +51,8 @@ export interface CalendarContextProps {
   startOffset: Readonly<SharedValue<number>>;
   scrollVisibleHeightAnim: SharedValue<number>;
   pagesPerSide: number;
+  rightEdgeSpacing: number;
+  overlapEventsSpacing: number;
   hideWeekDays: WeekdayNumbers[];
   useAllDayEvent: boolean;
   hapticService: HapticService;

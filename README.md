@@ -24,6 +24,21 @@ $ npm install --save @howljs/calendar-kit
 
 The libraries we will install now are [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/) and [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/). If you already have these libraries installed and at the latest version, you are done here! Otherwise, read on.
 
+## Installing dependencies into an Expo managed project
+
+```
+$ npx expo install react-native-gesture-handler react-native-reanimated
+```
+
+> Follow installation instructions for [React Native Reanimated](https://docs.expo.dev/versions/latest/sdk/reanimated/) and [React Native Gesture Handler](https://docs.expo.dev/versions/latest/sdk/gesture-handler/).
+
+
+If you enable `useHaptic`, you need to install [expo-haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)
+
+```
+$ npx expo install expo-haptics
+```
+
 ## Installing dependencies into a bare React Native project
 
 Using Yarn:
@@ -40,21 +55,23 @@ $ npm install --save react-native-gesture-handler react-native-reanimated
 
 > Follow installation instructions for [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation) and [React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/docs/installation).
 
-## Installing dependencies into an Expo managed project
+If you enable `useHaptic`, you need to install [react-native-haptic-feedback](https://github.com/mkuczera/react-native-haptic-feedback).
+
+Using Yarn:
 
 ```
-$ npx expo install react-native-gesture-handler react-native-reanimated
+$ yarn add react-native-haptic-feedback
 ```
 
-> Follow installation instructions for [React Native Reanimated](https://docs.expo.dev/versions/latest/sdk/reanimated/) and [React Native Gesture Handler](https://docs.expo.dev/versions/latest/sdk/gesture-handler/).
+Using NPM:
 
+```
+$ npm install --save react-native-haptic-feedback
+```
 
 ## TODO:
-- [X] Drag/drop to edit event
-- [X] Drag/drop to create event
-- [X] Support all day events
-- [ ] Check and update UI, support customization
 - [ ] Update documentation
+- [ ] Cache events to speed up rendering
 - [ ] Month View
 
 [npm-shield]: https://img.shields.io/npm/v/@howljs/calendar-kit
