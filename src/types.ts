@@ -261,6 +261,13 @@ export interface ActionsProviderProps {
   overlapEventsSpacing?: number;
 
   /**
+   * Method to handle overlapping events
+   *
+   * Default is 'lane'
+   */
+  eventOverlapMethod?: EventOverlapMethod;
+
+  /**
    * Minimum minutes to calculate height of regular event
    *
    * Default is `1`
@@ -790,3 +797,5 @@ export interface SizeAnimation {
   width: SharedValue<number>;
   height: SharedValue<number>;
 }
+
+export type EventOverlapMethod = 'lane' | 'stack' | 'ignore';

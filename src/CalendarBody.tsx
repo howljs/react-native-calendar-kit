@@ -86,6 +86,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     pagesPerSide,
     rightEdgeSpacing,
     overlapEventsSpacing,
+    eventOverlapMethod,
   } = useCalendar();
   const locale = useLocale();
   const { onRefresh } = useActions();
@@ -207,6 +208,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       startOffset,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      eventOverlapMethod,
       visibleDateUnixAnim,
       NowIndicatorComponent,
     }),
@@ -243,6 +245,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       startOffset,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      eventOverlapMethod,
       visibleDateUnixAnim,
       NowIndicatorComponent,
     ]

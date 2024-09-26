@@ -6,6 +6,7 @@ import type {
   RenderHourProps,
   SizeAnimation,
   UnavailableHourProps,
+  EventOverlapMethod,
 } from '../types';
 import { DataByMode } from '../utils/utils';
 import type { Size } from './LayoutProvider';
@@ -48,6 +49,7 @@ export interface BodyContextProps {
   startOffset: SharedValue<number>;
   rightEdgeSpacing: number;
   overlapEventsSpacing: number;
+  eventOverlapMethod: EventOverlapMethod;
   visibleDateUnixAnim: SharedValue<number>;
   NowIndicatorComponent?: React.ReactElement | null;
 }

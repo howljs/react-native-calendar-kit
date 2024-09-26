@@ -47,6 +47,7 @@ const EventItem: FC<EventItemProps> = ({
     end,
     rightEdgeSpacing,
     overlapEventsSpacing,
+    eventOverlapMethod,
   } = useBody();
   const { _internal, ...event } = eventInput;
   const {
@@ -106,19 +107,56 @@ const EventItem: FC<EventItemProps> = ({
   );
 
   const eventWidth = useDerivedValue(() => {
-    const totalColumns = total - columnSpan;
-    const totalOverlap = totalColumns * overlapEventsSpacing;
-    const totalWidth = columnWidthAnim.value - rightEdgeSpacing - totalOverlap;
-    let width = (totalWidth / total) * columnSpan;
+    const fullWidth = columnWidthAnim.value - rightEdgeSpacing;
 
-    return withTiming(width, { duration: 150 });
-  }, [columnSpan, rightEdgeSpacing, overlapEventsSpacing, total]);
+    switch (eventOverlapMethod) {
+      case 'lane':
+        const totalColumns = total - columnSpan;
+        const totalOverlap = totalColumns * overlapEventsSpacing;
+        const totalWidth = fullWidth - totalOverlap;
+        return withTiming((totalWidth / total) * columnSpan, { duration: 150 });
+      case 'stack':
+        return withTiming(fullWidth / (index + 1), { duration: 150 });
+      case 'ignore':
+        return withTiming(fullWidth, { duration: 150 });
+      default:
+        return withTiming(fullWidth, { duration: 150 });
+    }
+  }, [
+    columnSpan,
+    rightEdgeSpacing,
+    overlapEventsSpacing,
+    total,
+    eventOverlapMethod,
+    index,
+  ]);
 
   const eventPosX = useDerivedValue(() => {
     let left = data.diffDays * columnWidthAnim.value;
-    left += (eventWidth.value + overlapEventsSpacing) * (index / columnSpan);
+
+    switch (eventOverlapMethod) {
+      case 'lane':
+        left +=
+          (eventWidth.value + overlapEventsSpacing) * (index / columnSpan);
+        break;
+      case 'stack':
+        left += columnWidthAnim.value - rightEdgeSpacing - eventWidth.value;
+        break;
+      case 'ignore':
+        break;
+    }
+
     return withTiming(left, { duration: 150 });
-  }, [data.diffDays, overlapEventsSpacing, rightEdgeSpacing, index, total]);
+  }, [
+    data.diffDays,
+    overlapEventsSpacing,
+    index,
+    columnSpan,
+    eventOverlapMethod,
+    eventWidth.value,
+    columnWidthAnim.value,
+    rightEdgeSpacing,
+  ]);
 
   const top = useDerivedValue(() => {
     return data.startMinutes * minuteHeight.value;
@@ -130,6 +168,7 @@ const EventItem: FC<EventItemProps> = ({
       width: eventWidth.value,
       left: eventPosX.value + 1,
       top: top.value,
+      zIndex: eventPosX.value + 1,
     };
   });
 

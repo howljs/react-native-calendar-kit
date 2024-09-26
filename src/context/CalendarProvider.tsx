@@ -5,6 +5,7 @@ import { CalendarListViewHandle } from '../components/CalendarListView';
 import { ScrollType } from '../constants';
 import HapticService from '../service/HapticService';
 import { DataByMode } from '../utils/utils';
+import { EventOverlapMethod } from '../types';
 
 export interface CalendarContextProps {
   calendarData: DataByMode;
@@ -55,6 +56,7 @@ export interface CalendarContextProps {
   overlapEventsSpacing: number;
   hideWeekDays: WeekdayNumbers[];
   useAllDayEvent: boolean;
+  eventOverlapMethod: EventOverlapMethod;
   hapticService: HapticService;
 }
 

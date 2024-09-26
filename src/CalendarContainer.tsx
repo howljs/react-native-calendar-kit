@@ -120,6 +120,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     rightEdgeSpacing = 1,
     overlapEventsSpacing = 1,
     minRegularEventMinutes = 1,
+    eventOverlapMethod = 'lane',
   },
   ref
 ) => {
@@ -615,6 +616,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       hapticService,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      eventOverlapMethod,
     }),
     [
       calendarLayout,
@@ -661,6 +663,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       hapticService,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      eventOverlapMethod,
     ]
   );
 
