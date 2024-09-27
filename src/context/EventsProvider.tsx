@@ -8,7 +8,10 @@ import React, {
   useImperativeHandle,
   type PropsWithChildren,
 } from 'react';
-import { MILLISECONDS_IN_DAY } from '../constants';
+import {
+  DEFAULT_MIN_START_DIFFERENCE,
+  MILLISECONDS_IN_DAY,
+} from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
 import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreWithSelector';
 import { createStore, type Store } from '../storeBuilder';
@@ -50,6 +53,8 @@ interface EventsProviderProps {
   hideWeekDays: WeekdayNumbers[];
   defaultOffset?: number;
   minRegularEventMinutes?: number;
+  overlapType?: 'no-overlap' | 'overlap';
+  minStartDifference?: number;
 }
 
 export interface EventsRef {
@@ -70,6 +75,8 @@ const EventsProvider: ForwardRefRenderFunction<
     hideWeekDays,
     defaultOffset = 7,
     minRegularEventMinutes = 1,
+    overlapType = 'no-overlap',
+    minStartDifference = DEFAULT_MIN_START_DIFFERENCE,
   },
   ref
 ) => {
@@ -120,7 +127,10 @@ const EventsProvider: ForwardRefRenderFunction<
       });
       const packedRegularEvents: Record<string, PackedEvent[]> = {};
       regularEventMap.forEach((rEvents, day) => {
-        packedRegularEvents[day] = populateEvents(rEvents);
+        packedRegularEvents[day] = populateEvents(rEvents, {
+          overlap: overlapType === 'overlap',
+          minStartDifference,
+        });
       });
 
       // Process all-day events
@@ -168,6 +178,8 @@ const EventsProvider: ForwardRefRenderFunction<
       pagesPerSide,
       showAllDay,
       timeZone,
+      overlapType,
+      minStartDifference,
     ]
   );
 

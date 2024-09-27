@@ -120,12 +120,12 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
       <View
         style={[
           StyleSheet.absoluteFill,
+          theme.eventContainerStyle,
           styles.event,
           {
             backgroundColor: draggingEvent?.color ?? 'transparent',
             borderColor: theme.primaryColor,
           },
-          theme.eventContainerStyle,
           containerStyle,
         ]}
       >

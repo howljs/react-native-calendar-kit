@@ -56,6 +56,8 @@ const EventItem: FC<EventItemProps> = ({
     index,
     columnSpan,
     startUnix: eventStartUnix,
+    widthPercentage,
+    xOffsetPercentage,
   } = _internal;
 
   const data = useMemo(() => {
@@ -101,24 +103,47 @@ const EventItem: FC<EventItemProps> = ({
   ]);
 
   const eventHeight = useDerivedValue(
-    () => data.totalDuration * minuteHeight.value,
+    () => data.totalDuration * minuteHeight.value - 1,
     [data.totalDuration]
   );
 
   const eventWidth = useDerivedValue(() => {
-    const totalColumns = total - columnSpan;
-    const totalOverlap = totalColumns * overlapEventsSpacing;
-    const totalWidth = columnWidthAnim.value - rightEdgeSpacing - totalOverlap;
-    let width = (totalWidth / total) * columnSpan;
-
-    return withTiming(width, { duration: 150 });
-  }, [columnSpan, rightEdgeSpacing, overlapEventsSpacing, total]);
+    const availableWidth = columnWidthAnim.value - rightEdgeSpacing;
+    let eWidth = availableWidth;
+    if (widthPercentage) {
+      eWidth = availableWidth * (widthPercentage / 100);
+    } else if (total && columnSpan) {
+      const totalColumns = total - columnSpan;
+      const totalOverlap = totalColumns * overlapEventsSpacing;
+      const totalWidth = availableWidth - totalOverlap;
+      eWidth = (totalWidth / total) * columnSpan;
+    }
+    return withTiming(eWidth, { duration: 150 });
+  }, [
+    columnSpan,
+    rightEdgeSpacing,
+    overlapEventsSpacing,
+    total,
+    widthPercentage,
+  ]);
 
   const eventPosX = useDerivedValue(() => {
     let left = data.diffDays * columnWidthAnim.value;
-    left += (eventWidth.value + overlapEventsSpacing) * (index / columnSpan);
+    if (xOffsetPercentage) {
+      const availableWidth = columnWidthAnim.value - rightEdgeSpacing;
+      left += availableWidth * (xOffsetPercentage / 100);
+    } else if (columnSpan && index) {
+      left += (eventWidth.value + overlapEventsSpacing) * (index / columnSpan);
+    }
     return withTiming(left, { duration: 150 });
-  }, [data.diffDays, overlapEventsSpacing, rightEdgeSpacing, index, total]);
+  }, [
+    data.diffDays,
+    overlapEventsSpacing,
+    rightEdgeSpacing,
+    index,
+    total,
+    xOffsetPercentage,
+  ]);
 
   const top = useDerivedValue(() => {
     return data.startMinutes * minuteHeight.value;
@@ -129,7 +154,7 @@ const EventItem: FC<EventItemProps> = ({
       height: eventHeight.value,
       width: eventWidth.value,
       left: eventPosX.value + 1,
-      top: top.value,
+      top: top.value + 1,
     };
   });
 
@@ -157,6 +182,7 @@ const EventItem: FC<EventItemProps> = ({
         <View
           style={[
             styles.contentContainer,
+            !!xOffsetPercentage && styles.overlapEvent,
             { backgroundColor: event.color },
             theme.eventContainerStyle,
             { opacity },
@@ -193,5 +219,11 @@ export default React.memo(EventItem, (prev, next) => {
 const styles = StyleSheet.create({
   container: { position: 'absolute', overflow: 'hidden' },
   title: { fontSize: 12, paddingHorizontal: 2 },
-  contentContainer: { borderRadius: 2, width: '100%', height: '100%' },
+  contentContainer: {
+    borderRadius: 2,
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+  },
+  overlapEvent: { borderWidth: 1, borderColor: '#FFF' },
 });

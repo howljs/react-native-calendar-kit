@@ -121,6 +121,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     overlapEventsSpacing = 1,
     minRegularEventMinutes = 1,
     onLoad,
+    overlapType,
+    minStartDifference,
   },
   ref
 ) => {
@@ -498,9 +500,18 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       const eventsByDate = eventsRef.current?.getEventsByDate(dateString) ?? [];
       for (let i = 0; i < eventsByDate.length; i++) {
         const event = eventsByDate[i]!;
-        const { total, index } = event._internal;
-        const eventWidth = columnWidth / total;
-        const eventX = index * eventWidth;
+        let eventX = 0,
+          eventWidth = 0;
+        const { total, index, xOffsetPercentage, widthPercentage } =
+          event._internal;
+        if (xOffsetPercentage && widthPercentage) {
+          eventWidth = columnWidth * widthPercentage;
+          eventX = columnWidth * xOffsetPercentage;
+        } else if (total && index) {
+          eventWidth = columnWidth / total;
+          eventX = index * eventWidth;
+        }
+
         const targetX = position.x - columnIndex * columnWidth;
         if (targetX >= eventX && targetX <= eventX + eventWidth) {
           let clonedEvent = { ...event } as EventItem;
@@ -706,6 +717,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                           pagesPerSide={pagesPerSide}
                           minRegularEventMinutes={minRegularEventMinutes}
                           hideWeekDays={hideWeekDays}
+                          overlapType={overlapType}
+                          minStartDifference={minStartDifference}
                         >
                           <DragEventProvider
                             dragStep={dragStep}
