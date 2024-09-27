@@ -51,6 +51,7 @@ export interface RecyclerListViewProps {
   visibleColumns?: number;
   extraScrollData?: Record<string, any>;
   initialScroll?: (offsetX: number) => void;
+  onLoad?: () => void;
 }
 
 export interface RecyclerListViewState {
@@ -87,6 +88,7 @@ export default class RecyclerListView<
   private _pendingRenderStack?: RenderStack;
   private _initialOffset = 0;
   private _scrollComponent: BaseScrollComponent | null = null;
+  private _isFirstRender: boolean = true;
 
   constructor(props: P, context?: any) {
     super(props, context);
@@ -380,9 +382,17 @@ export default class RecyclerListView<
       return;
     }
     if (!this._initStateIfRequired(stack)) {
-      this.setState(() => {
-        return { renderStack: stack };
-      });
+      this.setState(
+        () => {
+          return { renderStack: stack };
+        },
+        () => {
+          if (this._isFirstRender) {
+            this._isFirstRender = false;
+            this.props.onLoad?.();
+          }
+        }
+      );
     }
   };
 

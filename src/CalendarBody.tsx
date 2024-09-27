@@ -88,7 +88,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     overlapEventsSpacing,
   } = useCalendar();
   const locale = useLocale();
-  const { onRefresh } = useActions();
+  const { onRefresh, onLoad } = useActions();
 
   const { onScroll, onVisibleColumnChanged } = useSyncedList({
     id: ScrollType.calendarGrid,
@@ -311,6 +311,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                     onVisibleColumnChanged={onVisibleColumnChanged}
                     renderAheadItem={pagesPerSide}
                     extraScrollData={extraScrollData}
+                    onLoad={onLoad}
                   />
                 </View>
                 <View

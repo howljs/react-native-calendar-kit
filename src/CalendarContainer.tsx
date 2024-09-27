@@ -120,6 +120,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     rightEdgeSpacing = 1,
     overlapEventsSpacing = 1,
     minRegularEventMinutes = 1,
+    onLoad,
   },
   ref
 ) => {
@@ -542,15 +543,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     ]
   );
 
-  useEffect(() => {
-    if (scrollToNow) {
-      // Delay to ensure that the layout is ready
-      setTimeout(() => {
-        goToDate({ hourScroll: true, animatedHour: true });
-      }, 100);
-    }
-  }, [goToDate, scrollToNow]);
-
   const prevMode = useRef(isSingleDay);
   useEffect(() => {
     if (prevMode.current !== isSingleDay) {
@@ -664,6 +656,13 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     ]
   );
 
+  const _onLoad = useLatestCallback(() => {
+    if (scrollToNow) {
+      goToDate({ hourScroll: true, animatedHour: true });
+    }
+    onLoad?.();
+  });
+
   const actionsProps = {
     onPressBackground,
     onPressDayNumber,
@@ -678,6 +677,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     onDragSelectedEventEnd,
     onDragCreateEventStart,
     onDragCreateEventEnd,
+    onLoad: _onLoad,
   };
 
   const loadingValue = useMemo(() => ({ isLoading }), [isLoading]);

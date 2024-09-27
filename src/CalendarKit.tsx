@@ -25,20 +25,45 @@ const CalendarKit: React.ForwardRefRenderFunction<
     renderCustomOutOfRange,
     renderCustomUnavailableHour,
     renderEvent,
+    renderDraggableEvent,
+    renderDraggingEvent,
+    renderDraggingHour,
+    renderExpandIcon,
+    renderHeaderItem,
+    NowIndicatorComponent,
+    LeftAreaComponent,
+    headerBottomHeight,
+    collapsedItems,
+    eventMaxMinutes,
+    eventInitialMinutes,
+    eventMinMinutes,
     ...rest
   } = props;
 
-  const dayBarProps = {
+  const dayBarProps: CalendarHeaderProps = {
     dayBarHeight,
+    renderHeaderItem,
+    renderExpandIcon,
+    renderEvent,
+    LeftAreaComponent,
+    headerBottomHeight,
+    collapsedItems,
+    eventMaxMinutes,
+    eventInitialMinutes,
+    eventMinMinutes,
   };
 
-  const bodyProps = {
+  const bodyProps: CalendarBodyProps = {
     hourFormat,
     renderHour,
+    renderDraggingHour,
     showNowIndicator,
     renderCustomOutOfRange,
     renderCustomUnavailableHour,
     renderEvent,
+    renderDraggableEvent,
+    renderDraggingEvent,
+    NowIndicatorComponent,
   };
 
   return (
