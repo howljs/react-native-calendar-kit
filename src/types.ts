@@ -240,6 +240,11 @@ export interface ActionsProviderProps {
   onDragCreateEventEnd?: (event: OnCreateEventResponse) => Promise<void> | void;
 
   /**
+   * Callback when the calendar is loaded
+   */
+  onLoad?: () => void;
+
+  /**
    * Use all day event
    *
    * Default: `false`

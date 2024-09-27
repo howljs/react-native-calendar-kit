@@ -39,6 +39,7 @@ interface CalendarListViewProps {
   }) => void;
   columnsPerPage: number;
   extraScrollData?: Record<string, any>;
+  onLoad?: () => void;
 }
 
 export type CalendarListViewHandle = RecyclerListView<
@@ -70,6 +71,7 @@ const CalendarListView = forwardRef<
     onVisibleColumnChanged,
     columnsPerPage,
     extraScrollData,
+    onLoad,
   } = props;
 
   const layoutProvider = useMemo(
@@ -147,6 +149,7 @@ const CalendarListView = forwardRef<
       columnsPerPage={columnsPerPage}
       onVisibleColumnChanged={onVisibleColumnChanged}
       extraScrollData={extraScrollData}
+      onLoad={onLoad}
     />
   );
 });
