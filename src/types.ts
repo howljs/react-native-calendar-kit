@@ -529,6 +529,25 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    * Default is `30` minutes
    */
   defaultDuration?: number;
+
+  /**
+   * Determines how events that overlap in time are displayed.
+   *
+   * - 'no-overlap': Events will be displayed side by side without overlapping.
+   * - 'overlap': Events will be displayed on top of each other, potentially overlapping.
+   *
+   * Default is `no-overlap`
+   */
+  overlapType?: 'no-overlap' | 'overlap';
+
+  /**
+   * Minimum start time difference (in minutes) between overlapping events.
+   * Events with start times closer than this value will be considered overlapping.
+   * This affects how events are positioned and displayed when using 'overlap' overlapType.
+   *
+   * Default is `30` minutes
+   */
+  minStartDifference?: number;
 }
 
 export interface EventItem extends Record<string, any> {
@@ -771,15 +790,35 @@ export interface EventItemInternal extends EventItem {
     endUnix: number;
     duration: number;
     startMinutes?: number;
-    index: number;
     weekStart?: number;
+  };
+}
+
+export interface NoOverlapEvent extends EventItemInternal {
+  _internal: EventItemInternal['_internal'] & {
+    index?: number;
+  };
+}
+
+export interface OverlapEvent extends EventItemInternal {
+  _internal: EventItemInternal['_internal'] & {
+    container?: OverlapEvent;
+    row?: OverlapEvent;
+    rows?: OverlapEvent[];
+    leaves?: OverlapEvent[];
+    _width?: number;
+    width?: number;
+    xOffset?: number;
   };
 }
 
 export interface PackedEvent extends EventItemInternal {
   _internal: EventItemInternal['_internal'] & {
-    total: number;
-    columnSpan: number;
+    total?: number;
+    columnSpan?: number;
+    widthPercentage?: number;
+    xOffsetPercentage?: number;
+    index?: number;
   };
 }
 

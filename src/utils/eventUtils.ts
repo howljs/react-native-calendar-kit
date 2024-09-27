@@ -1,17 +1,20 @@
 import { DateTime, WeekdayNumbers } from 'luxon';
 import {
+  DEFAULT_MIN_START_DIFFERENCE,
   MILLISECONDS_IN_DAY,
   MILLISECONDS_IN_MINUTE,
   MINUTES_IN_DAY,
 } from '../constants';
+import { RRuleGenerator } from '../service/rrule';
 import type {
   EventItem,
   EventItemInternal,
+  NoOverlapEvent,
+  OverlapEvent,
   PackedAllDayEvent,
   PackedEvent,
 } from '../types';
 import { forceUpdateZone, parseDateTime, startOfWeek } from './dateUtils';
-import { RRuleGenerator } from '../service/rrule';
 
 const isValidEventDates = (event: EventItem): boolean => {
   return (
@@ -66,7 +69,6 @@ const createInternalEvent = (
       startUnix,
       endUnix,
       duration,
-      index: 0,
     },
   };
 };
@@ -455,21 +457,34 @@ const hasCollision = (a: EventItemInternal, b: EventItemInternal) => {
   );
 };
 
-export const populateEvents = (events: EventItemInternal[]) => {
-  if (!events.length) {
-    return [];
-  }
-
-  const sortedEvents = events.slice().sort((a, b) => {
+export const sortEvents = (
+  events: EventItemInternal[]
+): EventItemInternal[] => {
+  return events.slice().sort((a, b) => {
+    // Compare by start time
     if (a._internal.startUnix !== b._internal.startUnix) {
       return a._internal.startUnix - b._internal.startUnix;
     }
-    return a._internal.endUnix - b._internal.endUnix;
-  });
 
+    // Compare by title
+    const titleA = a.title || '';
+    const titleB = b.title || '';
+    const titleComparison = titleA.localeCompare(titleB);
+    if (titleComparison !== 0) {
+      return titleComparison;
+    }
+
+    // Compare by duration (longer duration comes first)
+    const durationA = a._internal.endUnix - a._internal.startUnix;
+    const durationB = b._internal.endUnix - b._internal.startUnix;
+    return durationB - durationA;
+  });
+};
+
+const handleNoOverlap = (events: EventItemInternal[]) => {
   const eventColumns: EventItemInternal[][] = [];
   const packedEvents: PackedEvent[] = [];
-
+  const sortedEvents = sortEvents(events) as NoOverlapEvent[];
   for (const event of sortedEvents) {
     let placed = false;
     for (let i = 0; i < eventColumns.length; i++) {
@@ -518,31 +533,187 @@ export const populateEvents = (events: EventItemInternal[]) => {
       },
     });
   }
-
   return packedEvents;
 };
 
-export const sortAllDayEvents = (
-  events: EventItemInternal[]
-): EventItemInternal[] => {
-  return events.slice().sort((a, b) => {
-    // Compare by start time
+function overlapSort(events: EventItemInternal[]): EventItemInternal[] {
+  const sortedByTime = events.slice().sort((a, b) => {
     if (a._internal.startUnix !== b._internal.startUnix) {
       return a._internal.startUnix - b._internal.startUnix;
     }
+    return b._internal.endUnix - a._internal.endUnix;
+  });
 
-    // Compare by duration (longer duration comes first)
-    const durationA = a._internal.endUnix - a._internal.startUnix;
-    const durationB = b._internal.endUnix - b._internal.startUnix;
-    if (durationA !== durationB) {
-      return durationB - durationA;
+  const sorted = [];
+  while (sortedByTime.length > 0) {
+    const event = sortedByTime.shift()!;
+    sorted.push(event);
+
+    for (let i = 0; i < sortedByTime.length; i++) {
+      const tempEvent = sortedByTime[i];
+      if (event!._internal.endUnix > tempEvent!._internal.startUnix) {
+        continue;
+      }
+      if (i > 0) {
+        const e = sortedByTime.splice(i, 1)[0]!;
+        sorted.push(e);
+      }
+      break;
+    }
+  }
+
+  return sorted;
+}
+
+const onSameRow = (
+  a: OverlapEvent,
+  b: OverlapEvent,
+  minimumStartDifference: number
+) => {
+  return (
+    Math.abs(b._internal.startUnix - a._internal.startUnix) <
+      minimumStartDifference ||
+    (b._internal.startUnix > a._internal.startUnix &&
+      b._internal.startUnix < a._internal.endUnix)
+  );
+};
+
+const computeStylesForEvents = (containerEvents: OverlapEvent[]) => {
+  for (const containerEvent of containerEvents) {
+    const columns =
+      containerEvent._internal.rows!.reduce(
+        (max, row) =>
+          Math.max(
+            max,
+            (row._internal.leaves ? row._internal.leaves.length : 0) + 1
+          ),
+        0
+      ) + 1;
+
+    containerEvent._internal._width = 100 / columns;
+
+    const noOverlap = containerEvent._internal._width!;
+    const overlap = Math.min(100, containerEvent._internal._width! * 1.7);
+    if (
+      containerEvent._internal.rows &&
+      containerEvent._internal.rows.length > 0
+    ) {
+      containerEvent._internal.width = overlap;
+    } else {
+      containerEvent._internal.width = noOverlap;
     }
 
-    // Compare by title
-    const titleA = a.title || '';
-    const titleB = b.title || '';
-    return titleA.localeCompare(titleB);
+    containerEvent._internal.xOffset = 0;
+
+    for (const rowEvent of containerEvent._internal.rows!) {
+      const availableWidth = 100 - containerEvent._internal._width!;
+      rowEvent._internal._width =
+        availableWidth / ((rowEvent._internal.leaves?.length ?? 0) + 1);
+
+      const noOverlapRow = rowEvent._internal._width!;
+      const overlapRow = Math.min(100, rowEvent._internal._width! * 1.7);
+      if (rowEvent._internal.leaves && rowEvent._internal.leaves.length > 0) {
+        rowEvent._internal.width = overlapRow;
+      } else {
+        rowEvent._internal.width = noOverlapRow;
+      }
+
+      rowEvent._internal.xOffset = containerEvent._internal._width!;
+
+      if (rowEvent._internal.leaves && rowEvent._internal.leaves.length > 0) {
+        for (const leafEvent of rowEvent._internal.leaves) {
+          leafEvent._internal._width = rowEvent._internal._width!;
+
+          const leaves = rowEvent._internal.leaves!;
+          const index = leaves.indexOf(leafEvent);
+          const noOverlapLeaf = leafEvent._internal._width!;
+          const overlapLeaf = Math.min(100, leafEvent._internal._width! * 1.7);
+          leafEvent._internal.width =
+            index === leaves.length - 1 ? noOverlapLeaf : overlapLeaf;
+
+          leafEvent._internal.xOffset =
+            rowEvent._internal.xOffset! +
+            (index + 1) * leafEvent._internal._width!;
+        }
+      }
+    }
+  }
+};
+
+const handleOverlap = (
+  events: EventItemInternal[],
+  minimumStartDifference: number
+) => {
+  const sortedEvents = overlapSort(events) as OverlapEvent[];
+  const containerEvents: OverlapEvent[] = [];
+  for (let i = 0; i < sortedEvents.length; i++) {
+    const event = sortedEvents[i]!;
+    const container = containerEvents.find(
+      (c) =>
+        c._internal.endUnix > event._internal.startUnix ||
+        Math.abs(event._internal.startUnix - c._internal.startUnix) <
+          minimumStartDifference
+    );
+
+    if (!container) {
+      event._internal.rows = [];
+      containerEvents.push(event);
+      continue;
+    }
+    event._internal.container = container;
+    let row: OverlapEvent | null = null;
+    for (let j = container._internal.rows!.length - 1; !row && j >= 0; j--) {
+      if (
+        onSameRow(container._internal.rows![j]!, event, minimumStartDifference)
+      ) {
+        row = container._internal.rows![j]!;
+      }
+    }
+
+    if (row) {
+      row._internal.leaves = row._internal.leaves || [];
+      row._internal.leaves.push(event);
+      event._internal.row = row;
+    } else {
+      event._internal.leaves = [];
+      container._internal.rows!.push(event);
+    }
+  }
+
+  computeStylesForEvents(containerEvents);
+  const packedEvents = sortedEvents.map((event) => {
+    return {
+      ...event,
+      _internal: {
+        startMinutes: event._internal.startMinutes,
+        weekStart: event._internal.weekStart,
+        duration: event._internal.duration,
+        startUnix: event._internal.startUnix,
+        endUnix: event._internal.endUnix,
+        widthPercentage: event._internal.width,
+        xOffsetPercentage: event._internal.xOffset,
+      },
+    } as PackedEvent;
   });
+  return packedEvents;
+};
+
+export const populateEvents = (
+  events: EventItemInternal[],
+  {
+    overlap = false,
+    minStartDifference = DEFAULT_MIN_START_DIFFERENCE,
+  }: { overlap?: boolean; minStartDifference?: number } = {}
+) => {
+  if (!events.length) {
+    return [];
+  }
+
+  if (overlap) {
+    return handleOverlap(events, minStartDifference * MILLISECONDS_IN_MINUTE);
+  }
+
+  return handleNoOverlap(events);
 };
 
 interface PopulateAllDayOptions {
@@ -559,7 +730,7 @@ export const populateAllDayEvents = (
   events: EventItemInternal[],
   options: PopulateAllDayOptions
 ): PopulateAllDayResult => {
-  const sortedEvents = sortAllDayEvents(events);
+  const sortedEvents = sortEvents(events);
   const rows: EventItemInternal[][] = [];
   const dateToIndexMap: Record<string, number> = {};
 

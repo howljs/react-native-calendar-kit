@@ -63,3 +63,5 @@ export const DEBOUNCE_TIME = 200;
 export const MIN_ALL_DAY_MINUTES = 20;
 export const MAX_ALL_DAY_MINUTES = 30;
 export const DEFAULT_ALL_DAY_MINUTES = 20;
+
+export const DEFAULT_MIN_START_DIFFERENCE = 30;
