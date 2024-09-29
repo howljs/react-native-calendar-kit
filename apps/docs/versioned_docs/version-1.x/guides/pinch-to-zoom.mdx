@@ -1,0 +1,60 @@
+---
+sidebar_position: 3
+---
+
+import ReactPlayer from 'react-player';
+import pinchToZoom from './img/pinch-to-zoom.mp4';
+
+# Pinch to zoom
+
+You can set **allowPinchToZoom={true}** to enable pinch to zoom function
+
+## Example
+
+```jsx title="Example"
+import { SafeAreaView, Text } from 'react-native';
+import React from 'react';
+import { TimelineCalendar } from '@howljs/calendar-kit';
+
+const Calendar = () => {
+  return (
+    <SafeAreaView style={styles.container}>
+      <TimelineCalendar
+        viewMode="week"
+        allowPinchToZoom
+        initialTimeIntervalHeight={60}
+        minTimeIntervalHeight={29}
+        maxTimeIntervalHeight={110}
+      />
+    </SafeAreaView>
+  );
+};
+
+export default Calendar;
+
+const style = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FFF' },
+});
+```
+
+<ReactPlayer playing controls url={pinchToZoom} />
+
+## Props
+
+### initialTimeIntervalHeight
+
+Initial time interval height. Default is 60
+
+<span style={{ color: 'grey' }}>number</span>
+
+### minTimeIntervalHeight
+
+Minimum time interval height. If you don't specify it, it will automatically scale to fit the screen
+
+<span style={{ color: 'grey' }}>number</span>
+
+### maxTimeIntervalHeight
+
+Maximum time interval height. Default is 116
+
+<span style={{ color: 'grey' }}>number</span>

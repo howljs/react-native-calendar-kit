@@ -1,0 +1,68 @@
+---
+sidebar_position: 1
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Getting Started
+
+## Installation
+
+Install the required packages in your React Native project:
+
+<Tabs
+  groupId="environment"
+  defaultValue="yarn"
+  values={[
+    {label: 'Yarn', value: 'yarn'},
+    {label: 'npm', value: 'npm'}
+  ]}>
+<TabItem value="yarn">
+
+```bash
+yarn add @howljs/calendar-kit
+```
+
+</TabItem>
+
+<TabItem value="npm">
+
+```bash
+npm install @howljs/calendar-kit
+```
+
+</TabItem>
+</Tabs>
+
+The libraries we will install now are [@shopify/flash-list](https://shopify.github.io/flash-list/docs/), [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation) and [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/docs/installation). If you already have these libraries installed and at the latest version, you are done here! Otherwise, read on.
+
+### Installing dependencies into a bare React Native project
+
+In your project directory, run:
+
+<Tabs
+  groupId="environment"
+  defaultValue="yarn"
+  values={[
+    {label: 'Yarn', value: 'yarn'},
+    {label: 'npm', value: 'npm'}
+  ]}>
+<TabItem value="yarn">
+
+```bash
+yarn add @shopify/flash-list react-native-reanimated react-native-gesture-handler
+```
+
+</TabItem>
+
+<TabItem value="npm">
+
+```bash
+npm install @shopify/flash-list react-native-reanimated react-native-gesture-handler
+```
+
+</TabItem>
+</Tabs>
+
+> Follow installation instructions for [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation) and [React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/docs/installation).

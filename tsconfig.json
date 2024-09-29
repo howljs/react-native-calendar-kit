@@ -1,28 +1,21 @@
 {
   "compilerOptions": {
-    "rootDir": ".",
-    "paths": {
-      "@howljs/calendar-kit": ["./src/index"]
-    },
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
-    "lib": ["esnext"],
+    "baseUrl": ".",
+    "declaration": true,
+    "preserveSymlinks": true,
+    "target": "es6",
     "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noImplicitUseStrict": false,
-    "noStrictGenericChecks": false,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "resolveJsonModule": true,
+    "jsx": "react-native",
     "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "NodeNext",
+    "lib": ["es6", "dom", "ES2021"],
+    "esModuleInterop": true,
     "strict": true,
-    "target": "esnext",
-    "verbatimModuleSyntax": false
-  }
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+  },
 }

@@ -1,0 +1,97 @@
+---
+sidebar_position: 4
+---
+
+import ReactPlayer from 'react-player';
+import dragToCreate from './img/drag-to-create.mp4';
+import customCreateBlock from './img/drag-to-create-custom.png';
+
+# Drag to create
+
+You can set **allowDragToCreate={true}** to enable this function
+
+## Example
+
+```jsx title="Example"
+import { EventItem, RangeTime, TimelineCalendar } from '@howljs/calendar-kit';
+import React, { useState } from 'react';
+import { SafeAreaView, StyleSheet } from 'react-native';
+
+const Calendar = () => {
+  const [events, setEvents] = useState<EventItem[]>([]);
+
+  const _onDragCreateEnd = (event: RangeTime) => {
+    const randomId = Math.random().toString(36).slice(2, 10);
+    const newEvent = {
+      id: randomId,
+      title: randomId,
+      start: event.start,
+      end: event.end,
+      color: '#A3C7D6',
+    };
+    setEvents((prev) => [...prev, newEvent]);
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <TimelineCalendar
+        viewMode="week"
+        events={events}
+        allowDragToCreate
+        onDragCreateEnd={_onDragCreateEnd}
+        // Optional
+        dragCreateInterval={120}
+        dragStep={20}
+        theme={{
+          dragHourContainer: {
+            backgroundColor: '#FFF',
+            borderColor: '#001253',
+          },
+          dragHourText: { color: '#001253' },
+          dragCreateItemBackgroundColor: 'rgba(0, 18, 83, 0.2)',
+        }}
+        // End Optional
+      />
+    </SafeAreaView>
+  );
+};
+
+export default Calendar;
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FFF' },
+});
+
+```
+
+<ReactPlayer playing controls url={dragToCreate} />
+
+## Props
+
+### dragCreateInterval
+
+Initial time interval when you drag to create event. Default is 60 minutes
+
+<span style={{ color: 'grey' }}>number</span>
+
+### onDragCreateEnd
+
+Callback function will be called when the create box is dropped
+
+<span style={{ color: 'grey' }}>function</span>
+
+### dragStep
+
+Handle the navigation time when navigating to next/previous view while dragging. Default is 10 minutes
+
+<span style={{ color: 'grey' }}>number</span>
+
+### theme
+
+<img src={customCreateBlock} style={{ height: '250px' }} />
+
+- `dragHourContainer`
+
+- `dragHourText`
+
+<span style={{ color: 'grey' }}>object</span>
