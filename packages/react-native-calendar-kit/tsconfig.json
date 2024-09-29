@@ -3,5 +3,6 @@
   "compilerOptions": {
     "noEmit": false
   },
-  "include": ["src", "index.ts"]
+  "include": ["src", "index.ts"],
+  "exclude": ["**/*.spec.ts", "**/*.spec.tsx", "**/*.test.tsx", "**/*.test.ts"]
 }
