@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
-    "@howljs/calendar-kit": "*",
     "@react-navigation/drawer": "^6.7.2",
     "@react-navigation/native": "^6.0.2",
     "expo": "^51.0.34",

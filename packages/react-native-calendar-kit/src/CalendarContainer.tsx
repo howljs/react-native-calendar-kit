@@ -548,6 +548,13 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     return { width: columnWidth, height };
   });
 
+  const getVisibleStart = useLatestCallback(() => {
+    const currentDate = forceUpdateZone(visibleDateUnix.current, timeZone);
+    const startMinutes = offsetY.value / minuteHeight.value - start;
+    currentDate.plus({ minutes: startMinutes });
+    return dateTimeToISOString(currentDate);
+  });
+
   useImperativeHandle(
     ref,
     () => ({
@@ -560,6 +567,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       getDateByOffset: getDateStringByOffset,
       getEventByOffset,
       getSizeByDuration,
+      getVisibleStart,
     }),
     [
       getDateStringByOffset,
@@ -571,6 +579,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       goToPrevPage,
       setVisibleDate,
       zoom,
+      getVisibleStart,
     ]
   );
 

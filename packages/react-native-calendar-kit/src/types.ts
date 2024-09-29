@@ -106,6 +106,10 @@ export interface CalendarKitHandle {
   getEventByOffset: (position: { x: number; y: number }) => EventItem | null;
   /** Duration in minutes */
   getSizeByDuration: (duration: number) => { width: number; height: number };
+  /**
+   * Get visible start date time
+   */
+  getVisibleStart: () => string;
 }
 
 /**
