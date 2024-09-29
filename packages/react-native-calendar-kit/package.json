@@ -1,6 +1,6 @@
 {
   "name": "@howljs/calendar-kit",
-  "version": "2.0.3-beta.0",
+  "version": "2.0.3-beta.1",
   "description": "React Native Calendar Kit",
   "scripts": {
     "test": "jest",
