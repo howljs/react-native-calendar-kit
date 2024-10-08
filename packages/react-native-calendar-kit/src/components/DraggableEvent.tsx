@@ -10,7 +10,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
 } from 'react-native-reanimated';
-import { MILLISECONDS_IN_DAY, MILLISECONDS_IN_MINUTE } from '../constants';
+import { MILLISECONDS_IN_MINUTE } from '../constants';
 import { useBody } from '../context/BodyContext';
 import {
   useDragEvent,
@@ -243,7 +243,7 @@ const DraggableEventWrapper: FC<DraggableEventWrapperProps> = ({
     if (!lastDate) {
       return 0;
     }
-    return lastDate.unix + MILLISECONDS_IN_DAY;
+    return parseDateTime(lastDate.unix).plus({ days: 1 }).toMillis();
   }, [visibleDates]);
 
   const _handleDragSelectedEvent = (
@@ -270,7 +270,7 @@ const DraggableEventWrapper: FC<DraggableEventWrapperProps> = ({
 
     const dates = [];
     for (let i = 0; i <= diffDays; i++) {
-      dates.push(unix + i * MILLISECONDS_IN_DAY);
+      dates.push(parseDateTime(unix).plus({ days: i }).toMillis());
     }
     setDraggableDates(dates);
   };

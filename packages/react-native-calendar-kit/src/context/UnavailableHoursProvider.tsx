@@ -5,13 +5,12 @@ import React, {
   useContext,
   useEffect,
 } from 'react';
-import { MILLISECONDS_IN_DAY } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
 import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreWithSelector';
 import type { Store } from '../storeBuilder';
 import { createStore } from '../storeBuilder';
 import type { UnavailableHourProps } from '../types';
-import { forceUpdateZone } from '../utils/dateUtils';
+import { forceUpdateZone, parseDateTime } from '../utils/dateUtils';
 import { useDateChangedListener } from './VisibleDateProvider';
 
 type UnavailableHoursStore = {
@@ -56,22 +55,36 @@ const UnavailableHoursProvider: FC<
       }
 
       const data: Record<string, UnavailableHourProps[]> = {};
-      const minUnix = date - MILLISECONDS_IN_DAY * (offset * pagesPerSide);
-      const maxUnix =
-        date + MILLISECONDS_IN_DAY * (offset * (pagesPerSide + 1));
-      for (let i = minUnix; i < maxUnix; i += MILLISECONDS_IN_DAY) {
-        const dateObj = forceUpdateZone(i, timeZone);
-        const weekDay = dateObj.weekday;
-        const dateStr = dateObj.toFormat('yyyy-MM-dd');
+      // Iterate over the date range
+      let startDateTime = parseDateTime(date).minus({
+        days: offset * pagesPerSide,
+      });
+      const endDateTime = parseDateTime(date).plus({
+        days: offset * (pagesPerSide + 1),
+      });
+
+      while (startDateTime <= endDateTime) {
+        const forceDate = forceUpdateZone(startDateTime, timeZone);
+        const dateUnix = forceDate.toMillis();
+        const weekDay = forceDate.weekday;
+        const dateStr = forceDate.toFormat('yyyy-MM-dd');
+
+        // Get unavailable hours either by specific date or by weekday
         const unavailableHoursByDate =
           originalData[dateStr] || originalData[weekDay];
+
+        // If unavailable hours are found for this day, store them
         if (unavailableHoursByDate) {
-          data[i] = unavailableHoursByDate;
+          data[dateUnix] = unavailableHoursByDate;
         }
+
+        // Move to the next day
+        startDateTime = startDateTime.plus({ days: 1 });
       }
+
       unavailableHoursStore.setState({ unavailableHours: data });
     },
-    [unavailableHours, pagesPerSide, unavailableHoursStore, timeZone]
+    [unavailableHours, pagesPerSide, timeZone, unavailableHoursStore]
   );
 
   useEffect(() => {

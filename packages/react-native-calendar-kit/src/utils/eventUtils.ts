@@ -144,7 +144,7 @@ export const divideEvents = (
     let endUnix = forceUpdateZone(eventEnd).toMillis();
     let startMinutes = eventStart.hour * 60 + eventStart.minute;
 
-    const dateObj = parseDateTime(startUnix + i * MILLISECONDS_IN_DAY);
+    const dateObj = parseDateTime(startUnix).plus({ days: i });
     let id = event.localId;
     if (days > 1) {
       if (i === 0) {
@@ -188,15 +188,15 @@ const calculateVisibleDuration = (
   hideWeekDays: WeekdayNumbers[]
 ) => {
   let duration = 0;
-  for (
-    let currentUnix = startUnix;
-    currentUnix <= endUnix;
-    currentUnix += MILLISECONDS_IN_DAY
-  ) {
+  let currentUnix = startUnix;
+
+  while (currentUnix <= endUnix) {
     const dateTime = parseDateTime(currentUnix, { zone: timeZone });
-    if (!hideWeekDays.includes(dateTime.weekday as WeekdayNumbers)) {
+    const weekday = dateTime.weekday;
+    if (!hideWeekDays.includes(weekday)) {
       duration++;
     }
+    currentUnix = dateTime.plus({ days: 1 }).toMillis();
   }
   return duration;
 };
@@ -229,6 +229,7 @@ export const divideAllDayEvents = (
     firstDay
   ).toMillis();
   const weekEndUnix = startOfWeek(eventEnd.toISODate(), firstDay).toMillis();
+
   const diffWeeks =
     Math.floor((weekEndUnix - weekStartUnix) / (7 * MILLISECONDS_IN_DAY)) + 1;
   const isSameDay = event._internal.startUnix === event._internal.endUnix;
@@ -264,15 +265,17 @@ export const divideAllDayEvents = (
   }
 
   for (let i = 0; i < diffWeeks; i++) {
-    const weekStart = weekStartUnix + 7 * MILLISECONDS_IN_DAY * i;
-
-    let nextWeekStart = weekStart + 7 * MILLISECONDS_IN_DAY - 1;
-    if (eventEndUnix < nextWeekStart) {
-      nextWeekStart = eventEndUnix;
+    const weekStartDateTime = parseDateTime(weekStartUnix).plus({
+      days: 7 * i,
+    });
+    const weekStart = weekStartDateTime.toMillis();
+    let weekEnd = weekStartDateTime.plus({ days: 6 }).endOf('day').toMillis();
+    if (eventEndUnix < weekEnd) {
+      weekEnd = eventEndUnix;
     }
     const duration = calculateVisibleDuration(
       eventStartUnix,
-      nextWeekStart,
+      weekEnd,
       timeZone,
       hideWeekDays
     );
@@ -284,14 +287,14 @@ export const divideAllDayEvents = (
         _internal: {
           ...event._internal,
           startUnix: eventStartUnix,
-          endUnix: nextWeekStart,
+          endUnix: weekEnd,
           duration,
           weekStart,
         },
       };
       events.push(newEvent);
     }
-    eventStartUnix = nextWeekStart + 1;
+    eventStartUnix = weekEnd + 1;
   }
 
   return events;
@@ -397,7 +400,10 @@ export function processAllDayEventMap(
 
     const { packedEvents, maxRowCount } = populateAllDayEvents(eventsForWeek, {
       startDate: weekStart,
-      endDate: weekStart + 7 * MILLISECONDS_IN_DAY - 1,
+      endDate: parseDateTime(weekStart)
+        .plus({ days: 6 })
+        .endOf('day')
+        .toMillis(),
       timeZone,
       visibleDays,
     });
@@ -408,14 +414,19 @@ export function processAllDayEventMap(
     packedEvents.forEach((event) => {
       const eventStart = event._internal.startUnix;
       const eventEnd = event._internal.endUnix;
-
-      for (let day = eventStart; day <= eventEnd; day += MILLISECONDS_IN_DAY) {
-        if (visibleDays.includes(day)) {
-          eventCountsByDay[day] = (eventCountsByDay[day] || 0) + 1;
-          if (!packedAllDayEventsByDay[day]) {
-            packedAllDayEventsByDay[day] = [];
+      for (
+        let dayUnix = eventStart;
+        dayUnix <= eventEnd;
+        dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
+      ) {
+        const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
+        if (visibleDays.includes(dayStartUnix)) {
+          eventCountsByDay[dayStartUnix] =
+            (eventCountsByDay[dayStartUnix] || 0) + 1;
+          if (!packedAllDayEventsByDay[dayStartUnix]) {
+            packedAllDayEventsByDay[dayStartUnix] = [];
           }
-          packedAllDayEventsByDay[day].push(event);
+          packedAllDayEventsByDay[dayStartUnix].push(event);
         }
       }
     });
@@ -436,16 +447,15 @@ export function getVisibleDays(
   hideWeekDays: WeekdayNumbers[]
 ): number[] {
   const visibleDays: number[] = [];
-  for (
-    let currentDayUnix = weekStart;
-    currentDayUnix < weekStart + 7 * MILLISECONDS_IN_DAY;
-    currentDayUnix += MILLISECONDS_IN_DAY
-  ) {
+  let currentDayUnix = weekStart;
+
+  for (let i = 0; i < 7; i++) {
     const dateTime = parseDateTime(currentDayUnix, { zone: timeZone });
     const weekday = dateTime.weekday;
     if (!hideWeekDays.includes(weekday)) {
-      visibleDays.push(currentDayUnix);
+      visibleDays.push(dateTime.toMillis());
     }
+    currentDayUnix = dateTime.plus({ days: 1 }).toMillis();
   }
   return visibleDays;
 }
@@ -760,9 +770,17 @@ export const populateAllDayEvents = (
 
       // Collect the visible days the event spans
       const eventVisibleDays: number[] = [];
-      for (let day = eventStart; day <= eventEnd; day += MILLISECONDS_IN_DAY) {
-        if (Object.prototype.hasOwnProperty.call(dateToIndexMap, day)) {
-          eventVisibleDays.push(day);
+
+      for (
+        let dayUnix = eventStart;
+        dayUnix <= eventEnd;
+        dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
+      ) {
+        const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
+        if (
+          Object.prototype.hasOwnProperty.call(dateToIndexMap, dayStartUnix)
+        ) {
+          eventVisibleDays.push(dayStartUnix);
         }
       }
 

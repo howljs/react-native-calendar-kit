@@ -1,5 +1,4 @@
 import type { WeekdayNumbers } from 'luxon';
-import { MILLISECONDS_IN_DAY } from '../constants';
 import type { DateType } from '../types';
 import { parseDateTime, startOfWeek } from './dateUtils';
 
@@ -38,26 +37,32 @@ export const prepareCalendarRange = (
   const originalMinDateUnix = min.toMillis();
   const originalMaxDateUnix = max.toMillis();
 
+  // Single Day Mode
   if (isSingleDay) {
     const visibleDates: Record<
       string,
       { unix: number; index: number; weekday: WeekdayNumbers }
     > = {};
     const visibleDatesArray: number[] = [];
-    let currentDate = originalMinDateUnix;
+
+    let currentDateTime = min;
     let index = 0;
-    while (currentDate <= originalMaxDateUnix) {
-      const currentWeekDay = parseDateTime(currentDate).weekday;
+
+    // Iterate over days, ensuring time zone and DST are accounted for
+    while (currentDateTime.toMillis() <= originalMaxDateUnix) {
+      const currentWeekDay = currentDateTime.weekday;
+      const dateUnix = currentDateTime.toMillis();
+
       if (!props.hideWeekDays?.includes(currentWeekDay)) {
-        visibleDates[currentDate] = {
-          unix: currentDate,
+        visibleDates[dateUnix] = {
+          unix: dateUnix,
           index,
           weekday: currentWeekDay,
         };
+        visibleDatesArray.push(dateUnix);
         index++;
-        visibleDatesArray.push(currentDate);
       }
-      currentDate += MILLISECONDS_IN_DAY;
+      currentDateTime = currentDateTime.plus({ days: 1 });
     }
 
     return {
@@ -73,61 +78,53 @@ export const prepareCalendarRange = (
     };
   }
 
+  // Multi-day Mode (week-based)
   const minWeekDay = min.weekday;
-  const diff = (minWeekDay - firstDay + 7) % 7;
-  const newMin = originalMinDateUnix - diff * MILLISECONDS_IN_DAY;
-  const diffMax = (max.weekday - firstDay + 7) % 7;
-  const startOfWeekMax = originalMaxDateUnix - diffMax * MILLISECONDS_IN_DAY;
-  const newMax = startOfWeekMax + MILLISECONDS_IN_DAY * 7;
+  const diffToFirstDay = (minWeekDay - firstDay + 7) % 7;
+  const adjustedMin = min.minus({ days: diffToFirstDay });
+
+  const maxWeekDay = max.weekday;
+  const diffFromLastDay = (maxWeekDay - firstDay + 7) % 7;
+  const adjustedMax = max.plus({ days: 7 - diffFromLastDay });
 
   const visibleDates: Record<
     string,
     { unix: number; index: number; weekday: WeekdayNumbers }
   > = {};
   const visibleDatesArray: number[] = [];
-  let currentDate = newMin;
-  let index = 0;
 
-  while (currentDate < newMax) {
-    const currentDateTime = parseDateTime(currentDate);
+  let currentDateTime = adjustedMin;
+  let index = 0;
+  let diffMinDays = 0;
+  let diffMaxDays = 0;
+
+  while (currentDateTime.toMillis() < adjustedMax.toMillis()) {
     const currentWeekDay = currentDateTime.weekday;
+    const dateUnix = currentDateTime.toMillis();
+
     if (!props.hideWeekDays?.includes(currentWeekDay)) {
-      const dateUnix = currentDateTime.toMillis();
       visibleDates[dateUnix] = {
         unix: dateUnix,
         index,
         weekday: currentWeekDay,
       };
-      index++;
       visibleDatesArray.push(dateUnix);
+      index++;
+      if (dateUnix < originalMinDateUnix) {
+        diffMinDays++;
+      }
+      if (dateUnix > originalMaxDateUnix) {
+        diffMaxDays++;
+      }
     }
-    currentDate += MILLISECONDS_IN_DAY;
+    currentDateTime = currentDateTime.plus({ days: 1 });
   }
-  const diffWeeks = Math.floor((newMax - newMin) / (MILLISECONDS_IN_DAY * 7));
-
-  let diffMinDays = 0;
-  let diffMaxDays = 0;
-
-  let visibleMaxDateUnix = newMax;
-  while (visibleMaxDateUnix > originalMaxDateUnix) {
-    visibleMaxDateUnix -= MILLISECONDS_IN_DAY;
-    if (visibleDates[visibleMaxDateUnix]) {
-      diffMaxDays++;
-    }
-  }
-
-  let visibleMinDateUnix = newMin;
-  while (visibleMinDateUnix < originalMinDateUnix) {
-    if (visibleDates[visibleMinDateUnix]) {
-      diffMinDays++;
-    }
-    visibleMinDateUnix += MILLISECONDS_IN_DAY;
-  }
+  const diffWeeks = Math.floor(adjustedMax.diff(adjustedMin, 'weeks').weeks);
 
   return {
     count: diffWeeks,
-    minDateUnix: newMin,
-    maxDateUnix: newMax,
+    minDateUnix: adjustedMin.toMillis(),
+    maxDateUnix: adjustedMax.toMillis(),
     originalMinDateUnix,
     originalMaxDateUnix,
     visibleDates,

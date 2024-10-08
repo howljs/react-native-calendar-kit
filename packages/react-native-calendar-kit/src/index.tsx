@@ -11,7 +11,11 @@ export { default as SingleDayBarItem } from './components/SingleDayBarItem';
 export { useActions } from './context/ActionsProvider';
 export { useBody } from './context/BodyContext';
 export { useCalendar } from './context/CalendarProvider';
+
+// Recommend: use useHeader instead
 export { useHeader as useDayBar } from './context/DayBarContext';
+
+export { useHeader } from './context/DayBarContext';
 export { useDragEvent, useDragEventActions } from './context/DragEventProvider';
 export {
   useAllDayEvents,

@@ -58,6 +58,8 @@ export interface CalendarContextProps {
   hideWeekDays: WeekdayNumbers[];
   useAllDayEvent: boolean;
   hapticService: HapticService;
+  allowDragToCreate: boolean;
+  allowDragToEdit: boolean;
 }
 
 export const CalendarContext = React.createContext<

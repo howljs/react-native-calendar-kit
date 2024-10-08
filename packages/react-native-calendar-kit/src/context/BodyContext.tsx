@@ -50,6 +50,8 @@ export interface BodyContextProps {
   overlapEventsSpacing: number;
   visibleDateUnixAnim: SharedValue<number>;
   NowIndicatorComponent?: React.ReactElement | null;
+  allowDragToCreate: boolean;
+  allowDragToEdit: boolean;
 }
 
 export const BodyContext = React.createContext<BodyContextProps | undefined>(

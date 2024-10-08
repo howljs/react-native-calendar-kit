@@ -124,6 +124,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     onLoad,
     overlapType,
     minStartDifference,
+    onLongPressBackground,
   },
   ref
 ) => {
@@ -647,6 +648,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       hapticService,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      allowDragToCreate,
+      allowDragToEdit,
     }),
     [
       calendarLayout,
@@ -693,6 +696,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       hapticService,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      allowDragToCreate,
+      allowDragToEdit,
     ]
   );
 
@@ -718,6 +723,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     onDragCreateEventStart,
     onDragCreateEventEnd,
     onLoad: _onLoad,
+    onLongPressBackground,
   };
 
   const loadingValue = useMemo(() => ({ isLoading }), [isLoading]);
