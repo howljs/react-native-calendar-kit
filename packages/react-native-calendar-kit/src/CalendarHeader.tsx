@@ -282,7 +282,16 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       ]}>
       <ScrollView alwaysBounceVertical={false} overScrollMode="never">
         <HeaderContext.Provider value={value}>
-          <Animated.View style={contentStyle}>
+          <Animated.View
+            style={[
+              contentStyle,
+              {
+                overflow: Platform.select({
+                  web: 'hidden',
+                  default: 'visible',
+                }),
+              },
+            ]}>
             {numberOfDays > 1 && _renderLeftArea()}
             <View
               style={[

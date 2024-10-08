@@ -2,6 +2,8 @@ import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import SearchLocal from '@easyops-cn/docusaurus-search-local';
+import webpack from 'webpack';
+import raf from 'raf';
 
 const config: Config = {
   title: 'Calendar Kit',
@@ -43,7 +45,9 @@ const config: Config = {
             },
           },
           sidebarPath: './sidebars.ts',
-          remarkPlugins: [[require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }]],
+          remarkPlugins: [
+            [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
+          ],
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -90,6 +94,59 @@ const config: Config = {
         explicitSearchResultPath: true,
       } satisfies SearchLocal.PluginOptions,
     ],
+  ],
+  plugins: [
+    function docusaurusPlugin(_context, _options) {
+      return {
+        name: 'docusaurus-plugin',
+        configureWebpack(_config, isServer, _utils) {
+          const processMock = !isServer ? { process: { env: {} } } : {};
+
+          raf.polyfill();
+
+          return {
+            mergeStrategy: {
+              'resolve.extensions': 'prepend',
+            },
+            plugins: [
+              new webpack.DefinePlugin({
+                ...processMock,
+                __DEV__: 'false',
+              }),
+              new webpack.EnvironmentPlugin({ JEST_WORKER_ID: null }),
+              new webpack.DefinePlugin({ process: { env: {} } }),
+            ],
+            module: {
+              rules: [
+                {
+                  test: /\.(js|jsx)$/,
+                  use: {
+                    loader: 'babel-loader',
+                    options: {
+                      presets: [
+                        '@babel/preset-react',
+                        {
+                          plugins: ['@babel/plugin-proposal-class-properties'],
+                        },
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
+            resolve: {
+              alias: {
+                'react-native$': 'react-native-web',
+              },
+              extensions: ['.web.js', '...'],
+              fallback: {
+                crypto: false,
+              },
+            },
+          };
+        },
+      };
+    },
   ],
 };
 

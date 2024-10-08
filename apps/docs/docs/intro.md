@@ -1,12 +1,17 @@
 ---
 sidebar_position: 1
 ---
+import Calendar from '../src/examples/Calendar';
 
 # Introduction
 
 ## Overview
 
 React Native Calendar Kit is a powerful and flexible calendar component for React Native applications. It provides a customizable and feature-rich calendar view with support for various functionalities.
+
+<Calendar numberOfDays={7} allowDragToCreate />
+
+> Note: This is a trial version with basic functionality of the library, not yet fully optimized for the web.
 
 ## Features
 
