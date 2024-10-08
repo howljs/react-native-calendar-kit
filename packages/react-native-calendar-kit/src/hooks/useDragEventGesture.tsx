@@ -20,7 +20,6 @@ const useDragEventGesture = () => {
     dragStartUnix,
     roundedDragStartMinutes,
     dragStep,
-    allowDragToEdit,
     dragPosition,
     roundedDragStartUnix,
     roundedDragDuration,
@@ -147,7 +146,6 @@ const useDragEventGesture = () => {
   };
 
   const gesture = Gesture.Pan()
-    .enabled(allowDragToEdit)
     .manualActivation(true)
     .onBegin(({ x }) => {
       initialX.value = x;

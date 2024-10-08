@@ -63,6 +63,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     useAllDayEvent,
     rightEdgeSpacing,
     overlapEventsSpacing,
+    firstDay,
   } = useCalendar();
 
   const headerStyles = useTheme(
@@ -159,6 +160,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       headerBottomHeight,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      firstDay,
     }),
     [
       dayBarHeight,
@@ -181,6 +183,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       collapsedItems,
       rightEdgeSpacing,
       overlapEventsSpacing,
+      firstDay,
     ]
   );
 
@@ -282,7 +285,16 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       ]}>
       <ScrollView alwaysBounceVertical={false} overScrollMode="never">
         <HeaderContext.Provider value={value}>
-          <Animated.View style={contentStyle}>
+          <Animated.View
+            style={[
+              contentStyle,
+              {
+                overflow: Platform.select({
+                  web: 'hidden',
+                  default: 'visible',
+                }),
+              },
+            ]}>
             {numberOfDays > 1 && _renderLeftArea()}
             <View
               style={[

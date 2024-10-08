@@ -33,7 +33,7 @@ const TimelineBoard = ({
 }: TimelineBoardProps) => {
   const {
     totalSlots,
-    timeIntervalHeight,
+    minuteHeight,
     spaceFromTop,
     hourWidth,
     start,
@@ -41,6 +41,7 @@ const TimelineBoard = ({
     numberOfDays,
     calendarData,
     columns,
+    timeIntervalHeight,
   } = useBody();
   const { timeZone } = useTimezone();
   const colors = useTheme((state) => state.colors);
@@ -101,15 +102,12 @@ const TimelineBoard = ({
     );
     const dayIndex = pageIndex + columnIndex;
     const dayUnix = calendarData.visibleDatesArray[dayIndex];
-    const hour = event.nativeEvent.locationY / timeIntervalHeight.value;
-
+    const minutes = event.nativeEvent.locationY / minuteHeight.value + start;
+    const hour = Math.floor(minutes / 60);
+    const minute = minutes % 60;
     if (dayUnix) {
-      const dateObj = forceUpdateZone(
-        parseDateTime(dayUnix).plus({
-          minutes: hour * 60 + start,
-        }),
-        timeZone
-      );
+      const baseDateTime = parseDateTime(dayUnix).set({ hour, minute });
+      const dateObj = forceUpdateZone(baseDateTime, timeZone);
       onPressBackground?.({ dateTime: dateTimeToISOString(dateObj) }, event);
     }
   };
@@ -120,18 +118,19 @@ const TimelineBoard = ({
     );
     const dayIndex = pageIndex + columnIndex;
     const dayUnix = calendarData.visibleDatesArray[dayIndex];
-    const hour = event.nativeEvent.locationY / timeIntervalHeight.value;
+    const minutes = event.nativeEvent.locationY / minuteHeight.value + start;
+    const hour = Math.floor(minutes / 60);
+    const minute = minutes % 60;
 
     if (dayUnix) {
-      const dateObj = forceUpdateZone(
-        parseDateTime(dayUnix).plus({
-          minutes: hour * 60 + start,
-        }),
-        timeZone
-      );
+      const baseDateTime = parseDateTime(dayUnix).set({ hour, minute });
+      const dateObj = forceUpdateZone(baseDateTime, timeZone);
       const dateString = dateTimeToISOString(dateObj);
-      triggerDragCreateEvent?.(dateString, event);
-      onLongPressBackground?.({ dateTime: dateString }, event);
+      if (triggerDragCreateEvent) {
+        triggerDragCreateEvent?.(dateString, event);
+      } else {
+        onLongPressBackground?.({ dateTime: dateString }, event);
+      }
     }
   };
 

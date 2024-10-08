@@ -5337,7 +5337,6 @@ __metadata:
     react-dom: "npm:18.2.0"
     react-native: "npm:0.74.5"
     react-native-gesture-handler: "npm:~2.16.1"
-    react-native-haptic-feedback: "npm:^2.3.3"
     react-native-reanimated: "npm:~3.10.1"
     react-native-safe-area-context: "npm:4.10.5"
     react-native-screens: "npm:3.31.1"
@@ -13565,15 +13564,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/227799f5e16f9725d81db524fc06c1fbef226835a5ee989642d132748832f7543ebc750d4309e49bcaa0fb6d1e7dd6b74028785e4b755978ab7f66f05b414c18
-  languageName: node
-  linkType: hard
-
-"react-native-haptic-feedback@npm:^2.3.3":
-  version: 2.3.3
-  resolution: "react-native-haptic-feedback@npm:2.3.3"
-  peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: 10/9c49a4f22a950a0483337698ac5212931fe7e6bce0cf1873a5e5422f7aae1c3250c61a9d598005ae0fc7b83d2d415a0e19d6b19d99185c137d28e5062cdb221e
   languageName: node
   linkType: hard
 

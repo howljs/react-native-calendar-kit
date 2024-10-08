@@ -12,6 +12,7 @@ import { useBody } from '../context/BodyContext';
 import { useTheme } from '../context/ThemeProvider';
 import type { OnEventResponse, PackedEvent, SizeAnimation } from '../types';
 import Text from './Text';
+import { parseDateTime } from '../utils/dateUtils';
 
 interface EventItemProps {
   event: PackedEvent;
@@ -76,14 +77,24 @@ const EventItem: FC<EventItemProps> = ({
     );
 
     if (eventStartUnix < startUnix) {
-      for (let i = eventStartUnix; i < startUnix; i += MILLISECONDS_IN_DAY) {
-        if (!visibleDates[i]) {
+      for (
+        let dayUnix = eventStartUnix;
+        dayUnix < startUnix;
+        dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
+      ) {
+        const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
+        if (!visibleDates[dayStartUnix]) {
           diffDays++;
         }
       }
     } else {
-      for (let i = startUnix; i < eventStartUnix; i += MILLISECONDS_IN_DAY) {
-        if (!visibleDates[i]) {
+      for (
+        let dayUnix = startUnix;
+        dayUnix < eventStartUnix;
+        dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
+      ) {
+        const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
+        if (!visibleDates[dayStartUnix]) {
           diffDays--;
         }
       }

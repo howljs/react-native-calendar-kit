@@ -7,10 +7,7 @@ import React, {
   useEffect,
   useImperativeHandle,
 } from 'react';
-import {
-  DEFAULT_MIN_START_DIFFERENCE,
-  MILLISECONDS_IN_DAY,
-} from '../constants';
+import { DEFAULT_MIN_START_DIFFERENCE } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
 import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreWithSelector';
 import { createStore } from '../storeBuilder';
@@ -93,10 +90,13 @@ const EventsProvider: ForwardRefRenderFunction<
 
   const notifyDataChanged = useCallback(
     (date: number, offset: number = defaultOffset) => {
-      const zonedDate = forceUpdateZone(date, timeZone).toMillis();
-      const minUnix = zonedDate - MILLISECONDS_IN_DAY * offset * pagesPerSide;
-      const maxUnix =
-        zonedDate + MILLISECONDS_IN_DAY * offset * (pagesPerSide + 1);
+      const zonedDate = forceUpdateZone(date, timeZone);
+      const minUnix = zonedDate
+        .minus({ days: offset * pagesPerSide })
+        .toMillis();
+      const maxUnix = zonedDate
+        .plus({ days: offset * (pagesPerSide + 1) })
+        .toMillis();
 
       const { regular: regularEvents, allDays: allDayEvents } = filterEvents(
         events,
@@ -229,7 +229,7 @@ export const useAllDayEvents = (
       const eventCounts: Record<string, number> = {};
       const totalDays = numberOfDays === 1 ? 1 : 7;
       for (let i = 0; i < totalDays; i++) {
-        const dateUnix = date + i * MILLISECONDS_IN_DAY;
+        const dateUnix = parseDateTime(date).plus({ days: i }).toMillis();
         if (visibleDays[dateUnix]) {
           const events = state.allDayEvents[dateUnix];
           const count = state.eventCountsByDay[dateUnix];
@@ -296,7 +296,7 @@ export const useRegularEvents = (
       const data: PackedEvent[] = [];
       const totalDays = numberOfDays === 1 ? 1 : 7;
       for (let i = 0; i < totalDays; i++) {
-        const dateUnix = date + i * MILLISECONDS_IN_DAY;
+        const dateUnix = parseDateTime(date).plus({ days: i }).toMillis();
         if (visibleDays[dateUnix]) {
           const events = state.regularEvents[dateUnix];
           if (events) {
@@ -356,7 +356,7 @@ export const useMonthEvents = (
     (state: EventsState) => {
       const data: Record<string, PackedEvent[]> = {};
       for (let i = 0; i < numberOfDays; i++) {
-        const dateUnix = date + i * MILLISECONDS_IN_DAY;
+        const dateUnix = parseDateTime(date).plus({ days: i }).toMillis();
         if (visibleDays.includes(dateUnix)) {
           const events = state.regularEvents[dateUnix];
           if (events) {

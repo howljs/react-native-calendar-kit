@@ -85,6 +85,9 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     pagesPerSide,
     rightEdgeSpacing,
     overlapEventsSpacing,
+    allowDragToCreate,
+    allowDragToEdit,
+    firstDay,
   } = useCalendar();
   const locale = useLocale();
   const { onRefresh, onLoad } = useActions();
@@ -117,6 +120,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
 
   const extraData = useMemo(() => {
     return {
+      firstDay,
       minDate: calendarData.minDateUnix,
       columns,
       visibleDatesArray: calendarData.visibleDatesArray,
@@ -127,6 +131,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     calendarData.visibleDatesArray,
     columns,
     renderDraggableEvent,
+    firstDay,
   ]);
 
   const _renderTimeSlots = useCallback(
@@ -204,6 +209,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       overlapEventsSpacing,
       visibleDateUnixAnim,
       NowIndicatorComponent,
+      allowDragToCreate,
+      allowDragToEdit,
     }),
     [
       renderHour,
@@ -240,6 +247,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       overlapEventsSpacing,
       visibleDateUnixAnim,
       NowIndicatorComponent,
+      allowDragToCreate,
+      allowDragToEdit,
     ]
   );
 

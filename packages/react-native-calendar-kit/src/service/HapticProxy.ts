@@ -1,14 +1,9 @@
-import type * as ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import type * as ExpoHaptic from 'expo-haptics';
-
 import {
   createModuleProxy,
   OptionalDependencyNotInstalledError,
 } from './ModuleProxy';
 
-type TExpoHaptic = typeof ExpoHaptic;
-
-export const ExpoHapticProxy = createModuleProxy<TExpoHaptic>(() => {
+export const ExpoHapticProxy = createModuleProxy<any>(() => {
   try {
     return require('expo-haptics');
   } catch (e) {
@@ -16,14 +11,12 @@ export const ExpoHapticProxy = createModuleProxy<TExpoHaptic>(() => {
   }
 });
 
-type TReactNativeHapticFeedback = typeof ReactNativeHapticFeedback;
-export const ReactNativeHapticFeedbackProxy =
-  createModuleProxy<TReactNativeHapticFeedback>(() => {
-    try {
-      return require('react-native-haptic-feedback');
-    } catch (e) {
-      throw new OptionalDependencyNotInstalledError(
-        'react-native-haptic-feedback'
-      );
-    }
-  });
+export const ReactNativeHapticFeedbackProxy = createModuleProxy<any>(() => {
+  try {
+    return require('react-native-haptic-feedback');
+  } catch (e) {
+    throw new OptionalDependencyNotInstalledError(
+      'react-native-haptic-feedback'
+    );
+  }
+});

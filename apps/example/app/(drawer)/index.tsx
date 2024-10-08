@@ -298,25 +298,25 @@ const allDayEvents: EventItem[] = [
     },
     title: 'All day Recurring',
     color: '#BA3D9D',
-
     recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
     excludeDates: ['2024-09-16', '2024-09-22'],
   },
   {
     id: 'event_26',
     start: {
-      dateTime: '2024-09-16T12:00:00.000+07:00',
-      timeZone: 'Asia/Ho_Chi_Minh',
+      dateTime: '2024-09-16T05:00:00.000Z',
     },
     end: {
-      dateTime: '2024-09-16T17:00:00.000+09:00',
-      timeZone: 'Asia/Tokyo',
+      dateTime: '2024-09-16T07:00:00.000Z',
     },
     title: 'Event Recurring',
     color: '#BA3D9D',
-
     recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
-    excludeDates: ['2024-09-16T05:00:00.000Z', '2024-09-22T05:00:00.000Z'],
+    excludeDates: [
+      '2024-09-16T05:00:00.000Z',
+      '2024-09-22T05:00:00.000Z',
+      '2024-10-11T05:00:00.000Z',
+    ],
   },
 ];
 const generateEvents = () => {
@@ -478,7 +478,6 @@ const Calendar = () => {
         }}
         scrollToNow
         useHaptic
-        timeZone="Asia/Tokyo"
         allowDragToEdit
         allowDragToCreate
         useAllDayEvent

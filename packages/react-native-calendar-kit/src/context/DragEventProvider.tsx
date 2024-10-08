@@ -214,9 +214,11 @@ const DragEventProvider: FC<
           autoVScrollTimer.current = undefined;
         }
 
-        const newStartUnix =
-          roundedDragStartUnix.value +
-          roundedDragStartMinutes.value * MILLISECONDS_IN_MINUTE;
+        const hour = Math.floor(roundedDragStartMinutes.value / 60);
+        const minute = roundedDragStartMinutes.value % 60;
+        const newStartUnix = parseDateTime(roundedDragStartUnix.value)
+          .set({ hour, minute })
+          .toMillis();
         const newEndUnix =
           newStartUnix + roundedDragDuration.value * MILLISECONDS_IN_MINUTE;
 
@@ -237,7 +239,6 @@ const DragEventProvider: FC<
           const newEnd = newEndObj.toMillis();
           const currentEvent = { ...draggingEvent };
           delete currentEvent._internal;
-
           if (prevStart !== newStart || prevEnd !== newEnd) {
             const newStartISO = newStartObj.toISO();
             const newEndISO = newEndObj.toISO();
