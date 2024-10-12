@@ -58,6 +58,21 @@ $ npm install react-native-gesture-handler react-native-reanimated
 > Follow installation instructions for [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started) and [React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation).
 
 
+## Haptic Feedback
+
+The library includes optional haptic feedback when dragging events. To enable haptic feedback, please install the `expo-haptics` or `react-native-haptic-feedback` library and set the `useHaptic` prop to `true` on the `CalendarContainer` component.
+
+```bash npm2yarn
+$ npx expo install expo-haptics
+```
+
+or
+
+```bash npm2yarn
+$ npm install react-native-haptic-feedback
+```
+
+
 ## Initialize the Calendar
 
 ```tsx

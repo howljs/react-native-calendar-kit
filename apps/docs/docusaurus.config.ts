@@ -41,7 +41,6 @@ const config: Config = {
           versions: {
             current: {
               label: '2.x',
-              path: '2.x',
             },
           },
           sidebarPath: './sidebars.ts',
