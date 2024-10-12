@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkcalendar_kit_docs=self.webpackChunkcalendar_kit_docs||[]).push([[1235],{8552:e=>{e.exports=JSON.parse('{"name":"docusaurus-plugin-content-pages","id":"default"}')}}]);

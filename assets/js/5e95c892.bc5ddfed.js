@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkcalendar_kit_docs=self.webpackChunkcalendar_kit_docs||[]).push([[9647],{1911:(e,a,r)=>{r.r(a),r.d(a,{default:()=>d});var t=r(9856),c=r(4164),s=r(716),l=r(1149),n=r(8115),u=r(8658);function d(e){return t.createElement(s.e3,{className:(0,c.A)(l.G.wrapper.docsPages)},t.createElement(u.A,null,(0,n.v)(e.route.routes)))}}}]);
