@@ -355,8 +355,11 @@ const CalendarContainer: React.ForwardRefRenderFunction<
 
   const goToHour = useLatestCallback(
     (hour: number, animated: boolean = true) => {
-      const minutes = (hour - start) * 60;
-      const position = minutes * minuteHeight.value;
+      const timeInMinutes = hour * 60;
+      if (timeInMinutes < start || timeInMinutes > end) {
+        return;
+      }
+      const position = (timeInMinutes - start) * minuteHeight.value;
       runOnUI(() => {
         scrollTo(verticalListRef, 0, position, animated);
       })();

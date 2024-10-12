@@ -65,7 +65,7 @@ const Events: FC<{
     (event: PackedEvent) => {
       const clonedEvent = { ...event, _internal: undefined };
       delete clonedEvent._internal;
-      onLongPressEvent!(clonedEvent);
+      onLongPressEvent?.(clonedEvent);
     },
     [onLongPressEvent]
   );
@@ -83,7 +83,11 @@ const Events: FC<{
         renderEvent={renderEvent}
         onPressEvent={onPressEvent}
         onLongPressEvent={
-          triggerDragEvent ? _triggerDragEvent : _onLongPressEvent
+          triggerDragEvent
+            ? _triggerDragEvent
+            : onLongPressEvent
+              ? _onLongPressEvent
+              : undefined
         }
         isDragging={
           draggingId === event.localId || selectedEventId === event.localId

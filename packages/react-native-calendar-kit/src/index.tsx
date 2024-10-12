@@ -12,7 +12,7 @@ export { useActions } from './context/ActionsProvider';
 export { useBody } from './context/BodyContext';
 export { useCalendar } from './context/CalendarProvider';
 
-// Recommend: use useHeader instead
+// Recommend: use useHeader instead. useDayBar will be removed soon.
 export { useHeader as useDayBar } from './context/DayBarContext';
 
 export { useHeader } from './context/DayBarContext';

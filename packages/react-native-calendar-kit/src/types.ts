@@ -90,9 +90,22 @@ export type GoToDateOptions = {
 };
 
 export interface CalendarKitHandle {
+  /**
+   * Navigates to a specific date and optionally scrolls to a specific hour.
+   */
   goToDate: (props?: GoToDateOptions) => void;
+  /**
+   * Scrolls to a specific hour.
+   */
   goToHour: (hour: number, animated?: boolean) => void;
+  /**
+   * Navigates to the next page of the calendar.
+   */
   goToNextPage: (animated?: boolean, forceScrollByDay?: boolean) => void;
+
+  /**
+   * Navigates to the previous page of the calendar.
+   */
   goToPrevPage: (animated?: boolean, forceScrollByDay?: boolean) => void;
   /**
    * - Scale: Change `timeIntervalHeight` by scale value
@@ -101,6 +114,10 @@ export interface CalendarKitHandle {
    *   initialTimeIntervalHeight
    */
   zoom: (props?: { scale?: number; height?: number }) => void;
+
+  /**
+   * Set the visible date of the calendar.
+   */
   setVisibleDate: (date: string) => void;
   getDateByOffset: (position: { x: number; y: number }) => string | null;
   getEventByOffset: (position: { x: number; y: number }) => EventItem | null;

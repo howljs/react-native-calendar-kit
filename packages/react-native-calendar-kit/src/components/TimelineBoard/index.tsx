@@ -126,10 +126,9 @@ const TimelineBoard = ({
       const baseDateTime = parseDateTime(dayUnix).set({ hour, minute });
       const dateObj = forceUpdateZone(baseDateTime, timeZone);
       const dateString = dateTimeToISOString(dateObj);
+      onLongPressBackground?.({ dateTime: dateString }, event);
       if (triggerDragCreateEvent) {
         triggerDragCreateEvent?.(dateString, event);
-      } else {
-        onLongPressBackground?.({ dateTime: dateString }, event);
       }
     }
   };
