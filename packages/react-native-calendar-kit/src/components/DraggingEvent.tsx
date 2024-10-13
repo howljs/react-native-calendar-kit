@@ -13,7 +13,7 @@ import Animated, {
 import { useBody } from '../context/BodyContext';
 import { useDragEvent } from '../context/DragEventProvider';
 import { useTheme } from '../context/ThemeProvider';
-import type { SelectedEventType } from '../types';
+import type { ResourceItem, SelectedEventType } from '../types';
 import { clampValues, findNearestNumber } from '../utils/utils';
 import DragDot from './DragDot';
 
@@ -28,6 +28,7 @@ export interface DraggingEventProps {
   TopEdgeComponent?: React.ReactElement | null;
   BottomEdgeComponent?: React.ReactElement | null;
   containerStyle?: ViewStyle;
+  resources?: ResourceItem[];
 }
 
 export const DraggingEvent: FC<DraggingEventProps> = ({
@@ -35,6 +36,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
   TopEdgeComponent,
   BottomEdgeComponent,
   containerStyle,
+  resources,
 }) => {
   const theme = useTheme(
     useCallback((state) => {
@@ -56,9 +58,16 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     columns,
     numberOfDays,
   } = useBody();
-  const { dragDuration, dragStartMinutes, dragStartUnix, draggingEvent } =
-    useDragEvent();
+  const {
+    dragDuration,
+    dragStartMinutes,
+    dragStartUnix,
+    draggingEvent,
+    dragX,
+  } = useDragEvent();
 
+  const totalResources =
+    resources && resources.length > 1 ? resources.length : 1;
   const getDayIndex = (dayUnix: number) => {
     'worklet';
     let currentIndex = calendarData.visibleDatesArray.indexOf(dayUnix);
@@ -91,6 +100,21 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     }
     return clampValues(currentIndex - startIndex, 0, columns - 1);
   };
+  const eventWidth = useDerivedValue(
+    () => columnWidthAnim.value / totalResources,
+    [totalResources]
+  );
+
+  const resourceIndex = useDerivedValue(() => {
+    if (totalResources === 1) {
+      return 0;
+    }
+
+    const dragPosition = Math.floor(dragX.value - hourWidth);
+    const columnIndex = Math.floor(dragPosition / eventWidth.value);
+
+    return clampValues(columnIndex, 0, totalResources - 1);
+  }, [totalResources, hourWidth]);
 
   const internalDayIndex = useSharedValue(getDayIndex(dragStartUnix.value));
 
@@ -109,13 +133,14 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
   });
 
   const animView = useAnimatedStyle(() => {
+    const startX = resourceIndex.value * eventWidth.value;
     return {
       top: (dragStartMinutes.value - start) * minuteHeight.value,
       height: dragDuration.value * minuteHeight.value,
-      width: columnWidthAnim.value,
-      left: hourWidth + columnWidthAnim.value * internalDayIndex.value - 1,
+      width: eventWidth.value,
+      left: startX + hourWidth + eventWidth.value * internalDayIndex.value - 1,
     };
-  });
+  }, [totalResources, hourWidth]);
 
   return (
     <Animated.View style={[styles.container, animView]}>
@@ -132,7 +157,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
         ]}>
         {renderEvent
           ? renderEvent(draggingEvent, {
-              width: columnWidthAnim,
+              width: eventWidth,
               height: eventHeight,
             })
           : !!draggingEvent?.title && (
@@ -181,12 +206,15 @@ interface DraggingEventWrapperProps {
         height: SharedValue<number>;
       }
     ) => React.ReactElement | null;
+    resources?: ResourceItem[];
   }) => React.ReactElement | null;
+  resources?: ResourceItem[];
 }
 
 const DraggingEventWrapper = ({
   renderDraggingEvent,
   renderEvent,
+  resources,
 }: DraggingEventWrapperProps) => {
   const { isDragging } = useDragEvent();
   if (!isDragging) {
@@ -196,10 +224,11 @@ const DraggingEventWrapper = ({
   if (renderDraggingEvent) {
     return renderDraggingEvent({
       renderEvent,
+      resources,
     });
   }
 
-  return <DraggingEvent renderEvent={renderEvent} />;
+  return <DraggingEvent renderEvent={renderEvent} resources={resources} />;
 };
 
 export default DraggingEventWrapper;

@@ -5,6 +5,7 @@ export { default as CalendarBody } from './CalendarBody';
 export { default as CalendarContainer } from './CalendarContainer';
 export { default as CalendarHeader } from './CalendarHeader';
 
+export { default as ResourceHeaderItem } from './components/ResourceHeaderItem';
 export { default as MultiDayBarItem } from './components/MultiDayBarItem';
 export { default as SingleDayBarItem } from './components/SingleDayBarItem';
 

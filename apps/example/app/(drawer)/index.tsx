@@ -2,13 +2,17 @@ import type {
   CalendarKitHandle,
   DateOrDateTime,
   EventItem,
+  HeaderItemProps,
   LocaleConfigsProps,
+  ResourceItem,
   SelectedEventType,
 } from '@howljs/calendar-kit';
 import {
   CalendarBody,
   CalendarContainer,
   CalendarHeader,
+  parseDateTime,
+  ResourceHeaderItem,
 } from '@howljs/calendar-kit';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { WeekdayNumbers } from 'luxon';
@@ -19,11 +23,18 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Dimensions, StyleSheet, View, useColorScheme } from 'react-native';
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+} from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../../components/Header';
 import { useAppContext } from '../../context/AppProvider';
+import { Ionicons } from '@expo/vector-icons';
 
 type SearchParams = { viewMode: string; numberOfDays: string };
 
@@ -319,6 +330,9 @@ const allDayEvents: EventItem[] = [
     ],
   },
 ];
+
+const TOTAL_RESOURCES = 3;
+
 const generateEvents = () => {
   return new Array(500)
     .fill(0)
@@ -332,6 +346,7 @@ const generateEvents = () => {
       );
       const duration = (Math.floor(Math.random() * 15) + 1) * 15 * 60 * 1000;
       const endDate = new Date(randomDateByIndex.getTime() + duration);
+
       return {
         id: `event_${index + 1}`,
         start: {
@@ -342,6 +357,7 @@ const generateEvents = () => {
         },
         title: `Event ${index + 1}`,
         color: randomColor(),
+        resourceId: `resource_${Math.floor(Math.random() * TOTAL_RESOURCES) + 1}`,
       } as EventItem;
     })
     .concat(allDayEvents);
@@ -360,6 +376,8 @@ const Calendar = () => {
   const [calendarWidth, setCalendarWidth] = useState(
     Dimensions.get('window').width
   );
+
+  const isResourcesMode = params.viewMode === 'resources';
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
@@ -436,6 +454,47 @@ const Calendar = () => {
     calendarRef.current?.goToNextPage();
   };
 
+  const resources = useMemo(() => {
+    return new Array(TOTAL_RESOURCES).fill(0).map((_, index) => {
+      return {
+        id: `resource_${index + 1}`,
+        title: `Resource ${index + 1}`,
+      };
+    });
+  }, []);
+
+  const _renderResource = useCallback((resource: ResourceItem) => {
+    return (
+      <View style={styles.resourceContainer}>
+        <Ionicons name="person-circle-outline" size={24} color="black" />
+        <Text>{resource.title}</Text>
+      </View>
+    );
+  }, []);
+
+  const _renderResourceHeaderItem = useCallback(
+    (item: HeaderItemProps) => {
+      const start = parseDateTime(item.startUnix);
+      const dateStr = start.toFormat('yyyy-MM-dd');
+
+      return (
+        <ResourceHeaderItem
+          startUnix={item.startUnix}
+          resources={item.extra.resources}
+          renderResource={_renderResource}
+          DateComponent={
+            <View style={styles.dateContainer}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
+                {dateStr}
+              </Text>
+            </View>
+          }
+        />
+      );
+    },
+    [_renderResource]
+  );
+
   return (
     <View style={styles.container}>
       <Header
@@ -507,6 +566,7 @@ const Calendar = () => {
             filteredEvents.push(newEvent);
             setEvents(filteredEvents);
           }
+
           setSelectedEvent(event);
           await new Promise((resolve) => {
             setTimeout(() => {
@@ -535,18 +595,27 @@ const Calendar = () => {
             }, 100);
           });
         }}
+        resources={isResourcesMode ? resources : undefined}
         onDragCreateEventEnd={(event) => {
           const newEvent = {
             ...event,
             id: `event_${events.length + 1}`,
             title: `Event ${events.length + 1}`,
             color: '#23cfde',
+            resourceId:
+              event.resourceId ||
+              `resource_${Math.floor(Math.random() * TOTAL_RESOURCES) + 1}`,
           };
           const newEvents = [...events, newEvent];
           setEvents(newEvents);
           setSelectedEvent(newEvent);
         }}>
-        <CalendarHeader />
+        <CalendarHeader
+          dayBarHeight={isResourcesMode ? 120 : 60}
+          renderHeaderItem={
+            isResourcesMode ? _renderResourceHeaderItem : undefined
+          }
+        />
         <CalendarBody />
       </CalendarContainer>
     </View>
@@ -568,4 +637,16 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   date: { fontSize: 16, fontWeight: 'bold' },
+  resourceContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+    gap: 8,
+  },
+  dateContainer: {
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    paddingVertical: 8,
+  },
 });

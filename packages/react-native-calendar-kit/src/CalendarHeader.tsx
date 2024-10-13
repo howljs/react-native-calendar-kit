@@ -10,6 +10,7 @@ import Animated, {
 import CalendarListView from './components/CalendarListView';
 import ExpandButton from './components/ExpandButton';
 import MultiDayBarItem from './components/MultiDayBarItem';
+import ResourceHeaderItem from './components/ResourceHeaderItem';
 import SingleDayBarItem from './components/SingleDayBarItem';
 import WeekNumber from './components/WeekNumber';
 import {
@@ -22,9 +23,9 @@ import {
   ScrollType,
 } from './constants';
 import { useCalendar } from './context/CalendarProvider';
-import { HeaderContext } from './context/DayBarContext';
 import type { HeaderContextProps } from './context/DayBarContext';
-import { useEventCountsByWeek } from './context/EventsProvider';
+import { HeaderContext } from './context/DayBarContext';
+import { useEventCountsByWeek, useResources } from './context/EventsProvider';
 import { useTheme } from './context/ThemeProvider';
 import useSyncedList from './hooks/useSyncedList';
 import type { CalendarHeaderProps } from './types';
@@ -65,6 +66,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     overlapEventsSpacing,
     firstDay,
   } = useCalendar();
+  const resources = useResources();
 
   const headerStyles = useTheme(
     useCallback(
@@ -127,6 +129,10 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   }, [numberOfDays, headerBottomHeight]);
 
   const contentHeight = useDerivedValue(() => {
+    if (!useAllDayEvent) {
+      return dayBarHeight;
+    }
+
     if (numberOfDays === 1) {
       const bottomHeight = isExpanded.value ? 10 : headerBottomHeight + 10;
       return Math.max(dayBarHeight, allDayEventsHeight.value + bottomHeight);
@@ -195,6 +201,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       renderHeaderItem,
       renderEvent,
       renderExpandIcon,
+      resources,
     }),
     [
       calendarData.minDateUnix,
@@ -203,6 +210,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       renderHeaderItem,
       renderEvent,
       renderExpandIcon,
+      resources,
     ]
   );
 
@@ -218,6 +226,15 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         index,
         extra,
       });
+    }
+
+    if (extra.resources) {
+      return (
+        <ResourceHeaderItem
+          resources={extra.resources}
+          startUnix={dateUnixByIndex}
+        />
+      );
     }
 
     if (extra.columns === 1) {
@@ -247,7 +264,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     };
   }, [calendarData.visibleDatesArray, numberOfDays]);
 
-  const leftSize = numberOfDays > 1 ? hourWidth : 0;
+  const leftSize = numberOfDays > 1 || !!resources ? hourWidth : 0;
 
   const _renderLeftArea = () => {
     if (LeftAreaComponent) {
@@ -295,7 +312,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 }),
               },
             ]}>
-            {numberOfDays > 1 && _renderLeftArea()}
+            {(numberOfDays > 1 || !!resources) && _renderLeftArea()}
             <View
               style={[
                 styles.absolute,
@@ -308,7 +325,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 animatedRef={dayBarListRef}
                 count={calendarData.count}
                 width={calendarGridWidth}
-                height={calendarLayout.height}
+                height={useAllDayEvent ? calendarLayout.height : dayBarHeight}
                 renderItem={_renderHeaderItem}
                 extraData={extraData}
                 inverted={isRTL}

@@ -138,11 +138,17 @@ export interface CalendarKitHandle {
  */
 export type DateType = Date | number | string | DateTime;
 
-export type DateOnlyType = { date: string; dateTime?: never; timeZone?: never };
+export type DateOnlyType = {
+  date: string;
+  dateTime?: never;
+  timeZone?: never;
+  resourceId?: string;
+};
 export type DateTimeType = {
   dateTime: string;
   timeZone?: string;
   date?: never;
+  resourceId?: string;
 };
 
 export type DateOrDateTime = DateOnlyType | DateTimeType;
@@ -162,6 +168,7 @@ export interface DraggingEventType extends Omit<EventItem, 'id'> {
 export interface OnCreateEventResponse {
   start: DateTimeType;
   end: DateTimeType;
+  resourceId?: string;
 }
 
 export interface ActionsProviderProps {
@@ -509,6 +516,17 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    * Default is `30` minutes
    */
   minStartDifference?: number;
+
+  /** Resource list */
+  resources?: ResourceItem[];
+}
+
+export interface ResourceItem extends Record<string, any> {
+  /** ID for the resource. */
+  id: string;
+
+  /** Title for the resource. */
+  title: string;
 }
 
 export interface EventItem extends Record<string, any> {
@@ -567,6 +585,9 @@ export interface EventItem extends Record<string, any> {
 
   /** Whether the event is the first occurrence of the recurring event. */
   isFirstOccurrence?: boolean;
+
+  /** Resource ID for the event. */
+  resourceId?: string;
 }
 
 export interface HighlightDateProps {
@@ -588,6 +609,12 @@ export interface UnavailableHourProps extends Record<string, any> {
 
 export interface OutOfRangeProps extends SizeAnimation {}
 
+export type HeaderItemProps = {
+  index: number;
+  startUnix: number;
+  extra: Record<string, any>;
+};
+
 export interface CalendarHeaderProps {
   /**
    * Day bar height
@@ -597,11 +624,7 @@ export interface CalendarHeaderProps {
   dayBarHeight?: number;
 
   /** Custom header item */
-  renderHeaderItem?: (props: {
-    index: number;
-    startUnix: number;
-    extra: Record<string, any>;
-  }) => React.ReactElement | null;
+  renderHeaderItem?: (props: HeaderItemProps) => React.ReactElement | null;
 
   /** Custom expand icon */
   renderExpandIcon?: (props: {
@@ -712,6 +735,7 @@ export interface EventItemInternal extends EventItem {
     duration: number;
     startMinutes?: number;
     weekStart?: number;
+    resourceIndex?: number;
   };
 }
 

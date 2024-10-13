@@ -20,6 +20,7 @@ const useDragToCreateGesture = () => {
     isDraggingCreateAnim,
     isDraggingCreate,
     isDraggingAnim,
+    dragX,
   } = useDragEvent();
 
   const initialStartY = useSharedValue(0);
@@ -73,7 +74,7 @@ const useDragToCreateGesture = () => {
     })
     .onUpdate(({ translationX, translationY, x, y }) => {
       dragPosition.value = { x, y, translationX, translationY };
-
+      dragX.value = x;
       const initialStart = initialDragState.value.dragStart;
       const newMinutes =
         Math.floor((offsetY.value + y - spaceFromTop) / minuteHeight.value) +

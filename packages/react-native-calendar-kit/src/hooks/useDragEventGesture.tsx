@@ -28,6 +28,7 @@ const useDragEventGesture = () => {
     extraMinutes,
     initialDragState,
     isDraggingCreateAnim,
+    dragX,
   } = useDragEvent();
 
   const initialX = useSharedValue(0);
@@ -159,6 +160,7 @@ const useDragEventGesture = () => {
     })
     .onUpdate(({ translationX, translationY, x, y }) => {
       dragPosition.value = { x, y, translationX, translationY };
+      dragX.value = x;
       const {
         dragStart: initialStart,
         dragStartUnix: initialDayUnix,

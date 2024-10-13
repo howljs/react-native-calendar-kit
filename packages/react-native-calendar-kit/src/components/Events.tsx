@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import React, { useCallback } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { GestureResponderEvent, StyleSheet, View } from 'react-native';
 import { useActions } from '../context/ActionsProvider';
 import { useBody } from '../context/BodyContext';
 import {
@@ -16,8 +16,9 @@ import EventItem from './EventItem';
 const Events: FC<{
   startUnix: number;
   visibleDates: Record<string, { diffDays: number; unix: number }>;
-}> = ({ startUnix, visibleDates }) => {
-  const { renderEvent, numberOfDays } = useBody();
+  totalResources?: number;
+}> = ({ startUnix, visibleDates, totalResources }) => {
+  const { renderEvent, numberOfDays, columnWidth } = useBody();
   const { onPressEvent, onLongPressEvent } = useActions();
   const { draggingId, selectedEventId } = useDragEvent();
   const { timeZone } = useTimezone();
@@ -29,7 +30,7 @@ const Events: FC<{
   );
 
   const _triggerDragEvent = useCallback(
-    (event: PackedEvent) => {
+    (event: PackedEvent, resEvent: GestureResponderEvent) => {
       if (!event.start.dateTime || !event.end.dateTime) {
         return;
       }
@@ -54,11 +55,16 @@ const Events: FC<{
             timeZone: event.end.timeZone,
           },
           startIndex,
+          dragX:
+            event._internal.resourceIndex && totalResources
+              ? event._internal.resourceIndex * (columnWidth / totalResources) +
+                resEvent.nativeEvent.locationX
+              : undefined,
         },
         event
       );
     },
-    [triggerDragEvent, timeZone]
+    [timeZone, triggerDragEvent, columnWidth, totalResources]
   );
 
   const _onLongPressEvent = useCallback(
@@ -93,6 +99,7 @@ const Events: FC<{
           draggingId === event.localId || selectedEventId === event.localId
         }
         visibleDates={visibleDates}
+        totalResources={totalResources}
       />
     );
   };
