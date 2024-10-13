@@ -4,6 +4,8 @@ sidebar_position: 11
 
 # Resources Calendar
 
+![resources](../assets/resources.png)
+
 The Resources Calendar feature allows you to display events for multiple resources (e.g., rooms, employees, equipment) side by side in a single calendar view. This is particularly useful for scheduling and managing multiple resources simultaneously.
 
 ## Setting Up Resources Calendar

@@ -7,6 +7,9 @@ React Native Calendar Kit is a powerful and flexible calendar component for Reac
 [![ko-fi][ko-fi-shield]][ko-fi-profile]
 
 ## Demo:
+
+![Calendar Demo](https://github.com/howljs/react-native-calendar-kit/blob/main/__assets__/demo.jpg?raw=true)
+
 ### iOS:
 
 https://github.com/user-attachments/assets/9a099b37-6898-4e05-87d9-c8fd82e16c63
@@ -30,6 +33,7 @@ https://github.com/user-attachments/assets/3896a8c8-4cde-4f76-8621-168be4cba74b
 - **Unavailable hours**: The ability to mark certain hours as unavailable in the calendar.
 - **Theming support**: The library includes a theming system for consistent styling.
 - **Overlap events**: The library supports overlapping events.
+- **Resources calendar**: The library supports displaying events for multiple resources (e.g., rooms, employees, equipment) side by side in a single calendar view.
 
 ## Documentation
 
