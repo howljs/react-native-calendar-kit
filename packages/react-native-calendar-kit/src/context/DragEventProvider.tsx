@@ -27,6 +27,7 @@ import type {
   DateType,
   DraggingEventType,
   OnEventResponse,
+  ResourceItem,
   SelectedEventType,
 } from '../types';
 import { forceUpdateZone, parseDateTime } from '../utils/dateUtils';
@@ -70,6 +71,7 @@ export type DragEventContextProps = {
   defaultDuration: number;
   isDraggingCreateAnim: SharedValue<boolean>;
   isDraggingCreate: boolean;
+  dragX: SharedValue<number>;
 };
 
 const DragEventContext = React.createContext<DragEventContextProps | undefined>(
@@ -82,12 +84,14 @@ export type DragEventActionsContextProps = {
       start: DateTimeType;
       end: DateTimeType;
       startIndex?: number;
+      dragX?: number;
     },
     event?: OnEventResponse
   ) => void;
   triggerDragSelectedEvent: (initialDrag: {
     startIndex: number;
     type: 'center' | 'top' | 'bottom';
+    resourceIndex?: number;
   }) => void;
   triggerDragCreateEvent?: (
     date: DateType,
@@ -111,6 +115,7 @@ const DragEventProvider: FC<
     allowDragToCreate: boolean;
     defaultDuration: number;
     hapticService: HapticService;
+    resources?: ResourceItem[];
   }>
 > = ({
   children,
@@ -120,6 +125,7 @@ const DragEventProvider: FC<
   allowDragToCreate,
   defaultDuration,
   hapticService,
+  resources,
 }) => {
   // Contexts
   const { timeZone } = useTimezone();
@@ -167,6 +173,7 @@ const DragEventProvider: FC<
   const roundedDragStartUnix = useSharedValue<number>(-1);
   const roundedDragStartMinutes = useSharedValue<number>(-1);
   const roundedDragDuration = useSharedValue<number>(-1);
+  const dragX = useSharedValue<number>(-1);
 
   const extraMinutes = useSharedValue(0);
   const dragSelectedType = useSharedValue<
@@ -222,6 +229,13 @@ const DragEventProvider: FC<
         const newEndUnix =
           newStartUnix + roundedDragDuration.value * MILLISECONDS_IN_MINUTE;
 
+        let resourceIndex = -1;
+        let resourceId = draggingEvent?.resourceId;
+        if (resources?.length) {
+          const width = columnWidthAnim.value / resources.length;
+          resourceIndex = Math.floor((dragX.value - hourWidth) / width);
+          resourceId = resources[resourceIndex]?.id;
+        }
         if (draggingEvent?.start?.dateTime && draggingEvent?.end?.dateTime) {
           const prevStart = parseDateTime(draggingEvent.start.dateTime, {
             zone: draggingEvent.start.timeZone,
@@ -237,14 +251,20 @@ const DragEventProvider: FC<
           const newEndObj = forceUpdateZone(newEndUnix, timeZone);
           const newStart = newStartObj.toMillis();
           const newEnd = newEndObj.toMillis();
+          const prevResourceId = draggingEvent?.resourceId;
           const currentEvent = { ...draggingEvent };
           delete currentEvent._internal;
-          if (prevStart !== newStart || prevEnd !== newEnd) {
+          if (
+            prevStart !== newStart ||
+            prevEnd !== newEnd ||
+            prevResourceId !== resourceId
+          ) {
             const newStartISO = newStartObj.toISO();
             const newEndISO = newEndObj.toISO();
             const newProps = {
               start: { dateTime: newStartISO, timeZone },
               end: { dateTime: newEndISO, timeZone },
+              resourceId,
             };
             if (selectedEvent) {
               await onDragSelectedEventEnd?.({
@@ -269,7 +289,7 @@ const DragEventProvider: FC<
           dragDuration.value = -1;
           dragStartMinutes.value = -1;
           dragSelectedType.value = undefined;
-
+          dragX.value = -1;
           roundedDragStartUnix.value = -1;
           roundedDragStartMinutes.value = -1;
           roundedDragDuration.value = -1;
@@ -281,22 +301,26 @@ const DragEventProvider: FC<
       setIsDragging(dragging);
     },
     [
-      dragDuration,
-      dragSelectedType,
-      dragStartMinutes,
-      dragStartUnix,
-      draggingEvent,
-      extraMinutes,
-      isDraggingCreate,
-      isDraggingSelectedEvent,
-      onDragCreateEventEnd,
-      onDragEventEnd,
-      onDragSelectedEventEnd,
-      roundedDragDuration,
       roundedDragStartMinutes,
       roundedDragStartUnix,
-      selectedEvent,
+      roundedDragDuration,
+      draggingEvent,
+      resources,
+      columnWidthAnim.value,
+      dragX,
+      hourWidth,
       timeZone,
+      selectedEvent,
+      isDraggingCreate,
+      onDragSelectedEventEnd,
+      onDragCreateEventEnd,
+      onDragEventEnd,
+      dragStartUnix,
+      dragDuration,
+      dragStartMinutes,
+      dragSelectedType,
+      extraMinutes,
+      isDraggingSelectedEvent,
     ]
   );
 
@@ -477,17 +501,17 @@ const DragEventProvider: FC<
 
   useAnimatedReaction(
     () => dragPosition.value.x,
-    (dragX, prevX) => {
+    (curX, prevX) => {
       if (
         isDraggingAnim.value &&
-        dragX !== prevX &&
-        dragX !== -1 &&
+        curX !== prevX &&
+        curX !== -1 &&
         dragSelectedType.value !== 'top' &&
         dragSelectedType.value !== 'bottom'
       ) {
-        const isAtLeftEdge = dragX <= hourWidth - 10;
+        const isAtLeftEdge = curX <= hourWidth - 10;
         const width = columnWidthAnim.value * numberOfDays + hourWidth;
-        const isAtRightEdge = width - dragX <= 24;
+        const isAtRightEdge = width - curX <= 24;
         const isStartAutoScroll = isAtLeftEdge || isAtRightEdge;
         if (isStartAutoScroll) {
           runOnJS(_startAutoHScroll)(isAtRightEdge);
@@ -605,6 +629,7 @@ const DragEventProvider: FC<
     (initialDrag: {
       startIndex: number;
       type: 'center' | 'top' | 'bottom';
+      resourceIndex?: number;
     }) => {
       if (!selectedEvent) {
         return;
@@ -613,7 +638,14 @@ const DragEventProvider: FC<
         onDragSelectedEventStart(selectedEvent);
       }
       setDraggingEvent(selectedEvent);
-
+      if (
+        resources &&
+        initialDrag.resourceIndex !== undefined &&
+        initialDrag.resourceIndex >= 0
+      ) {
+        const eventWidth = columnWidth / resources.length;
+        dragX.value = initialDrag.resourceIndex * eventWidth + hourWidth + 1;
+      }
       runOnUI(() => {
         if (initialDrag.startIndex === 0) {
           const startMinutes = dragSelectedStartMinutes.value;
@@ -658,6 +690,7 @@ const DragEventProvider: FC<
       })();
     },
     [
+      columnWidth,
       dragDuration,
       dragSelectedDuration.value,
       dragSelectedStartMinutes.value,
@@ -665,9 +698,12 @@ const DragEventProvider: FC<
       dragSelectedType,
       dragStartMinutes,
       dragStartUnix,
+      dragX,
+      hourWidth,
       isDraggingAnim,
       isDraggingSelectedEvent,
       onDragSelectedEventStart,
+      resources,
       roundedDragDuration,
       roundedDragStartMinutes,
       roundedDragStartUnix,
@@ -682,6 +718,7 @@ const DragEventProvider: FC<
         start: DateTimeType;
         end: DateTimeType;
         startIndex?: number;
+        dragX?: number;
       },
       event?: OnEventResponse
     ) => {
@@ -692,6 +729,9 @@ const DragEventProvider: FC<
         onDragEventStart(event);
       }
       setDraggingEvent(event);
+
+      dragX.value =
+        initialDrag.dragX !== undefined ? initialDrag.dragX + hourWidth : -1;
       let startDate = parseDateTime(initialDrag.start.dateTime, {
         zone: initialDrag.start.timeZone,
       }).setZone(timeZone);
@@ -746,12 +786,14 @@ const DragEventProvider: FC<
     [
       onLongPressEvent,
       onDragEventStart,
+      dragX,
+      hourWidth,
       timeZone,
       dragDuration,
       roundedDragDuration,
       isDraggingAnim,
-      roundedDragStartMinutes,
       dragStartMinutes,
+      roundedDragStartMinutes,
       visibleDateUnixAnim.value,
       dragStartUnix,
       roundedDragStartUnix,
@@ -759,8 +801,12 @@ const DragEventProvider: FC<
   );
 
   const triggerDragCreateEvent = useCallback(
-    (date: DateType) => {
+    (date: DateType, event?: GestureResponderEvent) => {
       setIsDraggingCreate(true);
+      dragX.value =
+        event?.nativeEvent?.locationX !== undefined
+          ? event.nativeEvent.locationX + hourWidth
+          : -1;
       const start = parseDateTime(date, { zone: timeZone });
       const startUnix = parseDateTime(start.toISODate()).toMillis();
       const startMinutes = start.hour * 60 + start.minute;
@@ -798,6 +844,8 @@ const DragEventProvider: FC<
       dragStartMinutes,
       dragStartUnix,
       dragStep,
+      dragX,
+      hourWidth,
       isDraggingAnim,
       isDraggingCreateAnim,
       onDragCreateEventStart,
@@ -836,6 +884,7 @@ const DragEventProvider: FC<
       defaultDuration,
       isDraggingCreateAnim,
       isDraggingCreate,
+      dragX,
     }),
     [
       dragStep,
@@ -864,6 +913,7 @@ const DragEventProvider: FC<
       defaultDuration,
       isDraggingCreateAnim,
       isDraggingCreate,
+      dragX,
     ]
   );
 

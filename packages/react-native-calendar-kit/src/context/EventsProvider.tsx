@@ -10,13 +10,14 @@ import React, {
 import { DEFAULT_MIN_START_DIFFERENCE } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
 import { useSyncExternalStoreWithSelector } from '../hooks/useSyncExternalStoreWithSelector';
-import { createStore } from '../storeBuilder';
 import type { Store } from '../storeBuilder';
+import { createStore } from '../storeBuilder';
 import type {
   EventItem,
   EventItemInternal,
   PackedAllDayEvent,
   PackedEvent,
+  ResourceItem,
 } from '../types';
 import { forceUpdateZone, parseDateTime } from '../utils/dateUtils';
 import {
@@ -35,6 +36,7 @@ interface EventsState {
   regularEvents: Record<string, PackedEvent[]>;
   eventCountsByDay: Record<string, number>;
   eventCountsByWeek: Record<string, number>;
+  resources?: ResourceItem[];
 }
 
 const EventsContext = React.createContext<Store<EventsState> | undefined>(
@@ -52,6 +54,7 @@ interface EventsProviderProps {
   minRegularEventMinutes?: number;
   overlapType?: 'no-overlap' | 'overlap';
   minStartDifference?: number;
+  resources?: ResourceItem[];
 }
 
 export interface EventsRef {
@@ -74,6 +77,7 @@ const EventsProvider: ForwardRefRenderFunction<
     minRegularEventMinutes = 1,
     overlapType = 'no-overlap',
     minStartDifference = DEFAULT_MIN_START_DIFFERENCE,
+    resources,
   },
   ref
 ) => {
@@ -84,6 +88,7 @@ const EventsProvider: ForwardRefRenderFunction<
       regularEvents: {},
       eventCountsByDay: {},
       eventCountsByWeek: {},
+      resources: undefined,
     })
   ).current;
   const currentStartDate = useDateChangedListener();
@@ -130,6 +135,7 @@ const EventsProvider: ForwardRefRenderFunction<
         packedRegularEvents[day] = populateEvents(rEvents, {
           overlap: overlapType === 'overlap',
           minStartDifference,
+          resources,
         });
       });
 
@@ -168,20 +174,22 @@ const EventsProvider: ForwardRefRenderFunction<
         allDayEventsByDay: packedAllDayEventsByDay,
         eventCountsByDay,
         eventCountsByWeek,
+        resources,
       });
     },
     [
       defaultOffset,
-      eventStore,
-      events,
-      firstDay,
-      hideWeekDays,
-      minRegularEventMinutes,
-      pagesPerSide,
-      showAllDay,
       timeZone,
+      pagesPerSide,
+      events,
+      showAllDay,
+      hideWeekDays,
+      eventStore,
+      resources,
+      minRegularEventMinutes,
       overlapType,
       minStartDifference,
+      firstDay,
     ]
   );
 
@@ -341,6 +349,25 @@ export const useEventCountsByWeek = (type: 'week' | 'day') => {
     eventsContext.subscribe,
     eventsContext.getState,
     selectEventCountByWeek
+  );
+  return state;
+};
+
+export const useResources = () => {
+  const eventsContext = useContext(EventsContext);
+  const selectResources = useCallback(
+    () => eventsContext?.getState().resources,
+    [eventsContext]
+  );
+
+  if (!eventsContext) {
+    throw new Error('useResources must be used within a EventsProvider');
+  }
+
+  const state = useSyncExternalStoreWithSelector(
+    eventsContext.subscribe,
+    eventsContext.getState,
+    selectResources
   );
   return state;
 };

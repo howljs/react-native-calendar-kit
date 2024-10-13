@@ -13,6 +13,7 @@ import type {
   OverlapEvent,
   PackedAllDayEvent,
   PackedEvent,
+  ResourceItem,
 } from '../types';
 import { forceUpdateZone, parseDateTime, startOfWeek } from './dateUtils';
 
@@ -491,7 +492,10 @@ export const sortEvents = (
   });
 };
 
-const handleNoOverlap = (events: EventItemInternal[]) => {
+const handleNoOverlap = (
+  events: EventItemInternal[],
+  resourceIndex?: number
+) => {
   const eventColumns: EventItemInternal[][] = [];
   const packedEvents: PackedEvent[] = [];
   const sortedEvents = sortEvents(events) as NoOverlapEvent[];
@@ -540,6 +544,7 @@ const handleNoOverlap = (events: EventItemInternal[]) => {
         ...event._internal,
         total: maxColumns,
         columnSpan: colSpan,
+        resourceIndex,
       },
     });
   }
@@ -652,7 +657,8 @@ const computeStylesForEvents = (containerEvents: OverlapEvent[]) => {
 
 const handleOverlap = (
   events: EventItemInternal[],
-  minimumStartDifference: number
+  minimumStartDifference: number,
+  resourceIndex?: number
 ) => {
   const sortedEvents = overlapSort(events) as OverlapEvent[];
   const containerEvents: OverlapEvent[] = [];
@@ -702,6 +708,7 @@ const handleOverlap = (
         endUnix: event._internal.endUnix,
         widthPercentage: event._internal.width,
         xOffsetPercentage: event._internal.xOffset,
+        resourceIndex,
       },
     } as PackedEvent;
   });
@@ -713,17 +720,39 @@ export const populateEvents = (
   {
     overlap = false,
     minStartDifference = DEFAULT_MIN_START_DIFFERENCE,
-  }: { overlap?: boolean; minStartDifference?: number } = {}
-) => {
+    resources,
+  }: {
+    overlap?: boolean;
+    minStartDifference?: number;
+    resources?: ResourceItem[];
+  } = {}
+): PackedEvent[] => {
   if (!events.length) {
     return [];
   }
 
-  if (overlap) {
-    return handleOverlap(events, minStartDifference * MILLISECONDS_IN_MINUTE);
+  const handleEvents = (
+    eventsToHandle: EventItemInternal[],
+    resourceIndex?: number
+  ): PackedEvent[] =>
+    overlap
+      ? handleOverlap(
+          eventsToHandle,
+          minStartDifference * MILLISECONDS_IN_MINUTE,
+          resourceIndex
+        )
+      : handleNoOverlap(eventsToHandle, resourceIndex);
+
+  if (resources && resources.length > 0) {
+    return resources.flatMap((resource, resourceIndex) => {
+      const resourceEvents = events.filter((e) => e.resourceId === resource.id);
+      return resourceEvents.length > 0
+        ? handleEvents(resourceEvents, resourceIndex)
+        : [];
+    });
   }
 
-  return handleNoOverlap(events);
+  return handleEvents(events);
 };
 
 interface PopulateAllDayOptions {

@@ -17,7 +17,7 @@ import {
   useDragEventActions,
 } from '../context/DragEventProvider';
 import { useTheme } from '../context/ThemeProvider';
-import type { SelectedEventType } from '../types';
+import type { ResourceItem, SelectedEventType } from '../types';
 import { parseDateTime } from '../utils/dateUtils';
 import DragDot from './DragDot';
 
@@ -35,6 +35,7 @@ export interface DraggableEventProps {
   TopEdgeComponent?: React.ReactElement | null;
   BottomEdgeComponent?: React.ReactElement | null;
   containerStyle?: ViewStyle;
+  resources?: ResourceItem[];
 }
 
 export const DraggableEvent: FC<DraggableEventProps> = ({
@@ -42,6 +43,7 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
   visibleDates,
   index,
   renderEvent,
+  resources,
   TopEdgeComponent,
   BottomEdgeComponent,
   containerStyle,
@@ -65,7 +67,23 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
     isDraggingAnim,
   } = useDragEvent();
   const { triggerDragSelectedEvent } = useDragEventActions();
+  const totalResources =
+    resources && resources.length > 1 ? resources.length : 1;
 
+  const eventWidth = useDerivedValue(
+    () => columnWidthAnim.value / totalResources,
+    [totalResources]
+  );
+
+  const resourceIndex = useMemo(() => {
+    if (!resources) {
+      return -1;
+    }
+
+    return resources.findIndex(
+      (resource) => resource.id === selectedEvent?.resourceId
+    );
+  }, [resources, selectedEvent?.resourceId]);
   const left = useDerivedValue(() => {
     const diffDays = visibleDates[startUnix]?.diffDays ?? 1;
     return (diffDays - 1) * columnWidthAnim.value;
@@ -90,19 +108,24 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
   const isDragging = useDerivedValue(() => dragStartUnix.value !== -1);
 
   const animView = useAnimatedStyle(() => {
+    const startX = resourceIndex !== -1 ? resourceIndex * eventWidth.value : 0;
     return {
       top: top.value,
       height: eventHeight.value,
-      width: columnWidthAnim.value,
-      left: left.value,
+      width: eventWidth.value,
+      left: startX + left.value,
       opacity: isDragging.value ? 0 : 1,
     };
-  });
+  }, [resourceIndex]);
 
   const gesture = Gesture.Tap()
     .runOnJS(true)
     .onTouchesDown(() => {
-      triggerDragSelectedEvent({ startIndex: index, type: 'center' });
+      triggerDragSelectedEvent({
+        startIndex: index,
+        type: 'center',
+        resourceIndex,
+      });
     })
     .onTouchesUp(() => {
       isDraggingAnim.value = false;
@@ -111,7 +134,11 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
   const topEdgeGesture = Gesture.Tap()
     .runOnJS(true)
     .onTouchesDown(() => {
-      triggerDragSelectedEvent({ startIndex: index, type: 'top' });
+      triggerDragSelectedEvent({
+        startIndex: index,
+        type: 'top',
+        resourceIndex,
+      });
     })
     .onTouchesUp(() => {
       isDraggingAnim.value = false;
@@ -120,7 +147,11 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
   const bottomEdgeGesture = Gesture.Tap()
     .runOnJS(true)
     .onTouchesDown(() => {
-      triggerDragSelectedEvent({ startIndex: index, type: 'bottom' });
+      triggerDragSelectedEvent({
+        startIndex: index,
+        type: 'bottom',
+        resourceIndex,
+      });
     })
     .onTouchesUp(() => {
       isDraggingAnim.value = false;
@@ -146,7 +177,7 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
           ]}>
           {renderEvent ? (
             renderEvent(selectedEvent, {
-              width: columnWidthAnim,
+              width: eventWidth,
               height: eventHeight,
             })
           ) : (
@@ -223,6 +254,7 @@ interface DraggableEventWrapperProps {
   renderDraggableEvent?: (
     event: DraggableEventProps
   ) => React.ReactElement | null;
+  resources?: ResourceItem[];
 }
 
 const DraggableEventWrapper: FC<DraggableEventWrapperProps> = ({
@@ -230,6 +262,7 @@ const DraggableEventWrapper: FC<DraggableEventWrapperProps> = ({
   visibleDates,
   renderEvent,
   renderDraggableEvent,
+  resources,
 }) => {
   const [draggableDates, setDraggableDates] = useState<number[]>([]);
   const {
@@ -326,6 +359,7 @@ const DraggableEventWrapper: FC<DraggableEventWrapperProps> = ({
         visibleDates={visibleDates}
         index={index}
         renderEvent={renderEvent}
+        resources={resources}
       />
     );
   });

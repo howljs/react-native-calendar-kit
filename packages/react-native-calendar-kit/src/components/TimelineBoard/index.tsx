@@ -19,17 +19,20 @@ import HorizontalLine from './HorizontalLine';
 import OutOfRangeView from './OutOfRangeView';
 import UnavailableHours from './UnavailableHours';
 import VerticalLine from './VerticalLine';
+import { ResourceItem } from '../../types';
 
 interface TimelineBoardProps {
   pageIndex: number;
   dateUnix: number;
   visibleDates: Record<number, { diffDays: number; unix: number }>;
+  resources?: ResourceItem[];
 }
 
 const TimelineBoard = ({
   pageIndex,
   dateUnix,
   visibleDates,
+  resources,
 }: TimelineBoardProps) => {
   const {
     totalSlots,
@@ -50,13 +53,16 @@ const TimelineBoard = ({
 
   const _renderVerticalLines = () => {
     const lines: React.ReactNode[] = [];
-    for (let i = 0; i < columns; i++) {
+    const cols = resources ? resources.length : columns;
+
+    for (let i = 0; i < cols; i++) {
       lines.push(
         <VerticalLine
           key={i}
           borderColor={colors.border}
           index={i}
           columnWidth={columnWidthAnim}
+          childColumns={resources ? resources.length : 1}
         />
       );
     }
@@ -108,7 +114,15 @@ const TimelineBoard = ({
     if (dayUnix) {
       const baseDateTime = parseDateTime(dayUnix).set({ hour, minute });
       const dateObj = forceUpdateZone(baseDateTime, timeZone);
-      onPressBackground?.({ dateTime: dateTimeToISOString(dateObj) }, event);
+      const newProps: { dateTime: string; resourceId?: string } = {
+        dateTime: dateTimeToISOString(dateObj),
+      };
+      if (resources) {
+        const colWidth = columnWidthAnim.value / resources.length;
+        const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
+        newProps.resourceId = resources[resourceIdx]?.id;
+      }
+      onPressBackground?.(newProps, event);
     }
   };
 
@@ -126,7 +140,15 @@ const TimelineBoard = ({
       const baseDateTime = parseDateTime(dayUnix).set({ hour, minute });
       const dateObj = forceUpdateZone(baseDateTime, timeZone);
       const dateString = dateTimeToISOString(dateObj);
-      onLongPressBackground?.({ dateTime: dateString }, event);
+      const newProps: { dateTime: string; resourceId?: string } = {
+        dateTime: dateString,
+      };
+      if (resources) {
+        const colWidth = columnWidthAnim.value / resources.length;
+        const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
+        newProps.resourceId = resources[resourceIdx]?.id;
+      }
+      onLongPressBackground?.(newProps, event);
       if (triggerDragCreateEvent) {
         triggerDragCreateEvent?.(dateString, event);
       }
@@ -165,7 +187,7 @@ const TimelineBoard = ({
 
   return (
     <View style={styles.container}>
-      {numberOfDays === 1 && (
+      {numberOfDays === 1 && !resources && (
         <View style={{ width: hourWidth }}>
           <TimeColumn />
         </View>
@@ -194,7 +216,7 @@ const TimelineBoard = ({
         {_renderOutOfRangeView()}
         {_renderHorizontalLines()}
       </Animated.View>
-      {numberOfDays > 1 && _renderVerticalLines()}
+      {(numberOfDays > 1 || resources?.length) && _renderVerticalLines()}
     </View>
   );
 };

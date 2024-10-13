@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
-import { Platform, RefreshControl, StyleSheet, View } from 'react-native';
 import type {
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from 'react-native';
+import { Platform, RefreshControl, StyleSheet, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -18,9 +18,10 @@ import DraggingHour from './components/DraggingHour';
 import TimeColumn from './components/TimeColumn';
 import { EXTRA_HEIGHT, ScrollType } from './constants';
 import { useActions } from './context/ActionsProvider';
-import { BodyContext } from './context/BodyContext';
 import type { BodyContextProps } from './context/BodyContext';
+import { BodyContext } from './context/BodyContext';
 import { useCalendar } from './context/CalendarProvider';
+import { useResources } from './context/EventsProvider';
 import { useLocale } from './context/LocaleProvider';
 import useDragEventGesture from './hooks/useDragEventGesture';
 import useDragToCreateGesture from './hooks/useDragToCreateGesture';
@@ -91,7 +92,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   } = useCalendar();
   const locale = useLocale();
   const { onRefresh, onLoad } = useActions();
-
+  const resources = useResources();
   const { onScroll, onVisibleColumnChanged } = useSyncedList({
     id: ScrollType.calendarGrid,
   });
@@ -125,6 +126,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       columns,
       visibleDatesArray: calendarData.visibleDatesArray,
       renderDraggableEvent,
+      resources,
     };
   }, [
     calendarData.minDateUnix,
@@ -132,6 +134,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     columns,
     renderDraggableEvent,
     firstDay,
+    resources,
   ]);
 
   const _renderTimeSlots = useCallback(
@@ -147,6 +150,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
           pageIndex={pageIndex}
           startUnix={dateUnixByIndex}
           renderDraggableEvent={extra.renderDraggableEvent}
+          resources={extra.resources}
         />
       );
     },
@@ -258,7 +262,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     dragToCreateGesture
   );
 
-  const leftSize = numberOfDays > 1 ? hourWidth : 0;
+  const leftSize = numberOfDays > 1 || !!resources ? hourWidth : 0;
 
   return (
     <View style={styles.container}>
@@ -294,7 +298,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                   styles.absolute,
                   { top: -EXTRA_HEIGHT, width: calendarLayout.width },
                 ]}>
-                {numberOfDays > 1 && <TimeColumn />}
+                {(numberOfDays > 1 || !!resources) && <TimeColumn />}
                 <View
                   style={[
                     styles.absolute,
@@ -336,6 +340,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                   ]}>
                   <DragEventPlaceholder
                     renderDraggingEvent={renderDraggingEvent}
+                    resources={resources}
                   />
                   <DraggingHour renderHour={renderDraggingHour} />
                 </View>

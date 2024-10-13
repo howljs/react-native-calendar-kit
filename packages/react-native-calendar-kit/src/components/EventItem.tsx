@@ -1,7 +1,12 @@
 import isEqual from 'lodash.isequal';
 import type { FC } from 'react';
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  GestureResponderEvent,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
@@ -19,9 +24,13 @@ interface EventItemProps {
   startUnix: number;
   renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
   onPressEvent?: (event: OnEventResponse) => void;
-  onLongPressEvent?: (event: PackedEvent) => void;
+  onLongPressEvent?: (
+    event: PackedEvent,
+    resEvent: GestureResponderEvent
+  ) => void;
   isDragging?: boolean;
   visibleDates: Record<string, { diffDays: number; unix: number }>;
+  totalResources?: number;
 }
 
 const EventItem: FC<EventItemProps> = ({
@@ -32,6 +41,7 @@ const EventItem: FC<EventItemProps> = ({
   onLongPressEvent,
   isDragging,
   visibleDates,
+  totalResources,
 }) => {
   const theme = useTheme(
     useCallback((state) => {
@@ -61,6 +71,7 @@ const EventItem: FC<EventItemProps> = ({
     startUnix: eventStartUnix,
     widthPercentage,
     xOffsetPercentage,
+    resourceIndex,
   } = _internal;
 
   const data = useMemo(() => {
@@ -115,6 +126,9 @@ const EventItem: FC<EventItemProps> = ({
     visibleDates,
   ]);
 
+  const childColumns =
+    totalResources && totalResources > 0 ? totalResources : 1;
+
   const eventHeight = useDerivedValue(
     () => data.totalDuration * minuteHeight.value - 1,
     [data.totalDuration]
@@ -122,7 +136,7 @@ const EventItem: FC<EventItemProps> = ({
 
   const widthPercent = useDerivedValue(() => {
     if (total && columnSpan) {
-      const availableWidth = columnWidth - rightEdgeSpacing;
+      const availableWidth = columnWidth / childColumns - rightEdgeSpacing;
       const totalColumns = total - columnSpan;
       const overlapSpacing = (totalColumns * overlapEventsSpacing) / total;
       const eventWidth = (availableWidth / total) * columnSpan - overlapSpacing;
@@ -139,12 +153,15 @@ const EventItem: FC<EventItemProps> = ({
     overlapEventsSpacing,
     total,
     columnWidth,
+    childColumns,
   ]);
 
   const eventWidth = useDerivedValue(() => {
-    const availableWidth = columnWidthAnim.value - rightEdgeSpacing;
+    const availableWidth =
+      columnWidthAnim.value / childColumns - rightEdgeSpacing;
     return widthPercent.value * availableWidth;
   }, [
+    childColumns,
     columnSpan,
     rightEdgeSpacing,
     overlapEventsSpacing,
@@ -153,21 +170,26 @@ const EventItem: FC<EventItemProps> = ({
   ]);
 
   const eventPosX = useDerivedValue(() => {
-    let left = data.diffDays * columnWidthAnim.value;
+    const colWidth = columnWidthAnim.value / childColumns;
+    const startOffset = resourceIndex ? resourceIndex * colWidth : 0;
+    let left = data.diffDays * colWidth + startOffset;
     if (xOffsetPercentage) {
-      const availableWidth = columnWidthAnim.value - rightEdgeSpacing;
+      const availableWidth =
+        columnWidthAnim.value / childColumns - rightEdgeSpacing;
       left += availableWidth * (xOffsetPercentage / 100);
     } else if (columnSpan && index) {
       left += (eventWidth.value + overlapEventsSpacing) * (index / columnSpan);
     }
     return left;
   }, [
+    childColumns,
     data.diffDays,
     overlapEventsSpacing,
     rightEdgeSpacing,
     index,
     total,
     xOffsetPercentage,
+    resourceIndex,
   ]);
 
   const top = useDerivedValue(() => {
@@ -189,8 +211,8 @@ const EventItem: FC<EventItemProps> = ({
     }
   };
 
-  const _onLongPressEvent = () => {
-    onLongPressEvent!(eventInput);
+  const _onLongPressEvent = (resEvent: GestureResponderEvent) => {
+    onLongPressEvent!(eventInput, resEvent);
   };
 
   const opacity = isDragging ? 0.5 : 1;

@@ -1,3 +1,4 @@
+import type { PropsWithChildren } from 'react';
 import React, {
   forwardRef,
   useEffect,
@@ -6,7 +7,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { PropsWithChildren } from 'react';
 import { PixelRatio, Platform } from 'react-native';
 import type Animated from 'react-native-reanimated';
 import {
@@ -117,7 +117,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     defaultDuration = 30,
     onDragCreateEventStart,
     onDragCreateEventEnd,
-    useAllDayEvent = true,
+    useAllDayEvent: initialUseAllDayEvent,
     rightEdgeSpacing = 1,
     overlapEventsSpacing = 1,
     minRegularEventMinutes = 1,
@@ -125,6 +125,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     overlapType,
     minStartDifference,
     onLongPressBackground,
+    resources,
   },
   ref
 ) => {
@@ -135,15 +136,11 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     throw new Error('The maximum number of days is 7');
   }
 
-  const scrollByDay = useMemo(() => {
-    if (initialNumberOfDays === 1) {
-      return true;
-    }
-
-    return initialScrollByDay === undefined
-      ? initialNumberOfDays < 7
-      : initialScrollByDay;
-  }, [initialNumberOfDays, initialScrollByDay]);
+  const isResourceMode = !!resources;
+  const scrollByDay =
+    isResourceMode ||
+    initialNumberOfDays === 1 ||
+    (initialScrollByDay ?? initialNumberOfDays < 7);
 
   const timeZone = useMemo(() => {
     const parsedTimeZone = parseDateTime(undefined, { zone: initialTimeZone });
@@ -173,10 +170,16 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     }
   }, [initialHideWeekDays]);
 
+  const useAllDayEvent = isResourceMode
+    ? false
+    : (initialUseAllDayEvent ?? true);
   const hideWeekDaysCount = hideWeekDays.length;
   const daysToShow = 7 - hideWeekDaysCount;
-  const numberOfDays =
-    initialNumberOfDays > daysToShow ? daysToShow : initialNumberOfDays;
+  const numberOfDays = isResourceMode
+    ? 1
+    : initialNumberOfDays > daysToShow
+      ? daysToShow
+      : initialNumberOfDays;
 
   const isSingleDay = numberOfDays === 1;
   const columns = isSingleDay ? 1 : daysToShow;
@@ -217,17 +220,13 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   );
   const totalSlots = slots.length;
 
-  const columnWidth = useMemo(() => {
-    return (calendarLayout.width - hourWidth) / numberOfDays;
-  }, [calendarLayout.width, hourWidth, numberOfDays]);
+  const columnWidth = (calendarLayout.width - hourWidth) / numberOfDays;
 
-  const calendarGridWidth = useMemo(() => {
-    if (isSingleDay) {
-      return calendarLayout.width;
-    }
-
-    return columnWidth * columns;
-  }, [calendarLayout.width, columnWidth, isSingleDay, columns]);
+  const calendarGridWidth = isSingleDay
+    ? isResourceMode
+      ? calendarLayout.width - hourWidth
+      : calendarLayout.width
+    : columnWidth * columns;
 
   const calendarListRef = useRef<CalendarListViewHandle>(null);
   const verticalListRef = useAnimatedRef<Animated.ScrollView>();
@@ -598,7 +597,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   }, [columnWidthAnim, columnWidth, columns, isSingleDay]);
 
   const snapToInterval =
-    numberOfDays > 1 && scrollByDay ? columnWidth : undefined;
+    numberOfDays > 1 && scrollByDay && !isResourceMode
+      ? columnWidth
+      : undefined;
 
   const value = useMemo<CalendarContextProps>(
     () => ({
@@ -755,6 +756,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                           minRegularEventMinutes={minRegularEventMinutes}
                           hideWeekDays={hideWeekDays}
                           overlapType={overlapType}
+                          resources={resources}
                           minStartDifference={minStartDifference}>
                           <DragEventProvider
                             dragStep={dragStep}
@@ -762,6 +764,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                             selectedEvent={selectedEvent}
                             allowDragToCreate={allowDragToCreate}
                             defaultDuration={defaultDuration}
+                            resources={resources}
                             hapticService={hapticService}>
                             {children}
                           </DragEventProvider>

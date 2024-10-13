@@ -12,6 +12,7 @@ import Events from './Events';
 import LoadingOverlay from './Loading/Overlay';
 import NowIndicator from './NowIndicator';
 import TimelineBoard from './TimelineBoard';
+import { ResourceItem } from '../types';
 
 interface MultipleBodyItemProps {
   pageIndex: number;
@@ -19,12 +20,14 @@ interface MultipleBodyItemProps {
   renderDraggableEvent?: (
     props: DraggableEventProps
   ) => React.ReactElement | null;
+  resources?: ResourceItem[];
 }
 
 const BodyItem = ({
   pageIndex,
   startUnix,
   renderDraggableEvent,
+  resources,
 }: MultipleBodyItemProps) => {
   const {
     spaceFromTop,
@@ -69,23 +72,29 @@ const BodyItem = ({
         pageIndex={pageIndex}
         dateUnix={startUnix}
         visibleDates={visibleDates}
+        resources={resources}
       />
       <Animated.View
         pointerEvents="box-none"
         style={[
           styles.content,
           {
-            left: Math.max(0, leftSpacing - 1),
+            left: resources ? 0 : Math.max(0, leftSpacing - 1),
             top: EXTRA_HEIGHT + spaceFromTop,
           },
           animView,
         ]}>
-        <Events startUnix={startUnix} visibleDates={visibleDates} />
+        <Events
+          startUnix={startUnix}
+          visibleDates={visibleDates}
+          totalResources={resources?.length}
+        />
         <NowIndicator startUnix={startUnix} visibleDates={visibleDates} />
         <DraggableEvent
           startUnix={startUnix}
           visibleDates={visibleDates}
           renderDraggableEvent={renderDraggableEvent}
+          resources={resources}
         />
       </Animated.View>
       <LoadingOverlay />
