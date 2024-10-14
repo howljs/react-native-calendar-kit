@@ -1,4 +1,5 @@
-import { ExpoHapticProxy, ReactNativeHapticFeedbackProxy } from './HapticProxy';
+import { ExpoHapticProxy } from './ExpoHapticProxy';
+import { ReactNativeHapticFeedbackProxy } from './HapticProxy';
 
 class HapticDependency {
   public isReactNativeHapticFeedbackAvailable: boolean = false;
