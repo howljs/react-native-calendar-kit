@@ -2573,9 +2573,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@howljs/calendar-kit@npm:2.0.3":
-  version: 2.0.3
-  resolution: "@howljs/calendar-kit@npm:2.0.3"
+"@howljs/calendar-kit@npm:2.0.6":
+  version: 2.0.6
+  resolution: "@howljs/calendar-kit@npm:2.0.6"
   dependencies:
     lodash.debounce: "npm:^4.0.8"
     lodash.isequal: "npm:^4.5.0"
@@ -2594,7 +2594,7 @@ __metadata:
       optional: true
     react-native-haptic-feedback:
       optional: true
-  checksum: 10/3bcca8efd70749a524e4732366e9efef3f102a46549a1a6bcd9a8edebad84aad16ee6bf27eed40b5464e4469a5ac9c94825425c0f88dd03d2e7bf78769d82b41
+  checksum: 10/330c774a4d5c054cd2577cbddcc3b27f7909d56c747f42baef3cfa71eaddb9a57057beb8850137ae3d7685b64e8650a151cdd2559ad10fe4a7b56bf476f2d5b3
   languageName: node
   linkType: hard
 
@@ -5036,7 +5036,7 @@ __metadata:
     "@docusaurus/tsconfig": "npm:3.5.2"
     "@docusaurus/types": "npm:3.5.2"
     "@easyops-cn/docusaurus-search-local": "npm:^0.44.5"
-    "@howljs/calendar-kit": "npm:2.0.3"
+    "@howljs/calendar-kit": "npm:2.0.6"
     "@mdx-js/react": "npm:^3.0.0"
     clsx: "npm:^2.0.0"
     glob: "npm:^10.4.2"
