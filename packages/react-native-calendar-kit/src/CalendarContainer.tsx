@@ -272,13 +272,13 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       return nearestIndex * colWidth;
     }
 
-    const pageIndex = Math.floor(nearestIndex / columns);
-    return pageIndex * (columnWidth * columns);
+    const pageIndex = Math.floor(nearestIndex / numberOfDays);
+    return pageIndex * (columnWidth * numberOfDays);
   }, [
+    numberOfDays,
     calendarData,
     calendarGridWidth,
     columnWidth,
-    columns,
     isSingleDay,
     scrollByDay,
     visibleDateUnix,
