@@ -126,6 +126,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     minStartDifference,
     onLongPressBackground,
     resources,
+    animateColumnWidth = false,
   },
   ref
 ) => {
@@ -588,13 +589,18 @@ const CalendarContainer: React.ForwardRefRenderFunction<
 
   const prevMode = useRef(isSingleDay);
   useEffect(() => {
+    if (!animateColumnWidth) {
+      columnWidthAnim.value = columnWidth;
+      return;
+    }
+
     if (prevMode.current !== isSingleDay) {
       prevMode.current = isSingleDay;
       columnWidthAnim.value = columnWidth;
     } else {
       columnWidthAnim.value = withTiming(columnWidth);
     }
-  }, [columnWidthAnim, columnWidth, columns, isSingleDay]);
+  }, [columnWidthAnim, columnWidth, isSingleDay, animateColumnWidth]);
 
   const snapToInterval =
     numberOfDays > 1 && scrollByDay && !isResourceMode

@@ -57,7 +57,7 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
         {renderResource ? (
           renderResource(resource)
         ) : (
-          <View style={styles.resourceContent}>
+          <View style={[styles.resourceContent, { borderColor }]}>
             <Text>{resource.title}</Text>
           </View>
         )}

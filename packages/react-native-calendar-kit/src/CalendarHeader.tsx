@@ -296,7 +296,10 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     <View
       style={[
         styles.headerContainer,
-        { backgroundColor: headerStyles.headerBackgroundColor },
+        {
+          backgroundColor: headerStyles.headerBackgroundColor,
+          borderBottomColor: headerStyles.borderColor,
+        },
         headerStyles.headerContainer,
         { width: calendarLayout.width },
       ]}>
