@@ -1,5 +1,11 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { PropsWithChildren, useMemo } from 'react';
+import {
+  StyleProp,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { useActions } from '../context/ActionsProvider';
 import { useHighlightDates } from '../context/HighlightDatesProvider';
 import { useLocale } from '../context/LocaleProvider';
@@ -11,6 +17,8 @@ import Text from './Text';
 
 interface DayItemProps {
   dateUnix: number;
+  showDayItem?: boolean;
+  dayItemContainerStyle?: StyleProp<ViewStyle>;
 }
 
 const selectDayItemTheme = (state: ThemeConfigs) => ({
@@ -26,7 +34,12 @@ const selectDayItemTheme = (state: ThemeConfigs) => ({
   dayContainer: state.dayContainer,
 });
 
-const DayItem: React.FC<DayItemProps> = ({ dateUnix }) => {
+const DayItem: React.FC<PropsWithChildren<DayItemProps>> = ({
+  dateUnix,
+  children,
+  showDayItem = true,
+  dayItemContainerStyle,
+}) => {
   const { weekDayShort } = useLocale();
   const { currentDateUnix } = useNowIndicator();
   const { onPressDayNumber } = useActions();
@@ -79,32 +92,37 @@ const DayItem: React.FC<DayItemProps> = ({ dateUnix }) => {
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.6}
-      disabled={!onPressDayNumber}
-      onPress={_onDayPress}>
-      <View style={[styles.dayContainer, dayContainer]}>
-        <Text
-          style={[
-            styles.weekDayText,
-            { color: colors.text },
-            customStyle.dayText,
-          ]}>
-          {weekDayShort[date.weekday % 7]}
-        </Text>
+    <View style={dayItemContainerStyle}>
+      {showDayItem && (
+        <TouchableOpacity
+          activeOpacity={0.6}
+          disabled={!onPressDayNumber}
+          onPress={_onDayPress}>
+          <View style={[styles.dayContainer, dayContainer]}>
+            <Text
+              style={[
+                styles.weekDayText,
+                { color: colors.text },
+                customStyle.dayText,
+              ]}>
+              {weekDayShort[date.weekday % 7]}
+            </Text>
 
-        <View style={[styles.dayNumContainer, customStyle.container]}>
-          <Text
-            style={[
-              styles.dayNumText,
-              { color: colors.text },
-              customStyle.numText,
-            ]}>
-            {date.day}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+            <View style={[styles.dayNumContainer, customStyle.container]}>
+              <Text
+                style={[
+                  styles.dayNumText,
+                  { color: colors.text },
+                  customStyle.numText,
+                ]}>
+                {date.day}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      )}
+      {children}
+    </View>
   );
 };
 

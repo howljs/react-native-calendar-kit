@@ -42,6 +42,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   eventMinMinutes = MIN_ALL_DAY_MINUTES,
   eventMaxMinutes = MAX_ALL_DAY_MINUTES,
   eventInitialMinutes = DEFAULT_ALL_DAY_MINUTES,
+  renderDayItem,
 }) => {
   const {
     calendarLayout,
@@ -202,6 +203,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       renderEvent,
       renderExpandIcon,
       resources,
+      renderDayItem,
     }),
     [
       calendarData.minDateUnix,
@@ -211,6 +213,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       renderEvent,
       renderExpandIcon,
       resources,
+      renderDayItem,
     ]
   );
 
@@ -244,6 +247,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           renderExpandIcon={extra.renderExpandIcon}
           renderEvent={extra.renderEvent}
           pageIndex={index}
+          renderDayItem={extra.renderDayItem}
         />
       );
     }
@@ -253,6 +257,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         pageIndex={index * extra.columns}
         startUnix={dateUnixByIndex}
         renderEvent={extra.renderEvent}
+        renderDayItem={extra.renderDayItem}
       />
     );
   };

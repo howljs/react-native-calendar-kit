@@ -623,19 +623,35 @@ export interface CalendarHeaderProps {
    */
   dayBarHeight?: number;
 
-  /** Custom header item */
+  /** Custom header item
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderHeaderItem?: (props: HeaderItemProps) => React.ReactElement | null;
 
-  /** Custom expand icon */
+  /** Custom expand icon
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderExpandIcon?: (props: {
     isExpanded: SharedValue<boolean>;
   }) => React.ReactElement | null;
 
-  /** Custom event item */
+  /** Custom event item
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderEvent?: (
     event: PackedAllDayEvent,
     size: SizeAnimation
   ) => React.ReactNode;
+
+  /**
+   * Custom day item
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
+  renderDayItem?: (date: { dateUnix: number }) => React.ReactNode;
 
   /** Custom left area (multiple days) */
   LeftAreaComponent?: React.ReactElement | null | undefined;
@@ -674,20 +690,33 @@ export interface CalendarBodyProps {
   /** Custom hour text */
   hourFormat?: string;
 
-  /** Custom hour text */
+  /** Custom hour text
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderHour?: (props: RenderHourProps) => React.ReactElement | null;
 
+  /** Custom dragging hour text
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderDraggingHour?: (props: RenderHourProps) => React.ReactElement | null;
 
   /** Show now indicator */
   showNowIndicator?: boolean;
 
-  /** Custom Out of Range item */
+  /** Custom Out of Range item
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderCustomOutOfRange?: (
     props: OutOfRangeProps
   ) => React.ReactElement | null;
 
-  /** Custom Unavailable Item */
+  /** Custom Unavailable Item
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderCustomUnavailableHour?: (
     props: UnavailableHourProps & {
       width: SharedValue<number>;
@@ -695,18 +724,27 @@ export interface CalendarBodyProps {
     }
   ) => React.ReactElement | null;
 
-  /** Custom event item */
+  /** Custom event item
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderEvent?: (
     event: PackedEvent,
     size: SizeAnimation
   ) => React.ReactElement | null;
 
-  /** Custom draggable event item */
+  /** Custom draggable event item
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderDraggableEvent?: (
     props: DraggableEventProps
   ) => React.ReactElement | null;
 
-  /** Custom dragging event item */
+  /** Custom dragging event item
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
   renderDraggingEvent?: (
     props: DraggingEventProps
   ) => React.ReactElement | null;
