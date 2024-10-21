@@ -26,6 +26,7 @@ import type {
   DateTimeType,
   DateType,
   DraggingEventType,
+  OnCreateEventResponse,
   OnEventResponse,
   ResourceItem,
   SelectedEventType,
@@ -209,132 +210,134 @@ const DragEventProvider: FC<
   const draggingId = draggingEvent?.localId ?? draggingEvent?.id;
   const selectedEventId = selectedEvent?.localId ?? selectedEvent?.id;
 
-  const handleIsDraggingChange = useCallback(
-    async (dragging: boolean) => {
-      if (!dragging) {
-        if (autoHScrollTimer.current) {
-          clearInterval(autoHScrollTimer.current);
-          autoHScrollTimer.current = undefined;
-        }
-        if (autoVScrollTimer.current) {
-          clearInterval(autoVScrollTimer.current);
-          autoVScrollTimer.current = undefined;
-        }
+  const calculateNewEventTimes = () => {
+    const newStartUnix = parseDateTime(roundedDragStartUnix.value)
+      .plus({ minutes: roundedDragStartMinutes.value })
+      .toMillis();
+    const newEndUnix =
+      newStartUnix + roundedDragDuration.value * MILLISECONDS_IN_MINUTE;
 
-        const hour = Math.floor(roundedDragStartMinutes.value / 60);
-        const minute = roundedDragStartMinutes.value % 60;
-        const newStartUnix = parseDateTime(roundedDragStartUnix.value)
-          .set({ hour, minute })
-          .toMillis();
-        const newEndUnix =
-          newStartUnix + roundedDragDuration.value * MILLISECONDS_IN_MINUTE;
+    let resourceId = draggingEvent?.resourceId;
+    if (resources?.length) {
+      const width = columnWidthAnim.value / resources.length;
+      const resourceIndex = Math.floor((dragX.value - hourWidth) / width);
+      resourceId = resources[resourceIndex]?.id;
+    }
 
-        let resourceIndex = -1;
-        let resourceId = draggingEvent?.resourceId;
-        if (resources?.length) {
-          const width = columnWidthAnim.value / resources.length;
-          resourceIndex = Math.floor((dragX.value - hourWidth) / width);
-          resourceId = resources[resourceIndex]?.id;
-        }
-        if (draggingEvent?.start?.dateTime && draggingEvent?.end?.dateTime) {
-          const prevStart = parseDateTime(draggingEvent.start.dateTime, {
-            zone: draggingEvent.start.timeZone,
-          })
-            .setZone(timeZone)
-            .toMillis();
-          const prevEnd = parseDateTime(draggingEvent.end.dateTime, {
-            zone: draggingEvent.end.timeZone,
-          })
-            .setZone(timeZone)
-            .toMillis();
-          const newStartObj = forceUpdateZone(newStartUnix, timeZone);
-          const newEndObj = forceUpdateZone(newEndUnix, timeZone);
-          const newStart = newStartObj.toMillis();
-          const newEnd = newEndObj.toMillis();
-          const prevResourceId = draggingEvent?.resourceId;
-          const currentEvent = { ...draggingEvent };
-          delete currentEvent._internal;
-          if (
-            prevStart !== newStart ||
-            prevEnd !== newEnd ||
-            prevResourceId !== resourceId
-          ) {
-            const newStartISO = newStartObj.toISO();
-            const newEndISO = newEndObj.toISO();
-            const newProps = {
-              start: { dateTime: newStartISO, timeZone },
-              end: { dateTime: newEndISO, timeZone },
-              resourceId,
-            };
-            if (selectedEvent) {
-              await onDragSelectedEventEnd?.({
-                ...(currentEvent as SelectedEventType),
-                ...newProps,
-              });
-            } else if (isDraggingCreate) {
-              await onDragCreateEventEnd?.(newProps);
-            } else {
-              await onDragEventEnd?.({
-                ...(currentEvent as OnEventResponse),
-                ...newProps,
-              });
-            }
-          }
-        }
+    return { newStartUnix, newEndUnix, resourceId };
+  };
 
-        setDraggingEvent(undefined);
-        setIsDraggingCreate(false);
-        runOnUI(() => {
-          dragStartUnix.value = -1;
-          dragDuration.value = -1;
-          dragStartMinutes.value = -1;
-          dragSelectedType.value = undefined;
-          dragX.value = -1;
-          roundedDragStartUnix.value = -1;
-          roundedDragStartMinutes.value = -1;
-          roundedDragDuration.value = -1;
-          extraMinutes.value = 0;
-          isDraggingSelectedEvent.value = false;
-        })();
+  const shouldUpdateEvent = (
+    event: Record<string, any> | undefined,
+    newStart: number,
+    newEnd: number,
+    newResourceId?: string
+  ) => {
+    if (!event?.start?.dateTime || !event?.end?.dateTime) {
+      return false;
+    }
+
+    const prevStart = parseDateTime(event.start.dateTime, {
+      zone: event.start.timeZone,
+    })
+      .setZone(timeZone)
+      .toMillis();
+    const prevEnd = parseDateTime(event.end.dateTime, {
+      zone: event.end.timeZone,
+    })
+      .setZone(timeZone)
+      .toMillis();
+
+    return (
+      prevStart !== newStart ||
+      prevEnd !== newEnd ||
+      event.resourceId !== newResourceId
+    );
+  };
+
+  const createUpdatedEvent = (
+    event: Record<string, any> | undefined,
+    newStartUnix: DateType,
+    newEndUnix: DateType,
+    resourceId?: string
+  ) => {
+    const newStartObj = forceUpdateZone(newStartUnix, timeZone);
+    const newEndObj = forceUpdateZone(newEndUnix, timeZone);
+    const currentEvent = { ...event };
+    delete currentEvent._internal;
+    if (resourceId) {
+      currentEvent.resourceId = resourceId;
+    }
+
+    return {
+      ...currentEvent,
+      start: { dateTime: newStartObj.toISO(), timeZone },
+      end: { dateTime: newEndObj.toISO(), timeZone },
+    };
+  };
+
+  const resetDragState = () => {
+    setDraggingEvent(undefined);
+    setIsDraggingCreate(false);
+    runOnUI(() => {
+      dragStartUnix.value = -1;
+      dragDuration.value = -1;
+      dragStartMinutes.value = -1;
+      dragSelectedType.value = undefined;
+      dragX.value = -1;
+      roundedDragStartUnix.value = -1;
+      roundedDragStartMinutes.value = -1;
+      roundedDragDuration.value = -1;
+      extraMinutes.value = 0;
+      isDraggingSelectedEvent.value = false;
+    })();
+  };
+
+  const handleIsDraggingChange = async (dragging: boolean) => {
+    if (!dragging) {
+      _stopAutoHScroll();
+      _stopAutoVScroll();
+      const { newStartUnix, newEndUnix, resourceId } = calculateNewEventTimes();
+      const updatedEvent = createUpdatedEvent(
+        draggingEvent,
+        newStartUnix,
+        newEndUnix,
+        resourceId
+      );
+
+      if (selectedEventId) {
+        const shouldUpdate = shouldUpdateEvent(
+          draggingEvent,
+          newStartUnix,
+          newEndUnix,
+          resourceId
+        );
+        if (shouldUpdate) {
+          await onDragSelectedEventEnd?.(updatedEvent as SelectedEventType);
+        }
+      } else if (isDraggingCreate) {
+        await onDragCreateEventEnd?.(updatedEvent as OnCreateEventResponse);
+      } else {
+        await onDragEventEnd?.(updatedEvent as OnEventResponse);
       }
 
-      setIsDragging(dragging);
-    },
-    [
-      roundedDragStartMinutes,
-      roundedDragStartUnix,
-      roundedDragDuration,
-      draggingEvent,
-      resources,
-      columnWidthAnim.value,
-      dragX,
-      hourWidth,
-      timeZone,
-      selectedEvent,
-      isDraggingCreate,
-      onDragSelectedEventEnd,
-      onDragCreateEventEnd,
-      onDragEventEnd,
-      dragStartUnix,
-      dragDuration,
-      dragStartMinutes,
-      dragSelectedType,
-      extraMinutes,
-      isDraggingSelectedEvent,
-    ]
-  );
+      resetDragState();
+    }
+
+    setIsDragging(dragging);
+  };
 
   useAnimatedReaction(
     () => isDraggingAnim.value,
     (dragging, prevDragging) => {
-      if (dragging !== prevDragging) {
+      if (prevDragging !== null && dragging !== prevDragging) {
         if (dragging) {
           scrollTargetX.value = offsetX.value;
         }
         runOnJS(handleIsDraggingChange)(dragging);
       }
     },
-    [draggingEvent?.start, draggingEvent?.end]
+    [draggingEvent?.start, draggingEvent?.end, selectedEventId]
   );
 
   const _triggerHaptic = async () => {

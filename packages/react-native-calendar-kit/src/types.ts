@@ -519,6 +519,13 @@ export interface CalendarProviderProps extends ActionsProviderProps {
 
   /** Resource list */
   resources?: ResourceItem[];
+
+  /**
+   * Column width will be animated when the number of days changes.
+   *
+   * Default is `false`
+   */
+  animateColumnWidth?: boolean;
 }
 
 export interface ResourceItem extends Record<string, any> {

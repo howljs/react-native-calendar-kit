@@ -318,9 +318,9 @@ const DraggableEventWrapper: FC<DraggableEventWrapperProps> = ({
     },
     (result) => {
       if (
-        result.dragSelectedStartUnix > 0 &&
-        result.dragSelectedStartMinutes > 0 &&
-        result.dragSelectedDuration > 0
+        result.dragSelectedStartUnix >= 0 &&
+        result.dragSelectedStartMinutes >= 0 &&
+        result.dragSelectedDuration >= 0
       ) {
         runOnJS(_handleDragSelectedEvent)(
           result.dragSelectedStartUnix,

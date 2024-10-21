@@ -547,12 +547,17 @@ const Calendar = () => {
             setSelectedEvent(undefined);
           }
         }}
+        onDragCreateEventStart={() => {
+          setSelectedEvent(undefined);
+        }}
         selectedEvent={selectedEvent}
         start={60}
         end={23 * 60}
         spaceFromBottom={safeBottom}
         defaultDuration={60}
         onDragEventEnd={async (event) => {
+          console.log('onDragEventEnd', event);
+
           const { originalRecurringEvent, ...rest } = event;
           if (event.id) {
             const filteredEvents = events.filter(
@@ -575,6 +580,7 @@ const Calendar = () => {
           });
         }}
         onDragSelectedEventEnd={async (event) => {
+          console.log('onDragSelectedEventEnd', event);
           const { originalRecurringEvent, ...rest } = event;
           if (event.id) {
             const filteredEvents = events.filter(
@@ -597,6 +603,7 @@ const Calendar = () => {
         }}
         resources={isResourcesMode ? resources : undefined}
         onDragCreateEventEnd={(event) => {
+          console.log('onDragCreateEventEnd', event);
           const newEvent = {
             ...event,
             id: `event_${events.length + 1}`,
