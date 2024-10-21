@@ -153,3 +153,91 @@ You can set default background color for unavailable hours using the theme prop:
     }}
 />  
 ```
+
+### renderCustomUnavailableHour Prop
+
+The `renderCustomUnavailableHour` prop is a function that receives an object with the following properties:
+
+- `start`: The start hour (in minutes)
+- `end`: The end hour (in minutes)
+- `enableBackgroundInteraction`: Whether background interaction is enabled
+- `backgroundColor`: The background color
+- `width`: The width of the unavailable slot (`SharedValue<number>`)
+- `height`: The height of the unavailable slot (`SharedValue<number>`)
+
+Here's an example of how to use `renderCustomUnavailableHour`:
+
+```tsx
+ const renderCustomUnavailableHour = useCallback(
+    (
+      props: UnavailableHourProps & {
+        width: SharedValue<number>;
+        height: SharedValue<number>;
+      }
+    ) => {
+      return <CustomUnavailableHour {...props} />;
+    },
+    []
+  );
+
+<CalendarBody renderCustomUnavailableHour={renderCustomUnavailableHour} />
+```
+
+- CustomUnavailableHour component:
+
+```tsx CustomUnavailableHour
+import { UnavailableHourProps } from '@howljs/calendar-kit';
+import React, { FC } from 'react';
+import Animated, {
+  SharedValue,
+  useAnimatedProps,
+} from 'react-native-reanimated';
+import { Defs, Line, Pattern, Rect, Svg } from 'react-native-svg';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
+
+const CustomUnavailableHour: FC<
+  UnavailableHourProps & {
+    width: SharedValue<number>;
+    height: SharedValue<number>;
+  }
+> = (props) => {
+  const patternSize = 5;
+
+  const rectProps = useAnimatedProps(() => ({
+    height: props.height.value,
+  }));
+
+  return (
+    <Svg>
+      <Defs>
+        <Pattern
+          id="stripe-pattern"
+          patternUnits="userSpaceOnUse"
+          width={patternSize}
+          height={patternSize}
+          patternTransform="rotate(-45)">
+          <Line
+            x1={0}
+            y={0}
+            x2={0}
+            y2={patternSize + 5}
+            stroke="red"
+            strokeWidth={1.5}
+            strokeLinecap="butt"
+          />
+        </Pattern>
+      </Defs>
+      <AnimatedRect
+        x="0"
+        y="0"
+        width="100%"
+        fill="url(#stripe-pattern)"
+        animatedProps={rectProps}
+      />
+    </Svg>
+  );
+};
+
+export default CustomUnavailableHour;
+```
