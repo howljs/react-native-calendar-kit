@@ -21,7 +21,7 @@
     "@docusaurus/preset-classic": "3.5.2",
     "@docusaurus/remark-plugin-npm2yarn": "^3.5.2",
     "@easyops-cn/docusaurus-search-local": "^0.44.5",
-    "@howljs/calendar-kit": "2.0.3",
+    "@howljs/calendar-kit": "2.0.6",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
     "glob": "^10.4.2",

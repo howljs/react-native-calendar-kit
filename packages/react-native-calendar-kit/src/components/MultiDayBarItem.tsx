@@ -34,12 +34,14 @@ interface MultiDayBarItemProps {
     event: PackedAllDayEvent,
     size: SizeAnimation
   ) => React.ReactNode;
+  renderDayItem?: (date: { dateUnix: number }) => React.ReactNode;
 }
 
 const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
   pageIndex,
   startUnix,
   renderEvent,
+  renderDayItem,
 }) => {
   const dayBarStyles = useTheme(
     useCallback(
@@ -122,7 +124,11 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
         key={`column_${visibleDates[date].unix}`}
         pointerEvents="box-none"
         style={animStyle}>
-        <DayItem dateUnix={visibleDates[date].unix} />
+        {renderDayItem ? (
+          renderDayItem({ dateUnix: visibleDates[date].unix })
+        ) : (
+          <DayItem dateUnix={visibleDates[date].unix} />
+        )}
       </Animated.View>
     );
   };

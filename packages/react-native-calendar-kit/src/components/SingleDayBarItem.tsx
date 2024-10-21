@@ -41,6 +41,7 @@ interface SingleDayBarItemProps {
     size: SizeAnimation
   ) => React.ReactNode;
   pageIndex: number;
+  renderDayItem?: (date: { dateUnix: number }) => React.ReactNode;
 }
 
 const SingleDayBarItem = ({
@@ -48,6 +49,7 @@ const SingleDayBarItem = ({
   renderExpandIcon,
   renderEvent,
   pageIndex,
+  renderDayItem,
 }: SingleDayBarItemProps) => {
   const dayBarStyles = useTheme(
     useCallback(
@@ -135,7 +137,11 @@ const SingleDayBarItem = ({
               styles.dayItemContainer,
               { width: hourWidth, borderRightColor: dayBarStyles.borderColor },
             ]}>
-            <DayItem dateUnix={startUnix} />
+            {renderDayItem ? (
+              renderDayItem({ dateUnix: startUnix })
+            ) : (
+              <DayItem dateUnix={startUnix} />
+            )}
             <ExpandButton
               isExpanded={isExpanded}
               isShowExpandButton={isShowExpandButton}
@@ -172,7 +178,11 @@ const SingleDayBarItem = ({
 
     return (
       <View style={[styles.onlyDayContainer, dayBarStyles.singleDayContainer]}>
-        <DayItem dateUnix={startUnix} />
+        {renderDayItem ? (
+          renderDayItem({ dateUnix: startUnix })
+        ) : (
+          <DayItem dateUnix={startUnix} />
+        )}
       </View>
     );
   };

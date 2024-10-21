@@ -8,6 +8,7 @@ export { default as CalendarHeader } from './CalendarHeader';
 export { default as ResourceHeaderItem } from './components/ResourceHeaderItem';
 export { default as MultiDayBarItem } from './components/MultiDayBarItem';
 export { default as SingleDayBarItem } from './components/SingleDayBarItem';
+export { default as DayItem } from './components/DayItem';
 
 export { useActions } from './context/ActionsProvider';
 export { useBody } from './context/BodyContext';
@@ -48,7 +49,7 @@ export { DraggingEvent } from './components/DraggingEvent';
 
 export type { WeekdayNumbers } from 'luxon';
 
-export { parseDateTime } from './utils/dateUtils';
+export * from './utils/dateUtils';
 
 export * from './service/rrule';
 
