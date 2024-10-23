@@ -1,7 +1,6 @@
 {
-  "name": "@howljs/calendar-kit-monorepo",
-  "version": "0.1.0",
-  "packageManager": "yarn@4.1.1",
+  "name": "@calendar-kit/monorepo",
+  "description": "React Native Calendar Kit",
   "private": true,
   "workspaces": {
     "packages": [
@@ -9,19 +8,73 @@
       "apps/example"
     ]
   },
-  "scripts": {
-    "docs": "yarn --cwd apps/docs",
-    "example": "yarn workspace calendar-kit-example",
-    "build": "yarn workspaces foreach -A -p run build",
-    "lint": "yarn workspaces foreach -A -p run lint",
-    "prepare": "husky",
-    "release": "yarn workspace @howljs/calendar-kit release"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/howljs/react-native-calendar-kit.git"
   },
+  "author": "howljs <lehau.dev@gmail.com> (https://github.com/howljs)",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/howljs/react-native-calendar-kit/issues"
+  },
+  "homepage": "https://github.com/howljs/react-native-calendar-kit#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "lint": "eslint \"{apps/example,packages}/**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit --composite false",
+    "test": "jest",
+    "clean": "lerna run clean",
+    "build": "lerna run prepack",
+    "publish": "lerna publish",
+    "release": "run-s build publish",
+    "example": "yarn workspace calendar-kit-example",
+    "format": "prettier --write \"**/*.{js,ts,tsx,json}\""
+  },
+  "engines": {
+    "yarn": "3.2.2",
+    "node": ">=18"
+  },
+  "packageManager": "yarn@4.1.1",
   "devDependencies": {
+    "@commitlint/config-conventional": "^18.5.0",
+    "@evilmartians/lefthook": "^1.6.0",
+    "@lerna-lite/cli": "^3.9.3",
+    "@lerna-lite/publish": "^3.9.3",
+    "@lerna-lite/run": "^3.9.3",
+    "@react-native/babel-preset": "^0.74.84",
+    "@react-native/eslint-config": "^0.73.1",
+    "@typescript-eslint/parser": "^6.19.0",
+    "check-dependency-version-consistency": "^4.1.0",
+    "commitlint": "^18.5.0",
     "eslint": "^8.57.0",
-    "husky": "^9.1.6",
-    "lint-staged": "^15.2.2",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-satya164": "^3.3.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-n": "^17.11.1",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "jest": "^29.7.0",
+    "npm-run-all2": "^6.2.2",
     "prettier": "^3.3.3",
-    "typescript": "~5.3.0"
+    "typescript": "~5.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testRegex": "/__tests__/.*\\.(test|spec)\\.(js|tsx?)$",
+    "setupFiles": [
+      "<rootDir>/jest/setup.js"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(@react-native|react-native|react-native-reanimated)/)"
+    ],
+    "moduleNameMapper": {
+      "@calendar-kit/([^/]+)": "<rootDir>/packages/$1/src"
+    },
+    "prettierPath": null,
+    "preset": "react-native"
   }
 }

@@ -6,35 +6,30 @@ import type {
   LocaleConfigsProps,
   ResourceItem,
   SelectedEventType,
-} from '@howljs/calendar-kit';
+} from '@calendar-kit/app';
 import {
   CalendarBody,
   CalendarContainer,
   CalendarHeader,
   parseDateTime,
   ResourceHeaderItem,
-} from '@howljs/calendar-kit';
+} from '@calendar-kit/app';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { WeekdayNumbers } from 'luxon';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   StyleSheet,
   Text,
-  View,
   useColorScheme,
+  View,
 } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import Header from '../../components/Header';
 import { useAppContext } from '../../context/AppProvider';
-import { Ionicons } from '@expo/vector-icons';
 
 type SearchParams = { viewMode: string; numberOfDays: string };
 
@@ -383,7 +378,7 @@ const Calendar = () => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
       setCalendarWidth(window.width);
     });
-    return () => subscription?.remove();
+    return () => subscription.remove();
   }, []);
 
   const _onChange = (date: string) => {
@@ -412,8 +407,8 @@ const Calendar = () => {
   );
   const highlightDates = useMemo(
     () => ({
-      '6': { dayNumber: { color: 'blue' }, dayName: { color: 'blue' } },
-      '7': { dayNumber: { color: 'red' }, dayName: { color: 'red' } },
+      6: { dayNumber: { color: 'blue' }, dayName: { color: 'blue' } },
+      7: { dayNumber: { color: 'red' }, dayName: { color: 'red' } },
     }),
     []
   );
@@ -633,17 +628,6 @@ export default Calendar;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  actions: { flexDirection: 'row', gap: 10, padding: 10 },
-  btn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: '#23cfde',
-  },
-  header: {
-    backgroundColor: 'white',
-    padding: 16,
-  },
-  date: { fontSize: 16, fontWeight: 'bold' },
   resourceContainer: {
     justifyContent: 'center',
     alignItems: 'center',

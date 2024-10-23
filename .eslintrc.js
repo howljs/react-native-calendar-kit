@@ -1,6 +1,45 @@
-/** @type {import('eslint').ESLint.ConfigData} */
 module.exports = {
   root: true,
+  extends: ['satya164', 'standard', 'prettier'],
+  plugins: [
+    'simple-import-sort',
+    'react',
+    'react-native',
+    'jest',
+    '@typescript-eslint',
+  ],
+  settings: {
+    'react': {
+      version: '16',
+    },
+    'import-x/core-modules': ['@calendar-kit/app', '@calendar-kit/core'],
+  },
+  env: {
+    'react-native/react-native': true,
+    'jest/globals': true,
+  },
+  rules: {
+    'no-restricted-imports': ['error', { patterns: ['@calendar-kit/*/*'] }],
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/ban-types': 'off',
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
+    'object-shorthand': 'error',
+    'curly': ['error', 'all'],
+    'no-case-declarations': 'error',
+    'react/jsx-uses-vars': 'error',
+    'react/jsx-uses-react': 'error',
+    'no-use-before-define': 'off',
+    'eqeqeq': 'error',
+    'no-unreachable': 'error',
+    'jest/no-disabled-tests': 'warn',
+    'jest/no-focused-tests': 'error',
+    'jest/no-identical-title': 'error',
+    'jest/prefer-to-have-length': 'warn',
+    'jest/valid-expect': 'error',
+    'react/react-in-jsx-scope': 'off',
+    'camelcase': 'off',
+  },
   overrides: [
     {
       files: ['*.ts', '*.tsx'],
@@ -11,6 +50,7 @@ module.exports = {
       },
       extends: ['plugin:@typescript-eslint/recommended-type-checked'],
       rules: {
+        '@eslint-react/web-api/no-leaked-event-listener': 'off',
         '@typescript-eslint/no-unsafe-call': 'off',
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/no-unsafe-return': 'off',
@@ -41,42 +81,4 @@ module.exports = {
       },
     },
   ],
-  parserOptions: {
-    requireConfigFile: false,
-  },
-  extends: [
-    'standard',
-    'prettier',
-    'plugin:import/typescript',
-    'plugin:react-hooks/recommended',
-  ],
-  plugins: ['react', 'react-native', 'import', 'jest', '@typescript-eslint'],
-  env: {
-    'react-native/react-native': true,
-    'jest/globals': true,
-  },
-  settings: {
-    'import/resolver': {
-      'babel-module': {
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-      },
-    },
-  },
-  rules: {
-    'object-shorthand': 'error',
-    curly: ['error', 'all'],
-    'no-case-declarations': 'error',
-    'react/jsx-uses-vars': 'error',
-    'react/jsx-uses-react': 'error',
-    'no-use-before-define': 'off',
-    eqeqeq: 'error',
-    'no-unreachable': 'error',
-    'jest/no-disabled-tests': 'warn',
-    'jest/no-focused-tests': 'error',
-    'jest/no-identical-title': 'error',
-    'jest/prefer-to-have-length': 'warn',
-    'jest/valid-expect': 'error',
-    'react/react-in-jsx-scope': 'off',
-    camelcase: 'off',
-  },
 };

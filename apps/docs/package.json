@@ -40,7 +40,7 @@
     "@docusaurus/module-type-aliases": "3.5.2",
     "@docusaurus/tsconfig": "3.5.2",
     "@docusaurus/types": "3.5.2",
-    "typescript": "*"
+    "typescript": "~5.3.3"
   },
   "browserslist": {
     "production": [

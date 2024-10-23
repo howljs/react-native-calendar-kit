@@ -2,9 +2,9 @@ import {
   CalendarBody,
   CalendarContainer,
   CalendarHeader,
-  EventItem,
-  SelectedEventType,
   type CalendarProviderProps,
+  type EventItem,
+  type SelectedEventType,
 } from '@howljs/calendar-kit';
 import { useState } from 'react';
 import { View } from 'react-native';

@@ -1,14 +1,13 @@
-import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import type { DrawerContentComponentProps } from '@react-navigation/drawer';
+import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
+import type { NavigationProp } from '@react-navigation/native';
 import {
   DrawerActions,
   useNavigation,
   useTheme,
 } from '@react-navigation/native';
-import type { NavigationProp } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import Drawer from 'expo-router/drawer';
-import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {

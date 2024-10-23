@@ -3,7 +3,7 @@ import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import { DrawerActions, useTheme } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import type { FC } from 'react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';

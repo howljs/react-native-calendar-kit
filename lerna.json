@@ -1,0 +1,22 @@
+{
+  "packages": ["packages/*", "example"],
+  "npmClient": "yarn",
+  "useWorkspaces": true,
+  "version": "independent",
+  "command": {
+    "publish": {
+      "graphType": "all",
+      "syncWorkspaceLock": true,
+      "allowBranch": ["main", "develop", "alpha"],
+      "allowPeerDependenciesUpdate": true,
+      "conventionalCommits": true,
+      "message": "chore: publish",
+      "ignoreChanges": [
+        "**/__fixtures__/**",
+        "**/__tests__/**",
+        "**/*.md",
+        "**/example/**"
+      ]
+    }
+  }
+}

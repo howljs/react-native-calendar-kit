@@ -1,3 +1,5 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme } from '@react-navigation/native';
 import React from 'react';
 import {
   StyleSheet,
@@ -6,9 +8,8 @@ import {
   TouchableHighlight,
   View,
 } from 'react-native';
+
 import { useAppContext } from '../../context/AppProvider';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from '@react-navigation/native';
 
 const themeModes = [
   { label: 'Auto', value: 'auto' },

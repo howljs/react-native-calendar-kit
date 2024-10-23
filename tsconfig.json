@@ -1,21 +1,28 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "declaration": true,
-    "preserveSymlinks": true,
-    "target": "es6",
-    "module": "NodeNext",
-    "jsx": "react-native",
-    "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "NodeNext",
-    "lib": ["es6", "dom", "ES2021"],
+    "paths": {
+      "@calendar-kit/*": ["./packages/*/src"]
+    },
+    "composite": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "esModuleInterop": true,
-    "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "lib": ["esnext", "dom"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noImplicitUseStrict": false,
+    "noStrictGenericChecks": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "resolveJsonModule": true,
-    "allowJs": true,
-    "checkJs": true,
-    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "esnext",
+    "verbatimModuleSyntax": true
   },
+  "exclude": ["packages/*/lib", "apps/docs"]
 }

@@ -1,5 +1,6 @@
-import clsx from 'clsx';
 import Heading from '@theme/Heading';
+import clsx from 'clsx';
+
 import styles from './styles.module.css';
 
 type FeatureItem = {
@@ -12,17 +13,23 @@ const FeatureList: FeatureItem[] = [
   {
     title: 'Multiple view types',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
-    description: <>Support for different calendar views (e.g., day, 3-days, week).</>,
+    description: (
+      <>Support for different calendar views (e.g., day, 3-days, week).</>
+    ),
   },
   {
     title: 'Drag and drop functionality',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
-    description: <>Support drag and drop functionality for creating and editing events.</>,
+    description: (
+      <>Support drag and drop functionality for creating and editing events.</>
+    ),
   },
   {
     title: 'Pinch-to-zoom capability',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
-    description: <>Support pinch-to-zoom functionality for better event visibility.</>,
+    description: (
+      <>Support pinch-to-zoom functionality for better event visibility.</>
+    ),
   },
   {
     title: 'Timezone support',
