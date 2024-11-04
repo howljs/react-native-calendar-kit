@@ -1,11 +1,6 @@
-import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import type { DrawerContentComponentProps } from '@react-navigation/drawer';
-import {
-  DrawerActions,
-  useNavigation,
-  useTheme,
-} from '@react-navigation/native';
-import type { NavigationProp } from '@react-navigation/native';
+import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
+import { useTheme } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import Drawer from 'expo-router/drawer';
 import React from 'react';
@@ -14,11 +9,10 @@ import { StyleSheet, View } from 'react-native';
 function CustomDrawerContent(props: DrawerContentComponentProps) {
   const theme = useTheme();
   const router = useRouter();
-  const navigation = useNavigation<NavigationProp<any>>();
 
   const _onPressItem = (viewMode: string, numberOfDays: number) => {
     router.setParams({ viewMode, numberOfDays: numberOfDays.toString() });
-    navigation.dispatch(DrawerActions.closeDrawer());
+    props.navigation.closeDrawer();
   };
 
   return (

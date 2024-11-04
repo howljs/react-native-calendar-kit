@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import type {
   CalendarKitHandle,
   DateOrDateTime,
@@ -27,14 +28,13 @@ import {
   Dimensions,
   StyleSheet,
   Text,
-  View,
   useColorScheme,
+  View,
 } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../../components/Header';
 import { useAppContext } from '../../context/AppProvider';
-import { Ionicons } from '@expo/vector-icons';
 
 type SearchParams = { viewMode: string; numberOfDays: string };
 
