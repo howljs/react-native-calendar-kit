@@ -60,6 +60,7 @@ export interface CalendarContextProps {
   hapticService: HapticService;
   allowDragToCreate: boolean;
   allowDragToEdit: boolean;
+  dragToCreateMode: 'duration' | 'date-time';
 }
 
 export const CalendarContext = React.createContext<

@@ -5,13 +5,14 @@ import {
   ThemeProvider,
 } from '@react-navigation/native';
 import type { FC, PropsWithChildren } from 'react';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 
 type AppConfigs = {
   themeMode: 'light' | 'dark' | 'auto';
   startOfWeek: 1 | 6 | 7;
   showWeekNumber: boolean;
+  dragToCreateMode: 'duration' | 'date-time';
 };
 
 interface AppContextValue {
@@ -26,6 +27,7 @@ const AppProvider: FC<PropsWithChildren<object>> = ({ children }) => {
     themeMode: 'auto',
     startOfWeek: 1,
     showWeekNumber: true,
+    dragToCreateMode: 'duration',
   });
 
   const colorScheme = useColorScheme();
@@ -48,8 +50,6 @@ const AppProvider: FC<PropsWithChildren<object>> = ({ children }) => {
   const _updateConfigs = useCallback((newConfigs: Partial<AppConfigs>) => {
     setConfigs((prev) => ({ ...prev, ...newConfigs }));
   }, []);
-
-  useEffect(() => {}, []);
 
   const value = useMemo(() => {
     return {

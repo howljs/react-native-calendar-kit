@@ -526,6 +526,12 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    * Default is `false`
    */
   animateColumnWidth?: boolean;
+
+  /** Drag to create mode
+   *
+   * - Default: `duration`
+   */
+  dragToCreateMode?: 'duration' | 'date-time';
 }
 
 export interface ResourceItem extends Record<string, any> {

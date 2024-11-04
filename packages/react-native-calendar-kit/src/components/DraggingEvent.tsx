@@ -57,6 +57,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     calendarData,
     columns,
     numberOfDays,
+    dragToCreateMode,
   } = useBody();
   const {
     dragDuration,
@@ -64,7 +65,10 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     dragStartUnix,
     draggingEvent,
     dragX,
+    selectedEvent,
   } = useDragEvent();
+  const isCreate = !selectedEvent;
+  const isShowDot = (dragToCreateMode !== 'date-time' && isCreate) || !isCreate;
 
   const totalResources =
     resources && resources.length > 1 ? resources.length : 1;
@@ -142,6 +146,48 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     };
   }, [totalResources, hourWidth]);
 
+  const renderTopEdgeComponent = () => {
+    if (!isShowDot) {
+      return null;
+    }
+
+    if (TopEdgeComponent) {
+      return TopEdgeComponent;
+    }
+
+    return (
+      <View
+        style={[
+          styles.dot,
+          styles.dotLeft,
+          numberOfDays === 1 && styles.dotLeftSingle,
+        ]}>
+        <DragDot />
+      </View>
+    );
+  };
+
+  const renderBottomEdgeComponent = () => {
+    if (!isShowDot) {
+      return null;
+    }
+
+    if (BottomEdgeComponent) {
+      return BottomEdgeComponent;
+    }
+
+    return (
+      <View
+        style={[
+          styles.dot,
+          styles.dotRight,
+          numberOfDays === 1 && styles.dotRightSingle,
+        ]}>
+        <DragDot />
+      </View>
+    );
+  };
+
   return (
     <Animated.View style={[styles.container, animView]}>
       <View
@@ -166,26 +212,8 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
               </Text>
             )}
       </View>
-      {TopEdgeComponent || (
-        <View
-          style={[
-            styles.dot,
-            styles.dotLeft,
-            numberOfDays === 1 && styles.dotLeftSingle,
-          ]}>
-          <DragDot />
-        </View>
-      )}
-      {BottomEdgeComponent || (
-        <View
-          style={[
-            styles.dot,
-            styles.dotRight,
-            numberOfDays === 1 && styles.dotRightSingle,
-          ]}>
-          <DragDot />
-        </View>
-      )}
+      {isShowDot && renderTopEdgeComponent()}
+      {isShowDot && renderBottomEdgeComponent()}
     </Animated.View>
   );
 };

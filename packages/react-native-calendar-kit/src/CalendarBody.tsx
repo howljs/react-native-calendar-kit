@@ -90,6 +90,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     allowDragToCreate,
     allowDragToEdit,
     firstDay,
+    dragToCreateMode,
   } = useCalendar();
   const locale = useLocale();
   const { onRefresh, onLoad } = useActions();
@@ -106,7 +107,9 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   const { gesture: dragEventGesture, isDragging: isDraggingEvent } =
     useDragEventGesture();
   const { isDragging: isDraggingCreate, gesture: dragToCreateGesture } =
-    useDragToCreateGesture();
+    useDragToCreateGesture({
+      mode: dragToCreateMode,
+    });
 
   const _onLayout = (event: LayoutChangeEvent) => {
     scrollVisibleHeight.current = event.nativeEvent.layout.height;
@@ -217,6 +220,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       allowDragToCreate,
       allowDragToEdit,
       renderCustomHorizontalLine,
+      dragToCreateMode,
     }),
     [
       renderHour,
@@ -256,6 +260,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       allowDragToCreate,
       allowDragToEdit,
       renderCustomHorizontalLine,
+      dragToCreateMode,
     ]
   );
 

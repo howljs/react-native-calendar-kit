@@ -127,6 +127,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     onLongPressBackground,
     resources,
     animateColumnWidth = false,
+    dragToCreateMode = 'duration',
   },
   ref
 ) => {
@@ -660,6 +661,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       overlapEventsSpacing,
       allowDragToCreate,
       allowDragToEdit,
+      dragToCreateMode,
     }),
     [
       calendarLayout,
@@ -708,6 +710,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       overlapEventsSpacing,
       allowDragToCreate,
       allowDragToEdit,
+      dragToCreateMode,
     ]
   );
 

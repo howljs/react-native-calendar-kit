@@ -56,6 +56,7 @@ export interface BodyContextProps {
   NowIndicatorComponent?: React.ReactElement | null;
   allowDragToCreate: boolean;
   allowDragToEdit: boolean;
+  dragToCreateMode?: 'duration' | 'date-time';
 }
 
 export const BodyContext = React.createContext<BodyContextProps | undefined>(

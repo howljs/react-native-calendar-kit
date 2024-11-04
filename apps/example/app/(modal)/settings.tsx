@@ -22,6 +22,11 @@ const days = [
   { label: 'Sunday', value: 7 },
 ] as const;
 
+const dragToCreateModes = [
+  { label: 'Duration', value: 'duration' },
+  { label: 'Date & Time', value: 'date-time' },
+] as const;
+
 const Settings = () => {
   const theme = useTheme();
   const { configs, updateConfigs } = useAppContext();
@@ -110,6 +115,48 @@ const Settings = () => {
     );
   };
 
+  const _renderDragToCreateSelect = (
+    params: {
+      label: string;
+      value: 'duration' | 'date-time';
+    },
+    index: number
+  ) => {
+    const isSelected = configs.dragToCreateMode === params.value;
+    const isLast = index === themeModes.length - 1;
+    return (
+      <React.Fragment key={params.value}>
+        <TouchableHighlight
+          underlayColor={theme.colors.border}
+          onPress={() => {
+            updateConfigs({ dragToCreateMode: params.value });
+          }}>
+          <View
+            style={[
+              styles.themeModeItem,
+              { backgroundColor: theme.colors.card },
+            ]}>
+            <Text style={[styles.themeModeLabel, { color: theme.colors.text }]}>
+              {params.label}
+            </Text>
+            {isSelected && (
+              <MaterialCommunityIcons
+                name="check"
+                size={24}
+                color={theme.colors.primary}
+              />
+            )}
+          </View>
+        </TouchableHighlight>
+        {!isLast && (
+          <View
+            style={[styles.divider, { backgroundColor: theme.colors.border }]}
+          />
+        )}
+      </React.Fragment>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View>
@@ -123,6 +170,14 @@ const Settings = () => {
           Start of the week
         </Text>
         <View style={styles.card}>{days.map(_renderDaySelect)}</View>
+      </View>
+      <View>
+        <Text style={[styles.heading, { color: theme.colors.text }]}>
+          Drag to create mode
+        </Text>
+        <View style={styles.card}>
+          {dragToCreateModes.map(_renderDragToCreateSelect)}
+        </View>
       </View>
       <View style={[styles.toggleCard, { backgroundColor: theme.colors.card }]}>
         <Text style={[styles.toggleTitle, { color: theme.colors.text }]}>
