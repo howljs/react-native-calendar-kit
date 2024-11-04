@@ -47,6 +47,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   renderDraggingEvent,
   renderDraggingHour,
   NowIndicatorComponent,
+  renderCustomHorizontalLine,
 }) => {
   const {
     calendarLayout,
@@ -215,6 +216,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       NowIndicatorComponent,
       allowDragToCreate,
       allowDragToEdit,
+      renderCustomHorizontalLine,
     }),
     [
       renderHour,
@@ -253,6 +255,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       NowIndicatorComponent,
       allowDragToCreate,
       allowDragToEdit,
+      renderCustomHorizontalLine,
     ]
   );
 

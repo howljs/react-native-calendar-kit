@@ -45,6 +45,7 @@ const TimelineBoard = ({
     calendarData,
     columns,
     timeIntervalHeight,
+    renderCustomHorizontalLine,
   } = useBody();
   const { timeZone } = useTimezone();
   const colors = useTheme((state) => state.colors);
@@ -78,6 +79,7 @@ const TimelineBoard = ({
           borderColor={colors.border}
           index={i}
           height={timeIntervalHeight}
+          renderCustomHorizontalLine={renderCustomHorizontalLine}
         />
       );
 
@@ -87,6 +89,7 @@ const TimelineBoard = ({
           borderColor={colors.border}
           index={i + 0.5}
           height={timeIntervalHeight}
+          renderCustomHorizontalLine={renderCustomHorizontalLine}
         />
       );
     }
@@ -97,6 +100,7 @@ const TimelineBoard = ({
         borderColor={colors.border}
         index={totalSlots}
         height={timeIntervalHeight}
+        renderCustomHorizontalLine={renderCustomHorizontalLine}
       />
     );
     return rows;

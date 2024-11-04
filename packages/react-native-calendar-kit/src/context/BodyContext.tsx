@@ -45,6 +45,10 @@ export interface BodyContextProps {
     }
   ) => React.ReactNode;
   renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
+  renderCustomHorizontalLine?: (props: {
+    index: number;
+    borderColor: string;
+  }) => React.ReactNode;
   startOffset: SharedValue<number>;
   rightEdgeSpacing: number;
   overlapEventsSpacing: number;

@@ -495,6 +495,35 @@ const Calendar = () => {
     [_renderResource]
   );
 
+  const _renderCustomHorizontalLine = useCallback(
+    (props: { index: number; borderColor: string }) => {
+      // Check if index is a whole number (not 0.5, 1.5, etc)
+      const isWholeNumber = Number.isInteger(props.index);
+      if (isWholeNumber) {
+        return (
+          <View
+            style={{
+              height: 1,
+              backgroundColor: props.borderColor,
+            }}
+          />
+        );
+      }
+
+      return (
+        <View
+          style={{
+            height: 1,
+            borderWidth: 1,
+            borderColor: props.borderColor,
+            borderStyle: 'dashed',
+          }}
+        />
+      );
+    },
+    []
+  );
+
   return (
     <View style={styles.container}>
       <Header
@@ -623,7 +652,9 @@ const Calendar = () => {
             isResourcesMode ? _renderResourceHeaderItem : undefined
           }
         />
-        <CalendarBody />
+        <CalendarBody
+          renderCustomHorizontalLine={_renderCustomHorizontalLine}
+        />
       </CalendarContainer>
     </View>
   );

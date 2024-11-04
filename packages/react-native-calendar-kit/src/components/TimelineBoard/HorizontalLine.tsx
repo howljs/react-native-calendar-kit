@@ -7,12 +7,17 @@ interface HorizontalLineProps {
   borderColor: string;
   index: number;
   height: SharedValue<number>;
+  renderCustomHorizontalLine?: (props: {
+    index: number;
+    borderColor: string;
+  }) => React.ReactNode;
 }
 
 const HorizontalLine = ({
   index,
   borderColor,
   height,
+  renderCustomHorizontalLine,
 }: HorizontalLineProps) => {
   const animStyle = useAnimatedStyle(() => ({
     top: index * height.value,
@@ -23,10 +28,11 @@ const HorizontalLine = ({
       pointerEvents="box-none"
       style={[
         styles.horizontalLine,
-        { backgroundColor: borderColor },
+        !renderCustomHorizontalLine ? { backgroundColor: borderColor } : {},
         animStyle,
-      ]}
-    />
+      ]}>
+      {renderCustomHorizontalLine?.({ index, borderColor })}
+    </Animated.View>
   );
 };
 export default HorizontalLine;
@@ -35,7 +41,6 @@ const styles = StyleSheet.create({
   horizontalLine: {
     position: 'absolute',
     width: '100%',
-    backgroundColor: 'grey',
     height: 1,
   },
 });

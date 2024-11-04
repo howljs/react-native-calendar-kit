@@ -731,6 +731,15 @@ export interface CalendarBodyProps {
     }
   ) => React.ReactElement | null;
 
+  /** Custom Horizontal Line
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
+  renderCustomHorizontalLine?: (props: {
+    index: number;
+    borderColor: string;
+  }) => React.ReactElement | null;
+
   /** Custom event item
    *
    * Note: Please use `useCallback` to memoize the function
