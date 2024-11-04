@@ -113,7 +113,7 @@ const UnavailableHourItem = ({
 
   return (
     <Animated.View
-      pointerEvents={enableBackgroundInteraction ? 'box-none' : 'auto'}
+      pointerEvents={enableBackgroundInteraction ? 'none' : 'auto'}
       style={[styles.container, { backgroundColor }, animView]}>
       {renderCustomUnavailableHour &&
         renderCustomUnavailableHour({
