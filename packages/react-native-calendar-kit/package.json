@@ -1,6 +1,6 @@
 {
   "name": "@howljs/calendar-kit",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "description": "React Native Calendar Kit",
   "scripts": {
     "test": "jest",
@@ -107,6 +107,7 @@
   },
   "release-it": {
     "git": {
+      "requireCleanWorkingDir": false,
       "commitMessage": "chore: release ${version}",
       "tagName": "v${version}"
     },
