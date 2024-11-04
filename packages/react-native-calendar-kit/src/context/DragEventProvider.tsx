@@ -211,9 +211,12 @@ const DragEventProvider: FC<
   const selectedEventId = selectedEvent?.localId ?? selectedEvent?.id;
 
   const calculateNewEventTimes = () => {
-    const newStartUnix = parseDateTime(roundedDragStartUnix.value)
-      .plus({ minutes: roundedDragStartMinutes.value })
-      .toMillis();
+    const baseDate = parseDateTime(roundedDragStartUnix.value);
+    const newStart = baseDate.plus({
+      minutes: roundedDragStartMinutes.value,
+    });
+    const offset = Math.abs(newStart.offset - baseDate.offset);
+    const newStartUnix = newStart.toMillis() + offset * MILLISECONDS_IN_MINUTE;
     const newEndUnix =
       newStartUnix + roundedDragDuration.value * MILLISECONDS_IN_MINUTE;
 
