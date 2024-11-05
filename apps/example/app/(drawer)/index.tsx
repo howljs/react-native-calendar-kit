@@ -34,21 +34,11 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-import {
-  SharedValue,
-  useSharedValue,
-  configureReanimatedLogger,
-  ReanimatedLogLevel,
-} from 'react-native-reanimated';
+import { SharedValue, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../../components/Header';
 import { useAppContext } from '../../context/AppProvider';
 import CustomUnavailableHour from '@/components/CustomUnavailableHour';
-
-configureReanimatedLogger({
-  level: ReanimatedLogLevel.warn,
-  strict: false,
-});
 
 type SearchParams = { viewMode: string; numberOfDays: string };
 

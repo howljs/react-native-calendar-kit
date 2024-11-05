@@ -122,7 +122,10 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
         if (visibleDateUnix.current !== currentDate) {
           const dateIsoStr = dateTimeToISOString(parseDateTime(currentDate));
           onChange?.(dateIsoStr);
-          if (triggerDateChanged.current === currentDate) {
+          if (
+            triggerDateChanged.current &&
+            triggerDateChanged.current === currentDate
+          ) {
             triggerDateChanged.current = undefined;
             onDateChanged?.(dateIsoStr);
             notifyDateChanged(currentDate);
