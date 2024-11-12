@@ -127,6 +127,8 @@ export interface CalendarKitHandle {
    * Get visible start date time
    */
   getVisibleStart: () => string;
+
+  getCurrentOffsetY: () => number;
 }
 
 /**

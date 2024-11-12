@@ -3,6 +3,7 @@ import { useSharedValue, withTiming } from 'react-native-reanimated';
 import { useCalendar } from '../context/CalendarProvider';
 import { useDragEvent } from '../context/DragEventProvider';
 import { clampValues, findNearestNumber, roundMinutes } from '../utils/utils';
+import { Platform } from 'react-native';
 
 const useDragToCreateGesture = ({
   mode,
@@ -19,6 +20,8 @@ const useDragToCreateGesture = ({
     calendarData,
     visibleDateUnixAnim,
     columns,
+    verticalListRef,
+    gridListRef,
   } = useCalendar();
   const {
     allowDragToCreate,
@@ -32,7 +35,6 @@ const useDragToCreateGesture = ({
     dragSelectedType,
     initialDragState,
     isDraggingCreateAnim,
-    isDraggingCreate,
     isDraggingAnim,
     extraMinutes,
     dragX,
@@ -139,6 +141,7 @@ const useDragToCreateGesture = ({
   };
 
   const gesture = Gesture.Pan()
+    .blocksExternalGesture(verticalListRef, gridListRef)
     .enabled(allowDragToCreate)
     .manualActivation(true)
     .onBegin((event) => {
@@ -195,7 +198,7 @@ const useDragToCreateGesture = ({
     .onTouchesMove((_event, state) => {
       if (isDraggingCreateAnim.value && isDraggingAnim.value) {
         state.activate();
-      } else {
+      } else if (Platform.OS === 'ios') {
         state.fail();
       }
     })
@@ -212,10 +215,7 @@ const useDragToCreateGesture = ({
       }
     });
 
-  return {
-    gesture,
-    isDragging: isDraggingCreate,
-  };
+  return gesture;
 };
 
 export default useDragToCreateGesture;

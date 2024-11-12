@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
 import { useCalendar } from '../context/CalendarProvider';
@@ -12,10 +13,11 @@ const useDragEventGesture = () => {
     visibleDateUnixAnim,
     calendarData,
     columns,
+    verticalListRef,
+    gridListRef,
   } = useCalendar();
   const {
     isDraggingAnim,
-    isDragging,
     dragStartMinutes,
     dragStartUnix,
     roundedDragStartMinutes,
@@ -30,7 +32,6 @@ const useDragEventGesture = () => {
     isDraggingCreateAnim,
     dragX,
   } = useDragEvent();
-
   const initialX = useSharedValue(0);
 
   const findNearestIndex = (visibleUnix: number): number | undefined => {
@@ -147,6 +148,7 @@ const useDragEventGesture = () => {
   };
 
   const gesture = Gesture.Pan()
+    .blocksExternalGesture(verticalListRef, gridListRef)
     .manualActivation(true)
     .onBegin(({ x }) => {
       initialX.value = x;
@@ -195,7 +197,7 @@ const useDragEventGesture = () => {
     .onTouchesMove((_event, state) => {
       if (isDraggingAnim.value && !isDraggingCreateAnim.value) {
         state.activate();
-      } else {
+      } else if (Platform.OS === 'ios') {
         state.fail();
       }
     })
@@ -211,7 +213,7 @@ const useDragEventGesture = () => {
       }
     });
 
-  return { gesture, isDragging };
+  return gesture;
 };
 
 export default useDragEventGesture;

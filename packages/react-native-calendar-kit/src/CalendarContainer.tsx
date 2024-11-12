@@ -560,6 +560,10 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     return dateTimeToISOString(currentDate);
   });
 
+  const getCurrentOffsetY = useLatestCallback(() => {
+    return offsetY.value;
+  });
+
   useImperativeHandle(
     ref,
     () => ({
@@ -573,6 +577,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       getEventByOffset,
       getSizeByDuration,
       getVisibleStart,
+      getCurrentOffsetY,
     }),
     [
       getDateStringByOffset,
@@ -585,6 +590,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       setVisibleDate,
       zoom,
       getVisibleStart,
+      getCurrentOffsetY,
     ]
   );
 
