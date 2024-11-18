@@ -1,13 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 import React from 'react';
-import {
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableHighlight,
-  View,
-} from 'react-native';
+import { StyleSheet, Switch, Text, TouchableHighlight, View } from 'react-native';
 
 import { useAppContext } from '../../context/AppProvider';
 
@@ -43,28 +37,14 @@ const Settings = () => {
           onPress={() => {
             updateConfigs({ themeMode: mode.value });
           }}>
-          <View
-            style={[
-              styles.themeModeItem,
-              { backgroundColor: theme.colors.card },
-            ]}>
-            <Text style={[styles.themeModeLabel, { color: theme.colors.text }]}>
-              {mode.label}
-            </Text>
+          <View style={[styles.themeModeItem, { backgroundColor: theme.colors.card }]}>
+            <Text style={[styles.themeModeLabel, { color: theme.colors.text }]}>{mode.label}</Text>
             {isSelected && (
-              <MaterialCommunityIcons
-                name="check"
-                size={24}
-                color={theme.colors.primary}
-              />
+              <MaterialCommunityIcons name="check" size={24} color={theme.colors.primary} />
             )}
           </View>
         </TouchableHighlight>
-        {!isLast && (
-          <View
-            style={[styles.divider, { backgroundColor: theme.colors.border }]}
-          />
-        )}
+        {!isLast && <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />}
       </React.Fragment>
     );
   };
@@ -85,28 +65,16 @@ const Settings = () => {
           onPress={() => {
             updateConfigs({ startOfWeek: params.value });
           }}>
-          <View
-            style={[
-              styles.themeModeItem,
-              { backgroundColor: theme.colors.card },
-            ]}>
+          <View style={[styles.themeModeItem, { backgroundColor: theme.colors.card }]}>
             <Text style={[styles.themeModeLabel, { color: theme.colors.text }]}>
               {params.label}
             </Text>
             {isSelected && (
-              <MaterialCommunityIcons
-                name="check"
-                size={24}
-                color={theme.colors.primary}
-              />
+              <MaterialCommunityIcons name="check" size={24} color={theme.colors.primary} />
             )}
           </View>
         </TouchableHighlight>
-        {!isLast && (
-          <View
-            style={[styles.divider, { backgroundColor: theme.colors.border }]}
-          />
-        )}
+        {!isLast && <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />}
       </React.Fragment>
     );
   };
@@ -114,21 +82,15 @@ const Settings = () => {
   return (
     <View style={styles.container}>
       <View>
-        <Text style={[styles.heading, { color: theme.colors.text }]}>
-          Theme Mode
-        </Text>
+        <Text style={[styles.heading, { color: theme.colors.text }]}>Theme Mode</Text>
         <View style={styles.card}>{themeModes.map(_renderSelect)}</View>
       </View>
       <View>
-        <Text style={[styles.heading, { color: theme.colors.text }]}>
-          Start of the week
-        </Text>
+        <Text style={[styles.heading, { color: theme.colors.text }]}>Start of the week</Text>
         <View style={styles.card}>{days.map(_renderDaySelect)}</View>
       </View>
       <View style={[styles.toggleCard, { backgroundColor: theme.colors.card }]}>
-        <Text style={[styles.toggleTitle, { color: theme.colors.text }]}>
-          Show week number
-        </Text>
+        <Text style={[styles.toggleTitle, { color: theme.colors.text }]}>Show week number</Text>
         <Switch
           trackColor={{
             false: theme.colors.border,

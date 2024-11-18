@@ -16,12 +16,7 @@ interface HeaderProps {
   onPressNext?: () => void;
 }
 
-const Header: FC<HeaderProps> = ({
-  currentDate,
-  onPressToday,
-  onPressPrevious,
-  onPressNext,
-}) => {
+const Header: FC<HeaderProps> = ({ currentDate, onPressToday, onPressPrevious, onPressNext }) => {
   const theme = useTheme();
   const { top: safeTop } = useSafeAreaInsets();
   const [title, setTitle] = useState('');
@@ -48,50 +43,25 @@ const Header: FC<HeaderProps> = ({
   };
 
   return (
-    <View
-      style={[
-        styles.header,
-        { paddingTop: safeTop + 16, backgroundColor: theme.colors.card },
-      ]}>
-      <TouchableOpacity
-        activeOpacity={0.6}
-        style={styles.menuBtn}
-        onPress={_onPressMenu}>
-        <MaterialCommunityIcons
-          name="menu"
-          size={24}
-          color={theme.colors.text}
-        />
+    <View style={[styles.header, { paddingTop: safeTop + 16, backgroundColor: theme.colors.card }]}>
+      <TouchableOpacity activeOpacity={0.6} style={styles.menuBtn} onPress={_onPressMenu}>
+        <MaterialCommunityIcons name="menu" size={24} color={theme.colors.text} />
       </TouchableOpacity>
       <View style={styles.headerRightContent}>
         <View style={styles.navigation}>
           <TouchableOpacity hitSlop={8} onPress={onPressPrevious}>
-            <MaterialCommunityIcons
-              name="chevron-left"
-              size={24}
-              color={theme.colors.text}
-            />
+            <MaterialCommunityIcons name="chevron-left" size={24} color={theme.colors.text} />
           </TouchableOpacity>
           <TouchableOpacity hitSlop={8} onPress={onPressNext}>
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={24}
-              color={theme.colors.text}
-            />
+            <MaterialCommunityIcons name="chevron-right" size={24} color={theme.colors.text} />
           </TouchableOpacity>
         </View>
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
-          {title}
-        </Text>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{title}</Text>
         <TouchableOpacity
           hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
           activeOpacity={0.6}
           onPress={onPressToday}>
-          <MaterialCommunityIcons
-            name="calendar"
-            size={24}
-            color={theme.colors.text}
-          />
+          <MaterialCommunityIcons name="calendar" size={24} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
     </View>

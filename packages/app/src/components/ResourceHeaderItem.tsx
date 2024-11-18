@@ -1,7 +1,8 @@
-import { useLocale, useTheme } from '@calendar-kit/core';
 import React, { type FC, useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useLocale } from '../context/LocaleProvider';
+import { useTheme } from '../context/ThemeProvider';
 import type { ResourceItem } from '../types';
 import { parseDateTime } from '../utils/dateUtils';
 
@@ -68,9 +69,7 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
   return (
     <View style={styles.container}>
       {DateComponent ?? _renderDate()}
-      <View style={styles.resourceContainer}>
-        {resources?.map(_renderResource)}
-      </View>
+      <View style={styles.resourceContainer}>{resources?.map(_renderResource)}</View>
     </View>
   );
 };

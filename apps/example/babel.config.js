@@ -25,6 +25,7 @@ module.exports = function (api) {
 
   return {
     presets: ['babel-preset-expo'],
+    plugins: ['@babel/plugin-proposal-export-namespace-from', 'react-native-reanimated/plugin'],
     overrides: [
       {
         exclude: /\/node_modules\//,
@@ -41,12 +42,7 @@ module.exports = function (api) {
       },
       {
         include: /\/packages\//,
-        presets: [
-          [
-            'module:react-native-builder-bob/babel-preset',
-            { modules: 'commonjs' },
-          ],
-        ],
+        presets: [['module:react-native-builder-bob/babel-preset', { modules: 'commonjs' }]],
       },
     ],
   };

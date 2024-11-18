@@ -4,14 +4,9 @@ import {
   type TouchableWithoutFeedbackProps,
 } from 'react-native';
 
-interface TouchableProps extends TouchableWithoutFeedbackProps {}
+type TouchableProps = TouchableWithoutFeedbackProps;
 
-const Touchable = ({
-  children,
-  onPress,
-  onLongPress,
-  ...props
-}: TouchableProps) => {
+const Touchable = ({ children, onPress, onLongPress, ...props }: TouchableProps) => {
   const handlePress = (e: GestureResponderEvent) => {
     const event = {
       ...e,

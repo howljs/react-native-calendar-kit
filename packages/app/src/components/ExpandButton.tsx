@@ -1,21 +1,16 @@
-import { useTheme } from '@calendar-kit/core';
 import { useCallback } from 'react';
 import type { ViewStyle } from 'react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from 'react-native-reanimated';
+
+import { useTheme } from '../context/ThemeProvider';
 
 interface ExpandButtonProps {
   isExpanded: SharedValue<boolean>;
   isShowExpandButton: SharedValue<boolean>;
   containerStyle?: ViewStyle;
-  renderExpandIcon?: (props: {
-    isExpanded: SharedValue<boolean>;
-  }) => JSX.Element | null;
+  renderExpandIcon?: (props: { isExpanded: SharedValue<boolean> }) => JSX.Element | null;
 }
 
 const ExpandButton = ({
@@ -53,26 +48,14 @@ const ExpandButton = ({
 
     return (
       <Animated.View style={[styles.expandIcon, expandIcon]}>
-        <View
-          style={[
-            styles.chevron,
-            styles.chevronLeft,
-            { backgroundColor: borderColor },
-          ]}
-        />
-        <View
-          style={[
-            styles.chevron,
-            styles.chevronRight,
-            { backgroundColor: borderColor },
-          ]}
-        />
+        <View style={[styles.chevron, styles.chevronLeft, { backgroundColor: borderColor }]} />
+        <View style={[styles.chevron, styles.chevronRight, { backgroundColor: borderColor }]} />
       </Animated.View>
     );
   };
 
   return (
-    <Animated.View style={[styles.btnContainer, containerStyle, animStyle]}>
+    <Animated.View style={[styles.btnContainer, containerStyle as any, animStyle]}>
       <TouchableOpacity hitSlop={8} onPress={toggleExpand} activeOpacity={0.6}>
         {_renderExpandIcon()}
       </TouchableOpacity>

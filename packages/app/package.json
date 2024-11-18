@@ -1,7 +1,7 @@
 {
   "name": "@calendar-kit/app",
   "description": "React Native Calendar Kit",
-  "version": "3.0.0-alpha.1",
+  "version": "3.0.0-alpha.2",
   "keywords": [
     "react-native",
     "ios",
@@ -60,6 +60,10 @@
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@testing-library/react-native": "^12.4.3",
+    "@types/lodash.debounce": "^4.0.9",
+    "@types/lodash.isequal": "^4.5.8",
+    "@types/lodash.merge": "^4.6.9",
+    "@types/luxon": "^3.4.2",
     "@types/react": "~18.2.79",
     "@types/react-dom": "~18.2.25",
     "del-cli": "^5.1.0",

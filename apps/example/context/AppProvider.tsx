@@ -1,9 +1,5 @@
 import type { Theme } from '@react-navigation/native';
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import type { FC, PropsWithChildren } from 'react';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { useColorScheme } from 'react-native';

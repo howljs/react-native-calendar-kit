@@ -1,14 +1,12 @@
-import { useTheme, useUnavailableHoursByDate } from '@calendar-kit/core';
 import type { FC } from 'react';
 import React, { memo, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
 import { useBody } from '../../context/BodyContext';
+import { useTheme } from '../../context/ThemeProvider';
+import { useUnavailableHoursByDate } from '../../context/UnavailableHoursProvider';
 import type { UnavailableHourProps } from '../../types';
 
 interface UnavailableHoursProps {
@@ -33,46 +31,38 @@ const UnavailableHours: FC<UnavailableHoursProps> = ({ visibleDates }) => {
 
 export default UnavailableHours;
 
-const UnavailableColumn = memo(
-  ({ currentUnix, index }: { currentUnix: number; index: number }) => {
-    const { start: calendarStart, renderCustomUnavailableHour } = useBody();
-    const backgroundColor = useTheme(
-      useCallback(
-        (state) => state.unavailableHourBackgroundColor || state.colors.surface,
-        []
-      )
-    );
+const UnavailableColumn = memo(({ currentUnix, index }: { currentUnix: number; index: number }) => {
+  const { start: calendarStart, renderCustomUnavailableHour } = useBody();
+  const backgroundColor = useTheme(
+    useCallback((state) => state.unavailableHourBackgroundColor || state.colors.surface, [])
+  );
 
-    const unavailableHours = useUnavailableHoursByDate(currentUnix);
-    if (!unavailableHours) {
-      return null;
-    }
-
-    const _renderSpecialRegion = (
-      props: UnavailableHourProps,
-      regionIndex: number
-    ) => {
-      const clampedStart = Math.max(props.start - calendarStart, 0);
-      const start = props.start > calendarStart ? props.start : calendarStart;
-      const totalMinutes = props.end - start;
-
-      return (
-        <UnavailableHourItem
-          key={`${currentUnix}_${regionIndex}`}
-          diffDays={index}
-          diffMinutes={clampedStart}
-          totalMinutes={totalMinutes}
-          backgroundColor={props.backgroundColor || backgroundColor}
-          enableBackgroundInteraction={props.enableBackgroundInteraction}
-          renderCustomUnavailableHour={renderCustomUnavailableHour}
-          originalProps={props}
-        />
-      );
-    };
-
-    return unavailableHours.map(_renderSpecialRegion);
+  const unavailableHours = useUnavailableHoursByDate(currentUnix);
+  if (!unavailableHours) {
+    return null;
   }
-);
+
+  const _renderSpecialRegion = (props: UnavailableHourProps, regionIndex: number) => {
+    const clampedStart = Math.max(props.start - calendarStart, 0);
+    const start = props.start > calendarStart ? props.start : calendarStart;
+    const totalMinutes = props.end - start;
+
+    return (
+      <UnavailableHourItem
+        key={`${currentUnix}_${regionIndex}`}
+        diffDays={index}
+        diffMinutes={clampedStart}
+        totalMinutes={totalMinutes}
+        backgroundColor={props.backgroundColor || backgroundColor}
+        enableBackgroundInteraction={props.enableBackgroundInteraction}
+        renderCustomUnavailableHour={renderCustomUnavailableHour}
+        originalProps={props}
+      />
+    );
+  };
+
+  return unavailableHours.map(_renderSpecialRegion);
+});
 
 interface UnavailableHourItemProps {
   totalMinutes: number;
@@ -113,7 +103,7 @@ const UnavailableHourItem = ({
 
   return (
     <Animated.View
-      pointerEvents={enableBackgroundInteraction ? 'box-none' : 'auto'}
+      pointerEvents={enableBackgroundInteraction ? 'none' : 'auto'}
       style={[styles.container, { backgroundColor }, animView]}>
       {renderCustomUnavailableHour &&
         renderCustomUnavailableHour({

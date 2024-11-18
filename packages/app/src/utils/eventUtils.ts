@@ -1,4 +1,3 @@
-import { RRuleGenerator } from '@calendar-kit/core';
 import type { DateTime, WeekdayNumbers } from 'luxon';
 
 import {
@@ -7,6 +6,7 @@ import {
   MILLISECONDS_IN_MINUTE,
   MINUTES_IN_DAY,
 } from '../constants';
+import { RRuleGenerator } from '../service/rrule';
 import type {
   EventItem,
   EventItemInternal,
@@ -19,10 +19,7 @@ import type {
 import { forceUpdateZone, parseDateTime, startOfWeek } from './dateUtils';
 
 const isValidEventDates = (event: EventItem): boolean => {
-  return (
-    !!(event.start.date && event.end.date) ||
-    !!(event.start.dateTime && event.end.dateTime)
-  );
+  return !!(event.start.date && event.end.date) || !!(event.start.dateTime && event.end.dateTime);
 };
 
 const getEventTimes = (
@@ -51,11 +48,7 @@ const isValidEventRange = (
   minUnix: number,
   maxUnix: number
 ): boolean => {
-  return (
-    eventEndUnix > eventStartUnix &&
-    eventEndUnix > minUnix &&
-    eventStartUnix < maxUnix
-  );
+  return eventEndUnix > eventStartUnix && eventEndUnix > minUnix && eventStartUnix < maxUnix;
 };
 
 const createInternalEvent = (
@@ -96,10 +89,7 @@ export const filterEvents = (
     }
 
     const { eventStartUnix, eventEndUnix, isAllDay } = getEventTimes(event);
-    if (
-      !isValidEventRange(eventStartUnix, eventEndUnix, minUnix, maxUnix) &&
-      !event.recurrence
-    ) {
+    if (!isValidEventRange(eventStartUnix, eventEndUnix, minUnix, maxUnix) && !event.recurrence) {
       continue;
     }
 
@@ -226,14 +216,10 @@ export const divideAllDayEvents = (
   eventStart = forceUpdateZone(eventStart);
   eventEnd = forceUpdateZone(eventEnd);
 
-  const weekStartUnix = startOfWeek(
-    eventStart.toISODate(),
-    firstDay
-  ).toMillis();
+  const weekStartUnix = startOfWeek(eventStart.toISODate(), firstDay).toMillis();
   const weekEndUnix = startOfWeek(eventEnd.toISODate(), firstDay).toMillis();
 
-  const diffWeeks =
-    Math.floor((weekEndUnix - weekStartUnix) / (7 * MILLISECONDS_IN_DAY)) + 1;
+  const diffWeeks = Math.floor((weekEndUnix - weekStartUnix) / (7 * MILLISECONDS_IN_DAY)) + 1;
   const isSameDay = event._internal.startUnix === event._internal.endUnix;
   let eventStartUnix = eventStart.startOf('day').toMillis();
   const eventEndUnix = isSameDay
@@ -244,12 +230,7 @@ export const divideAllDayEvents = (
 
   if (diffWeeks <= 1) {
     // Adjust duration to exclude hidden days
-    const duration = calculateVisibleDuration(
-      eventStartUnix,
-      eventEndUnix,
-      timeZone,
-      hideWeekDays
-    );
+    const duration = calculateVisibleDuration(eventStartUnix, eventEndUnix, timeZone, hideWeekDays);
 
     if (duration > 0) {
       events.push({
@@ -275,12 +256,7 @@ export const divideAllDayEvents = (
     if (eventEndUnix < weekEnd) {
       weekEnd = eventEndUnix;
     }
-    const duration = calculateVisibleDuration(
-      eventStartUnix,
-      weekEnd,
-      timeZone,
-      hideWeekDays
-    );
+    const duration = calculateVisibleDuration(eventStartUnix, weekEnd, timeZone, hideWeekDays);
 
     if (duration > 0) {
       const newEvent = {
@@ -308,10 +284,7 @@ export function processEventOccurrences(
   minUnix: number,
   maxUnix: number,
   timeZone: string,
-  divideFunction: (
-    event: EventItemInternal,
-    timeZone: string
-  ) => EventItemInternal[]
+  divideFunction: (event: EventItemInternal, timeZone: string) => EventItemInternal[]
 ): EventItemInternal[] {
   if (event.recurrence) {
     const rrule = new RRuleGenerator(
@@ -329,12 +302,7 @@ export function processEventOccurrences(
     const firstOccurrence = rrule.firstOccurrence(event.start.timeZone);
 
     const duration = event._internal.duration;
-    const {
-      recurrence: originalRrule,
-      excludeDates,
-      _internal,
-      ...rest
-    } = event;
+    const { recurrence: originalRrule, excludeDates, _internal, ...rest } = event;
     return occurrences.flatMap((occurrence) => {
       let eventStart = occurrence;
       if (event.start.dateTime) {
@@ -342,9 +310,7 @@ export function processEventOccurrences(
           zone: event.start.timeZone,
         });
       }
-      const eventEnd = eventStart
-        .plus({ minutes: duration })
-        .setZone(event.end.timeZone);
+      const eventEnd = eventStart.plus({ minutes: duration }).setZone(event.end.timeZone);
       const instanceId = buildInstanceId(event.id, eventStart.toUTC());
       const recurringEvent: EventItemInternal = {
         ...rest,
@@ -362,8 +328,7 @@ export function processEventOccurrences(
         originalStartTime: event.start.dateTime
           ? { dateTime: eventStart.toISO(), timeZone: eventStart.zoneName }
           : { date: eventStart.toISODate() },
-        isFirstOccurrence:
-          firstOccurrence?.toMillis() === eventStart.toMillis(),
+        isFirstOccurrence: firstOccurrence?.toMillis() === eventStart.toMillis(),
         _internal: {
           ..._internal,
           startUnix: eventStart.toMillis(),
@@ -394,18 +359,11 @@ export function processAllDayEventMap(
   const eventCountsByDay: Record<string, number> = {};
 
   allDayEventMap.forEach((eventsForWeek, weekStart) => {
-    const visibleDays: number[] = getVisibleDays(
-      weekStart,
-      timeZone,
-      hideWeekDays
-    );
+    const visibleDays: number[] = getVisibleDays(weekStart, timeZone, hideWeekDays);
 
     const { packedEvents, maxRowCount } = populateAllDayEvents(eventsForWeek, {
       startDate: weekStart,
-      endDate: parseDateTime(weekStart)
-        .plus({ days: 6 })
-        .endOf('day')
-        .toMillis(),
+      endDate: parseDateTime(weekStart).plus({ days: 6 }).endOf('day').toMillis(),
       timeZone,
       visibleDays,
     });
@@ -423,8 +381,7 @@ export function processAllDayEventMap(
       ) {
         const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
         if (visibleDays.includes(dayStartUnix)) {
-          eventCountsByDay[dayStartUnix] =
-            (eventCountsByDay[dayStartUnix] || 0) + 1;
+          eventCountsByDay[dayStartUnix] = (eventCountsByDay[dayStartUnix] || 0) + 1;
           if (!packedAllDayEventsByDay[dayStartUnix]) {
             packedAllDayEventsByDay[dayStartUnix] = [];
           }
@@ -463,15 +420,10 @@ export function getVisibleDays(
 }
 
 const hasCollision = (a: EventItemInternal, b: EventItemInternal) => {
-  return (
-    a._internal.endUnix > b._internal.startUnix &&
-    a._internal.startUnix < b._internal.endUnix
-  );
+  return a._internal.endUnix > b._internal.startUnix && a._internal.startUnix < b._internal.endUnix;
 };
 
-export const sortEvents = (
-  events: EventItemInternal[]
-): EventItemInternal[] => {
+export const sortEvents = (events: EventItemInternal[]): EventItemInternal[] => {
   return events.slice().sort((a, b) => {
     // Compare by start time
     if (a._internal.startUnix !== b._internal.startUnix) {
@@ -493,10 +445,7 @@ export const sortEvents = (
   });
 };
 
-const handleNoOverlap = (
-  events: EventItemInternal[],
-  resourceIndex?: number
-) => {
+const handleNoOverlap = (events: EventItemInternal[], resourceIndex?: number) => {
   const eventColumns: EventItemInternal[][] = [];
   const packedEvents: PackedEvent[] = [];
   const sortedEvents = sortEvents(events) as NoOverlapEvent[];
@@ -581,16 +530,10 @@ function overlapSort(events: EventItemInternal[]): EventItemInternal[] {
   return sorted;
 }
 
-const onSameRow = (
-  a: OverlapEvent,
-  b: OverlapEvent,
-  minimumStartDifference: number
-) => {
+const onSameRow = (a: OverlapEvent, b: OverlapEvent, minimumStartDifference: number) => {
   return (
-    Math.abs(b._internal.startUnix - a._internal.startUnix) <
-      minimumStartDifference ||
-    (b._internal.startUnix > a._internal.startUnix &&
-      b._internal.startUnix < a._internal.endUnix)
+    Math.abs(b._internal.startUnix - a._internal.startUnix) < minimumStartDifference ||
+    (b._internal.startUnix > a._internal.startUnix && b._internal.startUnix < a._internal.endUnix)
   );
 };
 
@@ -598,11 +541,7 @@ const computeStylesForEvents = (containerEvents: OverlapEvent[]) => {
   for (const containerEvent of containerEvents) {
     const columns =
       containerEvent._internal.rows!.reduce(
-        (max, row) =>
-          Math.max(
-            max,
-            (row._internal.leaves ? row._internal.leaves.length : 0) + 1
-          ),
+        (max, row) => Math.max(max, (row._internal.leaves ? row._internal.leaves.length : 0) + 1),
         0
       ) + 1;
 
@@ -610,10 +549,7 @@ const computeStylesForEvents = (containerEvents: OverlapEvent[]) => {
 
     const noOverlap = containerEvent._internal._width;
     const overlap = Math.min(100, containerEvent._internal._width * 1.7);
-    if (
-      containerEvent._internal.rows &&
-      containerEvent._internal.rows.length > 0
-    ) {
+    if (containerEvent._internal.rows && containerEvent._internal.rows.length > 0) {
       containerEvent._internal.width = overlap;
     } else {
       containerEvent._internal.width = noOverlap;
@@ -623,8 +559,7 @@ const computeStylesForEvents = (containerEvents: OverlapEvent[]) => {
 
     for (const rowEvent of containerEvent._internal.rows!) {
       const availableWidth = 100 - containerEvent._internal._width;
-      rowEvent._internal._width =
-        availableWidth / ((rowEvent._internal.leaves?.length ?? 0) + 1);
+      rowEvent._internal._width = availableWidth / ((rowEvent._internal.leaves?.length ?? 0) + 1);
 
       const noOverlapRow = rowEvent._internal._width;
       const overlapRow = Math.min(100, rowEvent._internal._width * 1.7);
@@ -644,12 +579,10 @@ const computeStylesForEvents = (containerEvents: OverlapEvent[]) => {
           const index = leaves.indexOf(leafEvent);
           const noOverlapLeaf = leafEvent._internal._width;
           const overlapLeaf = Math.min(100, leafEvent._internal._width * 1.7);
-          leafEvent._internal.width =
-            index === leaves.length - 1 ? noOverlapLeaf : overlapLeaf;
+          leafEvent._internal.width = index === leaves.length - 1 ? noOverlapLeaf : overlapLeaf;
 
           leafEvent._internal.xOffset =
-            rowEvent._internal.xOffset +
-            (index + 1) * leafEvent._internal._width;
+            rowEvent._internal.xOffset + (index + 1) * leafEvent._internal._width;
         }
       }
     }
@@ -667,8 +600,7 @@ const handleOverlap = (
     const container = containerEvents.find(
       (c) =>
         c._internal.endUnix > event._internal.startUnix ||
-        Math.abs(event._internal.startUnix - c._internal.startUnix) <
-          minimumStartDifference
+        Math.abs(event._internal.startUnix - c._internal.startUnix) < minimumStartDifference
     );
 
     if (!container) {
@@ -679,9 +611,7 @@ const handleOverlap = (
     event._internal.container = container;
     let row: OverlapEvent | null = null;
     for (let j = container._internal.rows!.length - 1; !row && j >= 0; j--) {
-      if (
-        onSameRow(container._internal.rows![j], event, minimumStartDifference)
-      ) {
+      if (onSameRow(container._internal.rows![j], event, minimumStartDifference)) {
         row = container._internal.rows![j]!;
       }
     }
@@ -736,19 +666,13 @@ export const populateEvents = (
     resourceIndex?: number
   ): PackedEvent[] =>
     overlap
-      ? handleOverlap(
-          eventsToHandle,
-          minStartDifference * MILLISECONDS_IN_MINUTE,
-          resourceIndex
-        )
+      ? handleOverlap(eventsToHandle, minStartDifference * MILLISECONDS_IN_MINUTE, resourceIndex)
       : handleNoOverlap(eventsToHandle, resourceIndex);
 
   if (resources && resources.length > 0) {
     return resources.flatMap((resource, resourceIndex) => {
       const resourceEvents = events.filter((e) => e.resourceId === resource.id);
-      return resourceEvents.length > 0
-        ? handleEvents(resourceEvents, resourceIndex)
-        : [];
+      return resourceEvents.length > 0 ? handleEvents(resourceEvents, resourceIndex) : [];
     });
   }
 
@@ -806,9 +730,7 @@ export const populateAllDayEvents = (
         dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
       ) {
         const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
-        if (
-          Object.prototype.hasOwnProperty.call(dateToIndexMap, dayStartUnix)
-        ) {
+        if (Object.prototype.hasOwnProperty.call(dateToIndexMap, dayStartUnix)) {
           eventVisibleDays.push(dayStartUnix);
         }
       }

@@ -1,7 +1,9 @@
-import { useCalendar, useDragEvent } from '@calendar-kit/core';
+import { Platform } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { useCalendar } from '../context/CalendarProvider';
+import { useDragEvent } from '../context/DragEventProvider';
 import { clampValues, findNearestNumber, roundMinutes } from '../utils/utils';
 
 const useDragEventGesture = () => {
@@ -12,37 +14,33 @@ const useDragEventGesture = () => {
     visibleDateUnixAnim,
     calendarData,
     columns,
+    verticalListRef,
+    gridListRef,
   } = useCalendar();
   const {
     isDraggingAnim,
-    isDragging,
     dragStartMinutes,
     dragStartUnix,
     roundedDragStartMinutes,
     dragStep,
-    dragPosition,
+    dragY,
     roundedDragStartUnix,
     roundedDragDuration,
     dragDuration,
     dragSelectedType,
     extraMinutes,
     initialDragState,
-    isDraggingCreateAnim,
+    draggingType,
     dragX,
   } = useDragEvent();
-
   const initialX = useSharedValue(0);
 
   const findNearestIndex = (visibleUnix: number): number | undefined => {
     'worklet';
     let visibleIndex = calendarData.visibleDatesArray.indexOf(visibleUnix);
     if (visibleIndex === -1) {
-      const nearestVisibleUnix = findNearestNumber(
-        calendarData.visibleDatesArray,
-        visibleUnix
-      );
-      const nearestVisibleIndex =
-        calendarData.visibleDates[nearestVisibleUnix]?.index;
+      const nearestVisibleUnix = findNearestNumber(calendarData.visibleDatesArray, visibleUnix);
+      const nearestVisibleIndex = calendarData.visibleDates[nearestVisibleUnix]?.index;
       if (nearestVisibleIndex === undefined) {
         return undefined;
       }
@@ -102,10 +100,7 @@ const useDragEventGesture = () => {
     roundedDragDuration.value = nextRoundedDuration;
   };
 
-  const updateDragStartPosition = (
-    translationY: number,
-    initialStart: number
-  ) => {
+  const updateDragStartPosition = (translationY: number, initialStart: number) => {
     'worklet';
     const initialY = (initialStart + extraMinutes.value) * minuteHeight.value;
     const newY = initialY + translationY;
@@ -129,8 +124,7 @@ const useDragEventGesture = () => {
     }
 
     const dayIndexOffset = initialDayUnixIndex - visibleIndex;
-    const extraX =
-      initialXPosition - dayIndexOffset * columnWidthAnim.value - hourWidth;
+    const extraX = initialXPosition - dayIndexOffset * columnWidthAnim.value - hourWidth;
     const initialOffset = dayIndexOffset * columnWidthAnim.value;
     const newX = initialOffset + translationX + extraX;
     const newDragDayIndex = Math.floor(newX / columnWidthAnim.value);
@@ -147,6 +141,7 @@ const useDragEventGesture = () => {
   };
 
   const gesture = Gesture.Pan()
+    .blocksExternalGesture(verticalListRef, gridListRef)
     .manualActivation(true)
     .onBegin(({ x }) => {
       initialX.value = x;
@@ -159,8 +154,8 @@ const useDragEventGesture = () => {
       };
     })
     .onUpdate(({ translationX, translationY, x, y }) => {
-      dragPosition.value = { x, y, translationX, translationY };
       dragX.value = x;
+      dragY.value = y;
       const {
         dragStart: initialStart,
         dragStartUnix: initialDayUnix,
@@ -168,20 +163,12 @@ const useDragEventGesture = () => {
       } = initialDragState.value;
 
       if (dragSelectedType.value === 'bottom') {
-        updateDragDurationForBottom(
-          translationY,
-          initialStart,
-          initialDuration
-        );
+        updateDragDurationForBottom(translationY, initialStart, initialDuration);
       } else if (dragSelectedType.value === 'top') {
         updateDragDurationForTop(translationY, initialStart, initialDuration);
       } else {
         updateDragStartPosition(translationY, initialStart);
-        updateDragPositionHorizontal(
-          translationX,
-          initialDayUnix,
-          initialX.value
-        );
+        updateDragPositionHorizontal(translationX, initialDayUnix, initialX.value);
       }
     })
     .onEnd(() => {
@@ -193,25 +180,19 @@ const useDragEventGesture = () => {
       });
     })
     .onTouchesMove((_event, state) => {
-      if (isDraggingAnim.value && !isDraggingCreateAnim.value) {
+      if (isDraggingAnim.value && draggingType.value !== 'create') {
         state.activate();
-      } else {
+      } else if (Platform.OS === 'ios') {
         state.fail();
       }
     })
     .onTouchesUp(() => {
-      if (isDraggingAnim.value && !isDraggingCreateAnim.value) {
+      if (isDraggingAnim.value && draggingType.value !== 'create') {
         isDraggingAnim.value = false;
-        dragPosition.value = {
-          x: -1,
-          y: -1,
-          translationX: -1,
-          translationY: -1,
-        };
       }
     });
 
-  return { gesture, isDragging };
+  return gesture;
 };
 
 export default useDragEventGesture;

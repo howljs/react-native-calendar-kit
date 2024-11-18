@@ -5,6 +5,7 @@ const fs = require('fs');
 const escape = require('escape-string-regexp');
 const { getDefaultConfig } = require('@expo/metro-config');
 const exclusionList = require('metro-config/src/defaults/exclusionList');
+const { wrapWithReanimatedMetroConfig } = require('react-native-reanimated/metro-config');
 
 const root = path.resolve(__dirname, '../..');
 const packages = path.resolve(root, 'packages');
@@ -15,19 +16,13 @@ const defaultConfig = getDefaultConfig(__dirname);
 const workspaces = fs
   .readdirSync(packages)
   .map((p) => path.join(packages, p))
-  .filter(
-    (p) =>
-      fs.statSync(p).isDirectory() &&
-      fs.existsSync(path.join(p, 'package.json'))
-  );
+  .filter((p) => fs.statSync(p).isDirectory() && fs.existsSync(path.join(p, 'package.json')));
 
 // Get the list of dependencies for all packages in the monorepo
 const modules = ['@expo/vector-icons']
   .concat(
     ...workspaces.map((it) => {
-      const pak = JSON.parse(
-        fs.readFileSync(path.join(it, 'package.json'), 'utf8')
-      );
+      const pak = JSON.parse(fs.readFileSync(path.join(it, 'package.json'), 'utf8'));
 
       // We need to make sure that only one version is loaded for peerDependencies
       // So we exclude them at the root, and alias them to the versions in example's node_modules
@@ -42,7 +37,7 @@ const modules = ['@expo/vector-icons']
   );
 
 /** @type {import('metro-config').MetroConfig} */
-module.exports = {
+const config = {
   ...defaultConfig,
 
   projectRoot: __dirname,
@@ -59,10 +54,7 @@ module.exports = {
     blacklistRE: exclusionList(
       [].concat(
         ...workspaces.map((it) =>
-          modules.map(
-            (m) =>
-              new RegExp(`^${escape(path.join(it, 'node_modules', m))}\\/.*$`)
-          )
+          modules.map((m) => new RegExp(`^${escape(path.join(it, 'node_modules', m))}\\/.*$`))
         )
       )
     ),
@@ -73,22 +65,6 @@ module.exports = {
       acc[name] = path.join(root, 'node_modules', name);
       return acc;
     }, {}),
-
-    resolveRequest: (context, realModuleName, platform) => {
-      // We mock out react-native-gesture-handler and react-native-reanimated on web
-      // This is an additional measure to ensure they don't get added accidentally
-      if (
-        platform === 'web' &&
-        (realModuleName === 'react-native-gesture-handler' ||
-          realModuleName === 'react-native-reanimated')
-      ) {
-        throw new Error(
-          `The module '${realModuleName}' should not be imported on Web.`
-        );
-      }
-
-      return context.resolveRequest(context, realModuleName, platform);
-    },
   },
 
   server: {
@@ -107,3 +83,5 @@ module.exports = {
     },
   },
 };
+
+module.exports = wrapWithReanimatedMetroConfig(config);

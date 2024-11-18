@@ -1,13 +1,7 @@
 module.exports = {
   root: true,
   extends: ['satya164', 'standard', 'prettier'],
-  plugins: [
-    'simple-import-sort',
-    'react',
-    'react-native',
-    'jest',
-    '@typescript-eslint',
-  ],
+  plugins: ['simple-import-sort', 'react', 'react-native', 'jest', '@typescript-eslint'],
   settings: {
     'react': {
       version: '16',
@@ -30,7 +24,6 @@ module.exports = {
     'react/jsx-uses-vars': 'error',
     'react/jsx-uses-react': 'error',
     'no-use-before-define': 'off',
-    'eqeqeq': 'error',
     'no-unreachable': 'error',
     'jest/no-disabled-tests': 'warn',
     'jest/no-focused-tests': 'error',
@@ -64,10 +57,7 @@ module.exports = {
             'ts-expect-error': 'allow-with-description',
           },
         ],
-        '@typescript-eslint/no-unused-vars': [
-          'error',
-          { argsIgnorePattern: '^_' },
-        ],
+        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
         '@typescript-eslint/no-var-requires': 'warn',
         '@typescript-eslint/consistent-type-exports': [
           'error',
@@ -78,6 +68,8 @@ module.exports = {
         '@typescript-eslint/no-shadow': 'error',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
+        '@eslint-react/hooks-extra/no-direct-set-state-in-use-effect': 'off',
+        '@eslint-react/no-array-index-key': 'off',
       },
     },
   ],

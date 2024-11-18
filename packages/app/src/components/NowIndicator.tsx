@@ -1,14 +1,12 @@
-import { useNowIndicator, useTheme } from '@calendar-kit/core';
 import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
 import { useBody } from '../context/BodyContext';
+import { useNowIndicator } from '../context/NowIndicatorProvider';
+import { useTheme } from '../context/ThemeProvider';
 
 interface NowIndicatorProps {
   dayIndex: number;
@@ -16,14 +14,8 @@ interface NowIndicatorProps {
 }
 
 const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
-  const {
-    minuteHeight,
-    start,
-    end,
-    startOffset,
-    columnWidthAnim,
-    NowIndicatorComponent,
-  } = useBody();
+  const { minuteHeight, start, end, startOffset, columnWidthAnim, NowIndicatorComponent } =
+    useBody();
   const nowIndicatorColor = useTheme(
     useCallback((state) => state.nowIndicatorColor || state.colors.primary, [])
   );
@@ -46,9 +38,7 @@ const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
   });
 
   return (
-    <Animated.View
-      pointerEvents="box-none"
-      style={[styles.container, animView]}>
+    <Animated.View pointerEvents="box-none" style={[styles.container, animView]}>
       {NowIndicatorComponent || (
         <View style={styles.lineContainer}>
           <View style={[styles.line, { backgroundColor: nowIndicatorColor }]} />
@@ -73,12 +63,7 @@ const NowIndicator: FC<{
     return null;
   }
 
-  return (
-    <NowIndicatorInner
-      currentTime={currentTime}
-      dayIndex={visibleDate.diffDays - 1}
-    />
-  );
+  return <NowIndicatorInner currentTime={currentTime} dayIndex={visibleDate.diffDays - 1} />;
 };
 
 export default React.memo(NowIndicator);

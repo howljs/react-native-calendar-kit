@@ -5,9 +5,7 @@ export interface TimezoneContextProps {
   timeZone: string;
 }
 
-const TimezoneContext = React.createContext<TimezoneContextProps | undefined>(
-  undefined
-);
+const TimezoneContext = React.createContext<TimezoneContextProps | undefined>(undefined);
 
 const TimezoneProvider: React.FC<PropsWithChildren<{ timeZone: string }>> = ({
   children,
@@ -15,11 +13,7 @@ const TimezoneProvider: React.FC<PropsWithChildren<{ timeZone: string }>> = ({
 }) => {
   const value = useMemo(() => ({ timeZone }), [timeZone]);
 
-  return (
-    <TimezoneContext.Provider value={value}>
-      {children}
-    </TimezoneContext.Provider>
-  );
+  return <TimezoneContext.Provider value={value}>{children}</TimezoneContext.Provider>;
 };
 
 export default TimezoneProvider;

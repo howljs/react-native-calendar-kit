@@ -1,26 +1,20 @@
-import type { FC, PropsWithChildren } from 'react';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import type { FC, MutableRefObject, PropsWithChildren } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface VisibleDateProviderProps {
-  initialStart: React.MutableRefObject<number>;
+  initialStart: MutableRefObject<number>;
 }
 
-const VisibleDateValueContext = React.createContext<number | undefined>(
-  undefined
-);
+const VisibleDateValueContext = createContext<number | undefined>(undefined);
 
-const VisibleDateActionsContext = React.createContext<
-  ((date: number) => void) | undefined
->(undefined);
+const VisibleDateActionsContext = createContext<((date: number) => void) | undefined>(undefined);
 
 const VisibleDateProvider: FC<PropsWithChildren<VisibleDateProviderProps>> = ({
   initialStart,
   children,
 }) => {
   const [visibleDateUnix, setVisibleDateUnix] = useState(initialStart.current);
-  const [debouncedDateUnix, setDebouncedDateUnix] = React.useState(
-    initialStart.current
-  );
+  const [debouncedDateUnix, setDebouncedDateUnix] = useState(initialStart.current);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -47,9 +41,7 @@ export default VisibleDateProvider;
 export const useDateChangedListener = () => {
   const context = useContext(VisibleDateValueContext);
   if (!context) {
-    throw new Error(
-      'useDateChangedListener must be used within a VisibleDateProvider'
-    );
+    throw new Error('useDateChangedListener must be used within a VisibleDateProvider');
   }
   return context;
 };
@@ -57,9 +49,7 @@ export const useDateChangedListener = () => {
 export const useNotifyDateChanged = () => {
   const context = useContext(VisibleDateActionsContext);
   if (context === undefined) {
-    throw new Error(
-      'useDateChangeActions must be used within a VisibleDateProvider'
-    );
+    throw new Error('useDateChangeActions must be used within a VisibleDateProvider');
   }
   return context;
 };

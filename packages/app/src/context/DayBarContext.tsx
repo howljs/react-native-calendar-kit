@@ -1,8 +1,8 @@
-import type { Size } from '@calendar-kit/core';
 import React from 'react';
 import type { SharedValue } from 'react-native-reanimated';
 
 import type { DataByMode } from '../utils/utils';
+import type { Size } from './LayoutProvider';
 
 export interface HeaderContextProps {
   dayBarHeight: number;
@@ -27,9 +27,7 @@ export interface HeaderContextProps {
   overlapEventsSpacing: number;
 }
 
-export const HeaderContext = React.createContext<
-  HeaderContextProps | undefined
->(undefined);
+export const HeaderContext = React.createContext<HeaderContextProps | undefined>(undefined);
 
 export const useHeader = () => {
   const context = React.useContext(HeaderContext);

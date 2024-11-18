@@ -1,29 +1,16 @@
-import {
-  useActions,
-  useAllDayEvents,
-  useTheme,
-  useTimezone,
-} from '@calendar-kit/core';
 import React, { useCallback, useMemo } from 'react';
 import type { GestureResponderEvent, TextStyle, ViewStyle } from 'react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
+import { useActions } from '../context/ActionsProvider';
 import { useHeader } from '../context/DayBarContext';
-import type {
-  OnEventResponse,
-  PackedAllDayEvent,
-  SizeAnimation,
-} from '../types';
-import {
-  dateTimeToISOString,
-  forceUpdateZone,
-  parseDateTime,
-} from '../utils/dateUtils';
+import { useAllDayEvents } from '../context/EventsProvider';
+import { useTheme } from '../context/ThemeProvider';
+import { useTimezone } from '../context/TimeZoneProvider';
+import type { OnEventResponse, PackedAllDayEvent, SizeAnimation } from '../types';
+import { dateTimeToISOString, forceUpdateZone, parseDateTime } from '../utils/dateUtils';
 import DayItem from './DayItem';
 import LoadingOverlay from './Loading/Overlay';
 import ProgressBar from './Loading/ProgressBar';
@@ -33,10 +20,7 @@ import Touchable from './Touchable';
 interface MultiDayBarItemProps {
   pageIndex: number;
   startUnix: number;
-  renderEvent?: (
-    event: PackedAllDayEvent,
-    size: SizeAnimation
-  ) => React.ReactNode;
+  renderEvent?: (event: PackedAllDayEvent, size: SizeAnimation) => React.ReactNode;
   renderDayItem?: (date: { dateUnix: number }) => React.ReactNode;
 }
 
@@ -70,8 +54,7 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
     columnWidth,
   } = useHeader();
   const { timeZone } = useTimezone();
-  const { onPressEvent, onPressBackground, onLongPressBackground } =
-    useActions();
+  const { onPressEvent, onPressBackground, onLongPressBackground } = useActions();
 
   const visibleDates = useMemo(() => {
     const data: Record<string, { unix: number }> = {};
@@ -85,11 +68,7 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
     return data;
   }, [calendarData.visibleDatesArray, columns, pageIndex]);
 
-  const { data: events, eventCounts } = useAllDayEvents(
-    startUnix,
-    numberOfDays,
-    visibleDates
-  );
+  const { data: events, eventCounts } = useAllDayEvents(startUnix, numberOfDays, visibleDates);
 
   const _onPressBackground = (event: GestureResponderEvent) => {
     const columnIndex = Math.floor(event.nativeEvent.locationX / columnWidth);
@@ -171,28 +150,19 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
 
   return (
     <Animated.View style={containerHeight}>
-      <View
-        style={[
-          styles.container,
-          dayBarStyles.dayBarContainer,
-          { height: dayBarHeight },
-        ]}>
+      <View style={[styles.container, dayBarStyles.dayBarContainer, { height: dayBarHeight }]}>
         {Object.keys(visibleDates).map(_renderDayItem)}
       </View>
-      <Animated.View
-        style={[dayBarStyles.allDayEventsContainer, eventsContainerStyle]}>
+      <Animated.View style={[dayBarStyles.allDayEventsContainer as any, eventsContainerStyle]}>
         <Touchable
           onPress={_onPressBackground}
-          onLongPress={
-            onLongPressBackground ? _onLongPressBackground : undefined
-          }
+          onLongPress={onLongPressBackground ? _onLongPressBackground : undefined}
           disabled={!onLongPressBackground && !onPressBackground}
           style={StyleSheet.absoluteFill}
         />
         {events.map(_renderEvent)}
       </Animated.View>
-      <View
-        style={[styles.bottomContainer, dayBarStyles.headerBottomContainer]}>
+      <View style={[styles.bottomContainer, dayBarStyles.headerBottomContainer]}>
         {Object.keys(visibleDates).map(_renderBottomColumn)}
       </View>
       <LoadingOverlay />
@@ -234,13 +204,11 @@ const BottomColumn = ({
         <Animated.View
           style={[
             styles.countContainer,
-            countContainerStyle,
+            countContainerStyle as any,
             { height: headerBottomHeight },
             countStyle,
           ]}>
-          <Text style={[styles.countText, countTextStyle]}>
-            +{count - collapsedItems}
-          </Text>
+          <Text style={[styles.countText, countTextStyle]}>+{count - collapsedItems}</Text>
           <TouchableOpacity
             style={StyleSheet.absoluteFill}
             onPress={() => {
@@ -260,10 +228,7 @@ const EventItem = ({
 }: {
   event: PackedAllDayEvent;
   onPressEvent?: (event: OnEventResponse) => void;
-  renderEvent?: (
-    event: PackedAllDayEvent,
-    size: SizeAnimation
-  ) => React.ReactNode;
+  renderEvent?: (event: PackedAllDayEvent, size: SizeAnimation) => React.ReactNode;
 }) => {
   const {
     rightEdgeSpacing,

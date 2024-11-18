@@ -11,12 +11,7 @@
       "allowPeerDependenciesUpdate": true,
       "conventionalCommits": true,
       "message": "chore: publish",
-      "ignoreChanges": [
-        "**/__fixtures__/**",
-        "**/__tests__/**",
-        "**/*.md",
-        "**/example/**"
-      ]
+      "ignoreChanges": ["**/__fixtures__/**", "**/__tests__/**", "**/*.md", "**/example/**"]
     }
   }
 }

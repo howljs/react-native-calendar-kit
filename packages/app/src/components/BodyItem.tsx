@@ -1,9 +1,6 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
 import { EXTRA_HEIGHT } from '../constants';
 import { useBody } from '../context/BodyContext';
@@ -18,9 +15,7 @@ import TimelineBoard from './TimelineBoard';
 interface MultipleBodyItemProps {
   pageIndex: number;
   startUnix: number;
-  renderDraggableEvent?: (
-    props: DraggableEventProps
-  ) => React.ReactElement | null;
+  renderDraggableEvent?: (props: DraggableEventProps) => React.ReactElement | null;
   resources?: ResourceItem[];
 }
 

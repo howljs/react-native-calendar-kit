@@ -1,4 +1,5 @@
-import { DateTime, type DateTimeOptions, type WeekdayNumbers } from 'luxon';
+import type { DateTimeOptions, WeekdayNumbers } from 'luxon';
+import { DateTime } from 'luxon';
 
 import type { DateType } from '../types';
 

@@ -44,9 +44,7 @@ const config: Config = {
             },
           },
           sidebarPath: './sidebars.ts',
-          remarkPlugins: [
-            [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
-          ],
+          remarkPlugins: [[require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }]],
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -145,7 +143,7 @@ const config: Config = {
           };
         },
       };
-    },
+    } as any,
   ],
 };
 

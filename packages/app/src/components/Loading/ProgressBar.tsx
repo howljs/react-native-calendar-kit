@@ -1,4 +1,3 @@
-import { useTheme } from '@calendar-kit/core';
 import { useEffect } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -10,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useLoading } from '../../context/LoadingContext';
+import { useTheme } from '../../context/ThemeProvider';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const DURATION = 2000;
@@ -24,11 +24,7 @@ const ProgressBarInner = () => {
   }, [sv]);
 
   const animatedStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(
-      sv.value,
-      [0, 1],
-      [-DEVICE_WIDTH, DEVICE_WIDTH]
-    );
+    const translateX = interpolate(sv.value, [0, 1], [-DEVICE_WIDTH, DEVICE_WIDTH]);
     return {
       transform: [{ translateX }],
     };
@@ -36,19 +32,9 @@ const ProgressBarInner = () => {
 
   return (
     <View style={[styles.progressBar, { height: BAR_HEIGHT }]}>
-      <View
-        style={[
-          styles.bgLoading,
-          { backgroundColor: barColor, height: BAR_HEIGHT },
-        ]}
-      />
+      <View style={[styles.bgLoading, { backgroundColor: barColor, height: BAR_HEIGHT }]} />
       <Animated.View style={animatedStyle}>
-        <View
-          style={[
-            styles.loadingBar,
-            { backgroundColor: barColor, height: BAR_HEIGHT },
-          ]}
-        />
+        <View style={[styles.loadingBar, { backgroundColor: barColor, height: BAR_HEIGHT }]} />
       </Animated.View>
     </View>
   );

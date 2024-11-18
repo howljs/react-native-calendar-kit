@@ -1,4 +1,3 @@
-import { useDateChangedListener } from '@calendar-kit/core';
 import type { FC, PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useEffect } from 'react';
 
@@ -8,20 +7,19 @@ import type { Store } from '../storeBuilder';
 import { createStore } from '../storeBuilder';
 import type { UnavailableHourProps } from '../types';
 import { forceUpdateZone, parseDateTime } from '../utils/dateUtils';
+import { useDateChangedListener } from './VisibleDateProvider';
 
 type UnavailableHoursStore = {
   unavailableHours?: Record<string, UnavailableHourProps[]>;
 };
 
-export const UnavailableHoursContext = createContext<
-  Store<UnavailableHoursStore> | undefined
->(undefined);
+export const UnavailableHoursContext = createContext<Store<UnavailableHoursStore> | undefined>(
+  undefined
+);
 
 const UnavailableHoursProvider: FC<
   PropsWithChildren<{
-    unavailableHours?:
-      | Record<string, UnavailableHourProps[]>
-      | UnavailableHourProps[];
+    unavailableHours?: Record<string, UnavailableHourProps[]> | UnavailableHourProps[];
     timeZone: string;
     pagesPerSide: number;
   }>
@@ -38,16 +36,16 @@ const UnavailableHoursProvider: FC<
       let originalData: Record<string, UnavailableHourProps[]> = {};
       if (Array.isArray(unavailableHours)) {
         originalData = {
-          1: unavailableHours,
-          2: unavailableHours,
-          3: unavailableHours,
-          4: unavailableHours,
-          5: unavailableHours,
-          6: unavailableHours,
-          7: unavailableHours,
+          '1': unavailableHours,
+          '2': unavailableHours,
+          '3': unavailableHours,
+          '4': unavailableHours,
+          '5': unavailableHours,
+          '6': unavailableHours,
+          '7': unavailableHours,
         };
       } else {
-        originalData = unavailableHours || {};
+        originalData = unavailableHours ?? {};
       }
 
       const data: Record<string, UnavailableHourProps[]> = {};
@@ -66,8 +64,7 @@ const UnavailableHoursProvider: FC<
         const dateStr = forceDate.toFormat('yyyy-MM-dd');
 
         // Get unavailable hours either by specific date or by weekday
-        const unavailableHoursByDate =
-          originalData[dateStr] || originalData[weekDay];
+        const unavailableHoursByDate = originalData[dateStr] || originalData[weekDay];
 
         // If unavailable hours are found for this day, store them
         if (unavailableHoursByDate) {
@@ -102,9 +99,7 @@ export const useUnavailableHours = () => {
   const unavailableHoursContext = useContext(UnavailableHoursContext);
 
   if (!unavailableHoursContext) {
-    throw new Error(
-      'useUnavailableHours must be used within a UnavailableHoursProvider'
-    );
+    throw new Error('useRegionsByDate must be used within a UnavailableHoursProvider');
   }
 
   const state = useSyncExternalStoreWithSelector(
@@ -119,16 +114,12 @@ export const useUnavailableHoursByDate = (dateUnix: number) => {
   const unavailableHoursContext = useContext(UnavailableHoursContext);
 
   if (!unavailableHoursContext) {
-    throw new Error(
-      'useUnavailableHoursByDate must be used within a UnavailableHoursProvider'
-    );
+    throw new Error('useRegionsByDate must be used within a UnavailableHoursProvider');
   }
 
   const selectUnavailableHoursByDate = useCallback(
     (state: UnavailableHoursStore) => {
-      return state.unavailableHours
-        ? state.unavailableHours[dateUnix]
-        : undefined;
+      return state.unavailableHours ? state.unavailableHours[dateUnix] : undefined;
     },
     [dateUnix]
   );

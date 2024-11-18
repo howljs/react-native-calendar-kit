@@ -1,9 +1,10 @@
-import { useTheme, useTimezone } from '@calendar-kit/core';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 
+import { useTheme } from '../context/ThemeProvider';
+import { useTimezone } from '../context/TimeZoneProvider';
 import { getWeekNumberOfYear } from '../utils/dateUtils';
 import Text from './Text';
 

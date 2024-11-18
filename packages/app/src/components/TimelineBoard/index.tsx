@@ -1,26 +1,21 @@
-import {
-  dateUtils,
-  useActions,
-  useDragEventActions,
-  useTheme,
-  useTimezone,
-} from '@calendar-kit/core';
 import React from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { EXTRA_HEIGHT, MILLISECONDS_IN_DAY } from '../../constants';
+import { useActions } from '../../context/ActionsProvider';
 import { useBody } from '../../context/BodyContext';
+import { useDragEventActions } from '../../context/DragEventProvider';
+import { useTimezone } from '../../context/TimeZoneProvider';
 import type { ResourceItem } from '../../types';
+import { dateTimeToISOString, forceUpdateZone, parseDateTime } from '../../utils/dateUtils';
 import TimeColumn from '../TimeColumn';
 import Touchable from '../Touchable';
-import HorizontalLine from './HorizontalLine';
+import HorizontalLines from './HorizontalLines';
 import OutOfRangeView from './OutOfRangeView';
 import UnavailableHours from './UnavailableHours';
-import VerticalLine from './VerticalLine';
-
-const { dateTimeToISOString, forceUpdateZone, parseDateTime } = dateUtils;
+import VerticalLines from './VerticalLines';
 
 interface TimelineBoardProps {
   pageIndex: number;
@@ -29,12 +24,7 @@ interface TimelineBoardProps {
   resources?: ResourceItem[];
 }
 
-const TimelineBoard = ({
-  pageIndex,
-  dateUnix,
-  visibleDates,
-  resources,
-}: TimelineBoardProps) => {
+const TimelineBoard = ({ pageIndex, dateUnix, visibleDates, resources }: TimelineBoardProps) => {
   const {
     totalSlots,
     minuteHeight,
@@ -46,67 +36,14 @@ const TimelineBoard = ({
     calendarData,
     columns,
     timeIntervalHeight,
+    visibleDateUnixAnim,
   } = useBody();
   const { timeZone } = useTimezone();
-  const colors = useTheme((state) => state.colors);
   const { onPressBackground, onLongPressBackground } = useActions();
   const { triggerDragCreateEvent } = useDragEventActions();
 
-  const _renderVerticalLines = () => {
-    const lines: React.ReactNode[] = [];
-    const cols = resources ? resources.length : columns;
-
-    for (let i = 0; i < cols; i++) {
-      lines.push(
-        <VerticalLine
-          key={i}
-          borderColor={colors.border}
-          index={i}
-          columnWidth={columnWidthAnim}
-          childColumns={resources ? resources.length : 1}
-        />
-      );
-    }
-    return lines;
-  };
-
-  const _renderHorizontalLines = () => {
-    const rows: React.ReactNode[] = [];
-    for (let i = 0; i < totalSlots; i++) {
-      rows.push(
-        <HorizontalLine
-          key={i}
-          borderColor={colors.border}
-          index={i}
-          height={timeIntervalHeight}
-        />
-      );
-
-      rows.push(
-        <HorizontalLine
-          key={`${i}.5`}
-          borderColor={colors.border}
-          index={i + 0.5}
-          height={timeIntervalHeight}
-        />
-      );
-    }
-
-    rows.push(
-      <HorizontalLine
-        key={totalSlots}
-        borderColor={colors.border}
-        index={totalSlots}
-        height={timeIntervalHeight}
-      />
-    );
-    return rows;
-  };
-
   const onPress = (event: GestureResponderEvent) => {
-    const columnIndex = Math.floor(
-      event.nativeEvent.locationX / columnWidthAnim.value
-    );
+    const columnIndex = Math.floor(event.nativeEvent.locationX / columnWidthAnim.value);
     const dayIndex = pageIndex + columnIndex;
     const dayUnix = calendarData.visibleDatesArray[dayIndex];
     const minutes = event.nativeEvent.locationY / minuteHeight.value + start;
@@ -128,9 +65,7 @@ const TimelineBoard = ({
   };
 
   const onLongPress = (event: GestureResponderEvent) => {
-    const columnIndex = Math.floor(
-      event.nativeEvent.locationX / columnWidthAnim.value
-    );
+    const columnIndex = Math.floor(event.nativeEvent.locationX / columnWidthAnim.value);
     const dayIndex = pageIndex + columnIndex;
     const dayUnix = calendarData.visibleDatesArray[dayIndex];
     const minutes = event.nativeEvent.locationY / minuteHeight.value + start;
@@ -151,7 +86,10 @@ const TimelineBoard = ({
       }
       onLongPressBackground?.(newProps, event);
       if (triggerDragCreateEvent) {
-        triggerDragCreateEvent?.(dateString, event);
+        const visibleIndex = calendarData.visibleDates[visibleDateUnixAnim.value].index;
+        const diffDays = dayIndex - visibleIndex;
+        const locationX = diffDays * columnWidthAnim.value;
+        triggerDragCreateEvent?.(dateString, locationX);
       }
     }
   };
@@ -165,18 +103,14 @@ const TimelineBoard = ({
       (calendarData.originalMinDateUnix - dateUnix) / MILLISECONDS_IN_DAY
     );
     if (diffMinDays > 0) {
-      return (
-        <OutOfRangeView position="left" diffDays={calendarData.diffMinDays} />
-      );
+      return <OutOfRangeView position="left" diffDays={calendarData.diffMinDays} />;
     }
 
     const diffMaxDays = Math.floor(
       (calendarData.originalMaxDateUnix - dateUnix) / MILLISECONDS_IN_DAY
     );
     if (diffMaxDays < 7) {
-      return (
-        <OutOfRangeView position="right" diffDays={calendarData.diffMaxDays} />
-      );
+      return <OutOfRangeView position="right" diffDays={calendarData.diffMaxDays} />;
     }
 
     return null;
@@ -194,30 +128,20 @@ const TimelineBoard = ({
         </View>
       )}
       <Animated.View
-        style={[
-          styles.calendarGrid,
-          { marginTop: EXTRA_HEIGHT + spaceFromTop },
-          contentView,
-        ]}>
+        style={[styles.calendarGrid, { marginTop: EXTRA_HEIGHT + spaceFromTop }, contentView]}>
         <Touchable
           style={styles.touchable}
           onPress={onPressBackground ? onPress : undefined}
-          onLongPress={
-            triggerDragCreateEvent || onLongPressBackground
-              ? onLongPress
-              : undefined
-          }
-          disabled={
-            !onPressBackground &&
-            !triggerDragCreateEvent &&
-            !onLongPressBackground
-          }
+          onLongPress={triggerDragCreateEvent || onLongPressBackground ? onLongPress : undefined}
+          disabled={!onPressBackground && !triggerDragCreateEvent && !onLongPressBackground}
         />
         {_renderUnavailableHours()}
         {_renderOutOfRangeView()}
-        {_renderHorizontalLines()}
+        <HorizontalLines />
       </Animated.View>
-      {(numberOfDays > 1 || resources?.length) && _renderVerticalLines()}
+      {(numberOfDays > 1 || resources?.length) && (
+        <VerticalLines totalResource={resources ? resources.length : 1} columns={columns} />
+      )}
     </View>
   );
 };

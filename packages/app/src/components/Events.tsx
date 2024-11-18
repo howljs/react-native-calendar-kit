@@ -1,15 +1,12 @@
-import {
-  useActions,
-  useDragEvent,
-  useDragEventActions,
-  useRegularEvents,
-  useTimezone,
-} from '@calendar-kit/core';
 import type { FC } from 'react';
 import { useCallback } from 'react';
 import { type GestureResponderEvent, StyleSheet, View } from 'react-native';
 
+import { useActions } from '../context/ActionsProvider';
 import { useBody } from '../context/BodyContext';
+import { useDragEvent, useDragEventActions } from '../context/DragEventProvider';
+import { useRegularEvents } from '../context/EventsProvider';
+import { useTimezone } from '../context/TimeZoneProvider';
 import type { PackedEvent } from '../types';
 import { forceUpdateZone, parseDateTime } from '../utils/dateUtils';
 import EventItem from './EventItem';
@@ -24,11 +21,7 @@ const Events: FC<{
   const { draggingId, selectedEventId } = useDragEvent();
   const { timeZone } = useTimezone();
   const { triggerDragEvent } = useDragEventActions();
-  const { data: events } = useRegularEvents(
-    startUnix,
-    numberOfDays,
-    visibleDates
-  );
+  const { data: events } = useRegularEvents(startUnix, numberOfDays, visibleDates);
 
   const _triggerDragEvent = useCallback(
     (event: PackedEvent, resEvent: GestureResponderEvent) => {
@@ -36,10 +29,7 @@ const Events: FC<{
         return;
       }
 
-      const eventStart = forceUpdateZone(
-        event._internal.startUnix,
-        timeZone
-      ).startOf('day');
+      const eventStart = forceUpdateZone(event._internal.startUnix, timeZone).startOf('day');
       const originalStart = forceUpdateZone(
         parseDateTime(event.start.dateTime, { zone: event.start.timeZone }),
         timeZone
@@ -82,6 +72,7 @@ const Events: FC<{
   }
 
   const _renderEvent = (event: PackedEvent) => {
+    const isDragging = draggingId === event.localId || selectedEventId === event.localId;
     return (
       <EventItem
         key={event.localId}
@@ -90,15 +81,9 @@ const Events: FC<{
         renderEvent={renderEvent}
         onPressEvent={onPressEvent}
         onLongPressEvent={
-          triggerDragEvent
-            ? _triggerDragEvent
-            : onLongPressEvent
-              ? _onLongPressEvent
-              : undefined
+          triggerDragEvent ? _triggerDragEvent : onLongPressEvent ? _onLongPressEvent : undefined
         }
-        isDragging={
-          draggingId === event.localId || selectedEventId === event.localId
-        }
+        isDragging={isDragging}
         visibleDates={visibleDates}
         totalResources={totalResources}
       />

@@ -1,28 +1,18 @@
-import {
-  dateUtils,
-  useActions,
-  useAllDayEventsByDay,
-  useLocale,
-  useTheme,
-  useTimezone,
-} from '@calendar-kit/core';
 import React, { useCallback } from 'react';
 import type { GestureResponderEvent, TextStyle, ViewStyle } from 'react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from 'react-native-reanimated';
 
 import { COLLAPSED_ITEMS } from '../constants';
+import { useActions } from '../context/ActionsProvider';
 import { useHeader } from '../context/DayBarContext';
-import type {
-  OnEventResponse,
-  PackedAllDayEvent,
-  SizeAnimation,
-} from '../types';
+import { useAllDayEventsByDay } from '../context/EventsProvider';
+import { useLocale } from '../context/LocaleProvider';
+import { useTheme } from '../context/ThemeProvider';
+import { useTimezone } from '../context/TimeZoneProvider';
+import type { OnEventResponse, PackedAllDayEvent, SizeAnimation } from '../types';
+import { dateTimeToISOString, forceUpdateZone, parseDateTime } from '../utils/dateUtils';
 import DayItem from './DayItem';
 import ExpandButton from './ExpandButton';
 import LoadingOverlay from './Loading/Overlay';
@@ -30,17 +20,10 @@ import ProgressBar from './Loading/ProgressBar';
 import Text from './Text';
 import Touchable from './Touchable';
 
-const { dateTimeToISOString, forceUpdateZone, parseDateTime } = dateUtils;
-
 interface SingleDayBarItemProps {
   startUnix: number;
-  renderExpandIcon?: (props: {
-    isExpanded: SharedValue<boolean>;
-  }) => React.ReactElement | null;
-  renderEvent?: (
-    event: PackedAllDayEvent,
-    size: SizeAnimation
-  ) => React.ReactNode;
+  renderExpandIcon?: (props: { isExpanded: SharedValue<boolean> }) => React.ReactElement | null;
+  renderEvent?: (event: PackedAllDayEvent, size: SizeAnimation) => React.ReactNode;
   pageIndex: number;
   renderDayItem?: (date: { dateUnix: number }) => React.ReactNode;
 }
@@ -77,8 +60,7 @@ const SingleDayBarItem = ({
   } = useHeader();
   const { timeZone } = useTimezone();
   const { data: events, eventCounts } = useAllDayEventsByDay(startUnix);
-  const { onPressEvent, onPressBackground, onLongPressBackground } =
-    useActions();
+  const { onPressEvent, onPressBackground, onLongPressBackground } = useActions();
 
   const _renderEvent = (event: PackedAllDayEvent) => {
     return (
@@ -94,8 +76,7 @@ const SingleDayBarItem = ({
   const height = useDerivedValue(() => {
     return Math.max(
       dayBarHeight,
-      allDayEventsHeight.value +
-        (isExpanded.value ? 10 : headerBottomHeight + 10)
+      allDayEventsHeight.value + (isExpanded.value ? 10 : headerBottomHeight + 10)
     );
   }, [dayBarHeight, headerBottomHeight]);
 
@@ -152,17 +133,12 @@ const SingleDayBarItem = ({
           <View style={styles.rightContainer}>
             <Touchable
               onPress={_onPressBackground}
-              onLongPress={
-                onLongPressBackground ? _onLongPressBackground : undefined
-              }
+              onLongPress={onLongPressBackground ? _onLongPressBackground : undefined}
               disabled={!onLongPressBackground && !onPressBackground}
               style={StyleSheet.absoluteFill}
             />
             <Animated.View
-              style={[
-                dayBarStyles.singleDayEventsContainer,
-                eventsContainerStyle,
-              ]}>
+              style={[dayBarStyles.singleDayEventsContainer as any, eventsContainerStyle]}>
               {events.map(_renderEvent)}
             </Animated.View>
             {eventCounts > COLLAPSED_ITEMS && (
@@ -179,11 +155,7 @@ const SingleDayBarItem = ({
 
     return (
       <View style={[styles.onlyDayContainer, dayBarStyles.singleDayContainer]}>
-        {renderDayItem ? (
-          renderDayItem({ dateUnix: startUnix })
-        ) : (
-          <DayItem dateUnix={startUnix} />
-        )}
+        {renderDayItem ? renderDayItem({ dateUnix: startUnix }) : <DayItem dateUnix={startUnix} />}
       </View>
     );
   };
@@ -206,10 +178,7 @@ const EventItem = ({
 }: {
   event: PackedAllDayEvent;
   onPressEvent?: (event: OnEventResponse) => void;
-  renderEvent?: (
-    event: PackedAllDayEvent,
-    size: SizeAnimation
-  ) => React.ReactNode;
+  renderEvent?: (event: PackedAllDayEvent, size: SizeAnimation) => React.ReactNode;
 }) => {
   const {
     eventHeight: height,
@@ -288,7 +257,7 @@ const EventCounts = ({
     <Animated.View
       style={[
         styles.countContainer,
-        countContainerStyle,
+        countContainerStyle as any,
         { height: headerBottomHeight },
         countStyle,
       ]}>

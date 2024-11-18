@@ -6,9 +6,7 @@ import { DEFAULT_LOCALES } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
 import type { DeepPartial, LocaleConfigsProps } from '../types';
 
-const LocaleContext = React.createContext<LocaleConfigsProps | undefined>(
-  undefined
-);
+const LocaleContext = React.createContext<LocaleConfigsProps | undefined>(undefined);
 
 interface LocaleProviderProps {
   initialLocales?: { [locale: string]: DeepPartial<LocaleConfigsProps> };
@@ -26,11 +24,7 @@ const LocaleProvider: React.FC<PropsWithChildren<LocaleProviderProps>> = ({
     [locale, locales]
   );
 
-  return (
-    <LocaleContext.Provider value={localeConfig}>
-      {children}
-    </LocaleContext.Provider>
-  );
+  return <LocaleContext.Provider value={localeConfig}>{children}</LocaleContext.Provider>;
 };
 
 export default LocaleProvider;

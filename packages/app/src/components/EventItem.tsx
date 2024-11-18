@@ -1,21 +1,12 @@
-import { useTheme } from '@calendar-kit/core';
 import isEqual from 'lodash.isequal';
 import type { FC } from 'react';
 import React, { useCallback, useMemo } from 'react';
-import {
-  type GestureResponderEvent,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { type GestureResponderEvent, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from 'react-native-reanimated';
 
 import { MILLISECONDS_IN_DAY } from '../constants';
 import { useBody } from '../context/BodyContext';
+import { useTheme } from '../context/ThemeProvider';
 import type { OnEventResponse, PackedEvent, SizeAnimation } from '../types';
 import { parseDateTime } from '../utils/dateUtils';
 import Text from './Text';
@@ -25,10 +16,7 @@ interface EventItemProps {
   startUnix: number;
   renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
   onPressEvent?: (event: OnEventResponse) => void;
-  onLongPressEvent?: (
-    event: PackedEvent,
-    resEvent: GestureResponderEvent
-  ) => void;
+  onLongPressEvent?: (event: PackedEvent, resEvent: GestureResponderEvent) => void;
   isDragging?: boolean;
   visibleDates: Record<string, { diffDays: number; unix: number }>;
   totalResources?: number;
@@ -84,9 +72,7 @@ const EventItem: FC<EventItemProps> = ({
       newStart = 0;
     }
 
-    let diffDays = Math.floor(
-      (eventStartUnix - startUnix) / MILLISECONDS_IN_DAY
-    );
+    let diffDays = Math.floor((eventStartUnix - startUnix) / MILLISECONDS_IN_DAY);
 
     if (eventStartUnix < startUnix) {
       for (
@@ -117,18 +103,9 @@ const EventItem: FC<EventItemProps> = ({
       startMinutes: newStart,
       diffDays,
     };
-  }, [
-    duration,
-    end,
-    eventStartUnix,
-    start,
-    startMinutes,
-    startUnix,
-    visibleDates,
-  ]);
+  }, [duration, end, eventStartUnix, start, startMinutes, startUnix, visibleDates]);
 
-  const childColumns =
-    totalResources && totalResources > 0 ? totalResources : 1;
+  const childColumns = totalResources && totalResources > 0 ? totalResources : 1;
 
   const eventHeight = useDerivedValue(
     () => data.totalDuration * minuteHeight.value - 1,
@@ -158,25 +135,16 @@ const EventItem: FC<EventItemProps> = ({
   ]);
 
   const eventWidth = useDerivedValue(() => {
-    const availableWidth =
-      columnWidthAnim.value / childColumns - rightEdgeSpacing;
+    const availableWidth = columnWidthAnim.value / childColumns - rightEdgeSpacing;
     return widthPercent.value * availableWidth;
-  }, [
-    childColumns,
-    columnSpan,
-    rightEdgeSpacing,
-    overlapEventsSpacing,
-    total,
-    widthPercentage,
-  ]);
+  }, [childColumns, columnSpan, rightEdgeSpacing, overlapEventsSpacing, total, widthPercentage]);
 
   const eventPosX = useDerivedValue(() => {
     const colWidth = columnWidthAnim.value / childColumns;
     const startOffset = resourceIndex ? resourceIndex * colWidth : 0;
     let left = data.diffDays * colWidth + startOffset;
     if (xOffsetPercentage) {
-      const availableWidth =
-        columnWidthAnim.value / childColumns - rightEdgeSpacing;
+      const availableWidth = columnWidthAnim.value / childColumns - rightEdgeSpacing;
       left += availableWidth * (xOffsetPercentage / 100);
     } else if (columnSpan && index) {
       left += (eventWidth.value + overlapEventsSpacing) * (index / columnSpan);
@@ -240,9 +208,7 @@ const EventItem: FC<EventItemProps> = ({
               height: eventHeight,
             })
           ) : (
-            <Text style={[styles.title, theme.eventTitleStyle]}>
-              {event.title}
-            </Text>
+            <Text style={[styles.title, theme.eventTitleStyle]}>{event.title}</Text>
           )}
         </View>
       </TouchableOpacity>

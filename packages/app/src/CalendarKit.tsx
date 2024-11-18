@@ -1,4 +1,3 @@
-import type { CalendarProviderProps } from '@calendar-kit/core';
 import React, { forwardRef } from 'react';
 
 import CalendarBody from './CalendarBody';
@@ -8,24 +7,15 @@ import type {
   CalendarBodyProps,
   CalendarHeaderProps,
   CalendarKitHandle,
-  PackedAllDayEvent,
-  SizeAnimation,
+  CalendarProviderProps,
 } from './types';
 
-interface CalendarKitProps
-  extends CalendarProviderProps,
-    CalendarBodyProps,
-    Omit<CalendarHeaderProps, 'renderEvent'> {
-  renderAllDayEvent?: (
-    event: PackedAllDayEvent,
-    size: SizeAnimation
-  ) => React.ReactNode;
-}
+type CalendarKitProps = CalendarProviderProps & CalendarBodyProps & CalendarHeaderProps;
 
-const CalendarKit: React.ForwardRefRenderFunction<
-  CalendarKitHandle,
-  CalendarKitProps
-> = (props, ref) => {
+const CalendarKit: React.ForwardRefRenderFunction<CalendarKitHandle, CalendarKitProps> = (
+  props,
+  ref
+) => {
   const {
     hourFormat,
     renderHour,
@@ -46,7 +36,7 @@ const CalendarKit: React.ForwardRefRenderFunction<
     eventMaxMinutes,
     eventInitialMinutes,
     eventMinMinutes,
-    renderAllDayEvent,
+    renderCustomHorizontalLine,
     ...rest
   } = props;
 
@@ -54,7 +44,7 @@ const CalendarKit: React.ForwardRefRenderFunction<
     dayBarHeight,
     renderHeaderItem,
     renderExpandIcon,
-    renderEvent: renderAllDayEvent,
+    renderEvent,
     LeftAreaComponent,
     headerBottomHeight,
     collapsedItems,
@@ -74,6 +64,7 @@ const CalendarKit: React.ForwardRefRenderFunction<
     renderDraggableEvent,
     renderDraggingEvent,
     NowIndicatorComponent,
+    renderCustomHorizontalLine,
   };
 
   return (

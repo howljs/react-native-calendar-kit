@@ -1,6 +1,6 @@
-import type { DataByMode, Size } from '@calendar-kit/core';
-import React from 'react';
-import type { SharedValue } from 'react-native-reanimated';
+import React, { type MutableRefObject } from 'react';
+import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import type {
   OutOfRangeProps,
@@ -9,6 +9,8 @@ import type {
   SizeAnimation,
   UnavailableHourProps,
 } from '../types';
+import type { DataByMode } from '../utils/utils';
+import type { Size } from './LayoutProvider';
 
 export interface BodyContextProps {
   offsetY: SharedValue<number>;
@@ -45,6 +47,7 @@ export interface BodyContextProps {
     }
   ) => React.ReactNode;
   renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
+  renderCustomHorizontalLine?: (props: { index: number; borderColor: string }) => React.ReactNode;
   startOffset: SharedValue<number>;
   rightEdgeSpacing: number;
   overlapEventsSpacing: number;
@@ -52,11 +55,13 @@ export interface BodyContextProps {
   NowIndicatorComponent?: React.ReactElement | null;
   allowDragToCreate: boolean;
   allowDragToEdit: boolean;
+  dragToCreateMode?: 'duration' | 'date-time';
+  verticalListRef: AnimatedRef<Animated.ScrollView>;
+  gridListRef: AnimatedRef<Animated.ScrollView>;
+  visibleDateUnix: MutableRefObject<number>;
 }
 
-export const BodyContext = React.createContext<BodyContextProps | undefined>(
-  undefined
-);
+export const BodyContext = React.createContext<BodyContextProps | undefined>(undefined);
 
 export const useBody = () => {
   const context = React.useContext(BodyContext);

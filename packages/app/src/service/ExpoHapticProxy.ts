@@ -1,7 +1,4 @@
-import {
-  createModuleProxy,
-  OptionalDependencyNotInstalledError,
-} from './ModuleProxy';
+import { createModuleProxy, OptionalDependencyNotInstalledError } from './ModuleProxy';
 
 export const ExpoHapticProxy = createModuleProxy<any>(() => {
   try {

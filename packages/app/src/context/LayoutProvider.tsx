@@ -1,11 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import React, {
-  createContext,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useMemo, useRef, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

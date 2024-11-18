@@ -10,9 +10,7 @@ class HapticDependency {
       if (ReactNativeHapticFeedbackProxy.default) {
         this.isReactNativeHapticFeedbackAvailable = true;
       }
-    } catch (error) {
-      // ReactNativeHapticFeedbackProxy is not available
-    }
+    } catch (error) {}
     try {
       if (ExpoHapticProxy.ImpactFeedbackStyle !== undefined) {
         this.isExpoHapticsAvailable = true;
@@ -50,9 +48,7 @@ class HapticService {
     }
 
     if (this.useExpoHaptics) {
-      return ExpoHapticProxy.impactAsync(
-        ExpoHapticProxy.ImpactFeedbackStyle.Medium
-      );
+      return ExpoHapticProxy.impactAsync(ExpoHapticProxy.ImpactFeedbackStyle.Medium);
     }
 
     return ReactNativeHapticFeedbackProxy.trigger('impactMedium', {

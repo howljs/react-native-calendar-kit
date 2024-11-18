@@ -1,26 +1,3 @@
-import {
-  ActionsProvider,
-  CalendarContext,
-  type CalendarContextProps,
-  type CalendarListViewHandle,
-  type CalendarProviderProps,
-  DragEventProvider,
-  EventsProvider,
-  type EventsRef,
-  HighlightDatesProvider,
-  LayoutProvider,
-  LoadingContext,
-  LocaleProvider,
-  NowIndicatorProvider,
-  ScrollType,
-  ThemeProvider,
-  TimezoneContext,
-  UnavailableHoursProvider,
-  useLatestCallback,
-  useLayout,
-  useLazyRef,
-  VisibleDateProvider,
-} from '@calendar-kit/core';
 import type { PropsWithChildren } from 'react';
 import React, {
   forwardRef,
@@ -41,10 +18,29 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 
-import { HOUR_WIDTH, INITIAL_DATE, MAX_DATE, MIN_DATE } from './constants';
+import type { CalendarListViewHandle } from './components/CalendarListView';
+import { HOUR_WIDTH, INITIAL_DATE, MAX_DATE, MIN_DATE, ScrollType } from './constants';
+import ActionsProvider from './context/ActionsProvider';
+import type { CalendarContextProps } from './context/CalendarProvider';
+import CalendarProvider from './context/CalendarProvider';
+import DragEventProvider from './context/DragEventProvider';
+import type { EventsRef } from './context/EventsProvider';
+import EventsProvider from './context/EventsProvider';
+import HighlightDatesProvider from './context/HighlightDatesProvider';
+import LayoutProvider, { useLayout } from './context/LayoutProvider';
+import { LoadingContext } from './context/LoadingContext';
+import LocaleProvider from './context/LocaleProvider';
+import NowIndicatorProvider from './context/NowIndicatorProvider';
+import ThemeProvider from './context/ThemeProvider';
+import TimezoneProvider from './context/TimeZoneProvider';
+import UnavailableHoursProvider from './context/UnavailableHoursProvider';
+import VisibleDateProvider from './context/VisibleDateProvider';
+import useLatestCallback from './hooks/useLatestCallback';
+import useLazyRef from './hooks/useLazyRef';
 import HapticService from './service/HapticService';
 import type {
   CalendarKitHandle,
+  CalendarProviderProps,
   DateType,
   EventItem,
   GoToDateOptions,
@@ -126,6 +122,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     onLongPressBackground,
     resources,
     animateColumnWidth = false,
+    dragToCreateMode = 'duration',
   },
   ref
 ) => {
@@ -138,9 +135,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
 
   const isResourceMode = !!resources;
   const scrollByDay =
-    isResourceMode ||
-    initialNumberOfDays === 1 ||
-    (initialScrollByDay ?? initialNumberOfDays < 7);
+    isResourceMode || initialNumberOfDays === 1 || (initialScrollByDay ?? initialNumberOfDays < 7);
 
   const timeZone = useMemo(() => {
     const parsedTimeZone = parseDateTime(undefined, { zone: initialTimeZone });
@@ -162,19 +157,15 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       );
       if (!isSame) {
         hideWeekDaysRef.current = newHideWeekDays;
-        // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
         setHideWeekDays(newHideWeekDays);
       }
     } else {
       hideWeekDaysRef.current = newHideWeekDays;
-      // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
       setHideWeekDays(newHideWeekDays);
     }
   }, [initialHideWeekDays]);
 
-  const useAllDayEvent = isResourceMode
-    ? false
-    : (initialUseAllDayEvent ?? true);
+  const useAllDayEvent = isResourceMode ? false : (initialUseAllDayEvent ?? true);
   const hideWeekDaysCount = hideWeekDays.length;
   const daysToShow = 7 - hideWeekDaysCount;
   const numberOfDays = isResourceMode
@@ -216,10 +207,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     [minDate, maxDate, firstDay, isSingleDay, hideWeekDays, timeZone]
   );
 
-  const slots = useMemo(
-    () => calculateSlots(start, end, timeInterval),
-    [start, end, timeInterval]
-  );
+  const slots = useMemo(() => calculateSlots(start, end, timeInterval), [start, end, timeInterval]);
   const totalSlots = slots.length;
 
   const columnWidth = (calendarLayout.width - hourWidth) / numberOfDays;
@@ -234,7 +222,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const verticalListRef = useAnimatedRef<Animated.ScrollView>();
   const dayBarListRef = useAnimatedRef<Animated.ScrollView>();
   const gridListRef = useAnimatedRef<Animated.ScrollView>();
-  const scrollType = useRef<ScrollType>(ScrollType.calendarGrid);
+  const scrollType = useSharedValue<ScrollType>(ScrollType.calendarGrid);
   const isTriggerMomentum = useRef(false);
   const scrollVisibleHeight = useRef(0);
   const triggerDateChanged = useRef<number>();
@@ -260,10 +248,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const initialOffset = useMemo(() => {
     const visibleDatesArray = calendarData.visibleDatesArray;
     const visibleDates = calendarData.visibleDates;
-    const nearestNumber = findNearestNumber(
-      visibleDatesArray,
-      visibleDateUnix.current
-    );
+    const nearestNumber = findNearestNumber(visibleDatesArray, visibleDateUnix.current);
     const nearestDate = visibleDates[nearestNumber];
     if (!nearestDate) {
       return 0;
@@ -296,9 +281,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const extraHeight = spaceFromTop + spaceFromBottom;
   const maxTimelineHeight = totalSlots * maxTimeIntervalHeight + extraHeight;
 
-  const minuteHeight = useDerivedValue(
-    () => timeIntervalHeight.value / timeInterval
-  );
+  const minuteHeight = useDerivedValue(() => timeIntervalHeight.value / timeInterval);
   const timelineHeight = useDerivedValue(
     () => totalSlots * timeIntervalHeight.value + 1 + extraHeight
   );
@@ -323,15 +306,11 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         const pageIndex = Math.floor(visibleDayIndex / columns);
         offset = pageIndex * (columnWidth * columns);
       }
-      const isScrollable = calendarListRef.current?.isScrollable(
-        offset,
-        numberOfDays
-      );
+      const isScrollable = calendarListRef.current?.isScrollable(offset, numberOfDays);
       if (isScrollable) {
         triggerDateChanged.current = nearestUnix;
-        scrollType.current = ScrollType.calendarGrid;
-        const animatedDate =
-          props?.animatedDate !== undefined ? props.animatedDate : true;
+        scrollType.value = ScrollType.calendarGrid;
+        const animatedDate = props?.animatedDate !== undefined ? props.animatedDate : true;
 
         runOnUI(() => {
           if (Platform.OS === 'web') {
@@ -346,26 +325,23 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       const minutes = date.hour * 60 + date.minute;
       const position = minutes * minuteHeight.value - startOffset.value;
       const scrollOffset = scrollVisibleHeight.current / 2;
-      const animatedHour =
-        props?.animatedHour !== undefined ? props.animatedHour : true;
+      const animatedHour = props?.animatedHour !== undefined ? props.animatedHour : true;
       runOnUI(() => {
         scrollTo(verticalListRef, 0, position - scrollOffset, animatedHour);
       })();
     }
   });
 
-  const goToHour = useLatestCallback(
-    (hour: number, animated: boolean = true) => {
-      const timeInMinutes = hour * 60;
-      if (timeInMinutes < start || timeInMinutes > end) {
-        return;
-      }
-      const position = (timeInMinutes - start) * minuteHeight.value;
-      runOnUI(() => {
-        scrollTo(verticalListRef, 0, position, animated);
-      })();
+  const goToHour = useLatestCallback((hour: number, animated: boolean = true) => {
+    const timeInMinutes = hour * 60;
+    if (timeInMinutes < start || timeInMinutes > end) {
+      return;
     }
-  );
+    const position = (timeInMinutes - start) * minuteHeight.value;
+    runOnUI(() => {
+      scrollTo(verticalListRef, 0, position, animated);
+    })();
+  });
 
   const goToNextPage = useLatestCallback(
     (animated: boolean = true, forceScrollByDay: boolean = false) => {
@@ -390,10 +366,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         nextOffset = pageIndex * (columnWidth * columns);
       }
 
-      const isScrollable = calendarListRef.current?.isScrollable(
-        nextOffset,
-        numberOfDays
-      );
+      const isScrollable = calendarListRef.current?.isScrollable(nextOffset, numberOfDays);
       const nextDateUnix = visibleDatesArray[nextVisibleDayIndex];
       if (!nextDateUnix || !isScrollable) {
         triggerDateChanged.current = undefined;
@@ -401,7 +374,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       }
 
       triggerDateChanged.current = nextDateUnix;
-      scrollType.current = ScrollType.calendarGrid;
+      scrollType.value = ScrollType.calendarGrid;
       runOnUI(() => {
         if (Platform.OS === 'web') {
           scrollTo(dayBarListRef, nextOffset, 0, animated);
@@ -433,10 +406,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         const pageIndex = Math.floor(nextVisibleDayIndex / columns);
         nextOffset = pageIndex * (columnWidth * columns);
       }
-      const isScrollable = calendarListRef.current?.isScrollable(
-        nextOffset,
-        numberOfDays
-      );
+      const isScrollable = calendarListRef.current?.isScrollable(nextOffset, numberOfDays);
       const nextDateUnix = visibleDatesArray[nextVisibleDayIndex];
       if (!nextDateUnix || !isScrollable) {
         triggerDateChanged.current = undefined;
@@ -444,7 +414,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       }
 
       triggerDateChanged.current = nextDateUnix;
-      scrollType.current = ScrollType.calendarGrid;
+      scrollType.value = ScrollType.calendarGrid;
       runOnUI(() => {
         if (Platform.OS === 'web') {
           scrollTo(dayBarListRef, nextOffset, 0, animated);
@@ -454,26 +424,20 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     }
   );
 
-  const zoom = useLatestCallback(
-    (props?: { scale?: number; height?: number }) => {
-      runOnUI(() => {
-        let newHeight = props?.height ?? initialTimeIntervalHeight;
-        if (props?.scale) {
-          newHeight = timeIntervalHeight.value * props.scale;
-        }
-        const clampedHeight = clampValues(
-          newHeight,
-          minTimeIntervalHeight,
-          maxTimeIntervalHeight
-        );
-        const pinchYNormalized = offsetY.value / timeIntervalHeight.value;
-        const pinchYScale = clampedHeight * pinchYNormalized;
-        const y = pinchYScale;
-        timeIntervalHeight.value = withTiming(clampedHeight);
-        scrollTo(verticalListRef, 0, y, true);
-      })();
-    }
-  );
+  const zoom = useLatestCallback((props?: { scale?: number; height?: number }) => {
+    runOnUI(() => {
+      let newHeight = props?.height ?? initialTimeIntervalHeight;
+      if (props?.scale) {
+        newHeight = timeIntervalHeight.value * props.scale;
+      }
+      const clampedHeight = clampValues(newHeight, minTimeIntervalHeight, maxTimeIntervalHeight);
+      const pinchYNormalized = offsetY.value / timeIntervalHeight.value;
+      const pinchYScale = clampedHeight * pinchYNormalized;
+      const y = pinchYScale;
+      timeIntervalHeight.value = withTiming(clampedHeight);
+      scrollTo(verticalListRef, 0, y, true);
+    })();
+  });
 
   const setVisibleDate = useLatestCallback((initDate: DateType) => {
     const dateObj = parseDateTime(initDate, { zone: timeZone });
@@ -485,67 +449,59 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     visibleDateUnixAnim.value = nearestUnix;
   });
 
-  const getDateByOffset = useLatestCallback(
-    (position: { x: number; y: number }) => {
-      const visibleDatesArray = calendarData.visibleDatesArray;
-      const dayIndex = visibleDatesArray.indexOf(visibleDateUnix.current);
-      if (dayIndex === -1) {
-        return;
-      }
-      const columnIndex = Math.floor(position.x / columnWidth);
-      const dateUnixByIndex =
-        calendarData.visibleDatesArray[dayIndex + columnIndex];
-      if (!dateUnixByIndex) {
-        return;
-      }
-      const minutes = Math.floor(position.y / minuteHeight.value) + start;
-      return parseDateTime(dateUnixByIndex).plus({ minutes });
+  const getDateByOffset = useLatestCallback((position: { x: number; y: number }) => {
+    const visibleDatesArray = calendarData.visibleDatesArray;
+    const dayIndex = visibleDatesArray.indexOf(visibleDateUnix.current);
+    if (dayIndex === -1) {
+      return;
     }
-  );
-
-  const getDateStringByOffset = useLatestCallback(
-    (position: { x: number; y: number }) => {
-      const date = getDateByOffset(position);
-      if (!date) {
-        return null;
-      }
-      const dateObj = forceUpdateZone(date, timeZone);
-      return dateTimeToISOString(dateObj);
+    const columnIndex = Math.floor(position.x / columnWidth);
+    const dateUnixByIndex = calendarData.visibleDatesArray[dayIndex + columnIndex];
+    if (!dateUnixByIndex) {
+      return;
     }
-  );
+    const minutes = Math.floor(position.y / minuteHeight.value) + start;
+    return parseDateTime(dateUnixByIndex).plus({ minutes });
+  });
 
-  const getEventByOffset = useLatestCallback(
-    (position: { x: number; y: number }) => {
-      const date = getDateByOffset(position);
-      if (!date) {
-        return null;
-      }
-      const columnIndex = Math.floor(position.x / columnWidth);
-      const dateString = dateTimeToISOString(date);
-      const eventsByDate = eventsRef.current?.getEventsByDate(dateString) ?? [];
-      for (const event of eventsByDate) {
-        let eventX = 0;
-        let eventWidth = 0;
-        const { total, index, xOffsetPercentage, widthPercentage } =
-          event._internal;
-        if (xOffsetPercentage && widthPercentage) {
-          eventWidth = columnWidth * widthPercentage;
-          eventX = columnWidth * xOffsetPercentage;
-        } else if (total && index) {
-          eventWidth = columnWidth / total;
-          eventX = index * eventWidth;
-        }
-
-        const targetX = position.x - columnIndex * columnWidth;
-        if (targetX >= eventX && targetX <= eventX + eventWidth) {
-          const clonedEvent = { ...event } as EventItem;
-          delete clonedEvent._internal;
-          return clonedEvent;
-        }
-      }
+  const getDateStringByOffset = useLatestCallback((position: { x: number; y: number }) => {
+    const date = getDateByOffset(position);
+    if (!date) {
       return null;
     }
-  );
+    const dateObj = forceUpdateZone(date, timeZone);
+    return dateTimeToISOString(dateObj);
+  });
+
+  const getEventByOffset = useLatestCallback((position: { x: number; y: number }) => {
+    const date = getDateByOffset(position);
+    if (!date) {
+      return null;
+    }
+    const columnIndex = Math.floor(position.x / columnWidth);
+    const dateString = dateTimeToISOString(date);
+    const eventsByDate = eventsRef.current?.getEventsByDate(dateString) ?? [];
+    for (const event of eventsByDate) {
+      let eventX = 0;
+      let eventWidth = 0;
+      const { total, index, xOffsetPercentage, widthPercentage } = event._internal;
+      if (xOffsetPercentage && widthPercentage) {
+        eventWidth = columnWidth * widthPercentage;
+        eventX = columnWidth * xOffsetPercentage;
+      } else if (total && index) {
+        eventWidth = columnWidth / total;
+        eventX = index * eventWidth;
+      }
+
+      const targetX = position.x - columnIndex * columnWidth;
+      if (targetX >= eventX && targetX <= eventX + eventWidth) {
+        const clonedEvent = { ...event } as EventItem;
+        delete clonedEvent._internal;
+        return clonedEvent;
+      }
+    }
+    return null;
+  });
 
   const getSizeByDuration = useLatestCallback((duration: number) => {
     const height = duration * minuteHeight.value;
@@ -557,6 +513,10 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     const startMinutes = offsetY.value / minuteHeight.value - start;
     currentDate.plus({ minutes: startMinutes });
     return dateTimeToISOString(currentDate);
+  });
+
+  const getCurrentOffsetY = useLatestCallback(() => {
+    return offsetY.value;
   });
 
   useImperativeHandle(
@@ -572,6 +532,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       getEventByOffset,
       getSizeByDuration,
       getVisibleStart,
+      getCurrentOffsetY,
     }),
     [
       getDateStringByOffset,
@@ -584,6 +545,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       setVisibleDate,
       zoom,
       getVisibleStart,
+      getCurrentOffsetY,
     ]
   );
 
@@ -603,9 +565,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   }, [columnWidthAnim, columnWidth, isSingleDay, animateColumnWidth]);
 
   const snapToInterval =
-    numberOfDays > 1 && scrollByDay && !isResourceMode
-      ? columnWidth
-      : undefined;
+    numberOfDays > 1 && scrollByDay && !isResourceMode ? columnWidth : undefined;
 
   const value = useMemo<CalendarContextProps>(
     () => ({
@@ -660,6 +620,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       overlapEventsSpacing,
       allowDragToCreate,
       allowDragToEdit,
+      dragToCreateMode,
     }),
     [
       calendarLayout,
@@ -684,6 +645,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       timelineHeight,
       slots,
       totalSlots,
+      scrollType,
       start,
       end,
       timeInterval,
@@ -708,6 +670,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       overlapEventsSpacing,
       allowDragToCreate,
       allowDragToEdit,
+      dragToCreateMode,
     ]
   );
 
@@ -737,12 +700,11 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   };
 
   const loadingValue = useMemo(() => ({ isLoading }), [isLoading]);
-  const timezoneValue = useMemo(() => ({ timeZone }), [timeZone]);
 
   return (
-    <CalendarContext.Provider value={value}>
+    <CalendarProvider value={value}>
       <LocaleProvider initialLocales={initialLocales} locale={locale}>
-        <TimezoneContext.Provider value={timezoneValue}>
+        <TimezoneProvider timeZone={timeZone}>
           <NowIndicatorProvider>
             <ThemeProvider theme={theme}>
               <ActionsProvider {...actionsProps}>
@@ -771,7 +733,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                             selectedEvent={selectedEvent}
                             allowDragToCreate={allowDragToCreate}
                             defaultDuration={defaultDuration}
-                            resources={resources}>
+                            resources={resources}
+                            hapticService={hapticService}>
                             {children}
                           </DragEventProvider>
                         </EventsProvider>
@@ -782,9 +745,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
               </ActionsProvider>
             </ThemeProvider>
           </NowIndicatorProvider>
-        </TimezoneContext.Provider>
+        </TimezoneProvider>
       </LocaleProvider>
-    </CalendarContext.Provider>
+    </CalendarProvider>
   );
 };
 

@@ -1,9 +1,9 @@
-import { useCalendar } from '@calendar-kit/core';
 import { useRef } from 'react';
 import type { GestureType } from 'react-native-gesture-handler';
 import { Gesture } from 'react-native-gesture-handler';
 import { scrollTo, useSharedValue, withSpring } from 'react-native-reanimated';
 
+import { useCalendar } from '../context/CalendarProvider';
 import { clampValues } from '../utils/utils';
 
 const SCALE_FACTOR = 0.5;
@@ -38,8 +38,7 @@ const usePinchToZoom = () => {
       const scaledDiff = (newScale - lastScale.value) * SCALE_FACTOR;
       const newHeight = timeIntervalHeight.value * (1 + scaledDiff);
 
-      const scaleOrigin =
-        (focalY + startOffsetY.value) / timeIntervalHeight.value;
+      const scaleOrigin = (focalY + startOffsetY.value) / timeIntervalHeight.value;
       const heightDiff = newHeight - timeIntervalHeight.value;
 
       const clampedHeight = clampValues(
@@ -50,10 +49,7 @@ const usePinchToZoom = () => {
 
       timeIntervalHeight.value = clampedHeight;
 
-      if (
-        clampedHeight > minTimeIntervalHeight - 8 &&
-        clampedHeight < maxTimeIntervalHeight + 8
-      ) {
+      if (clampedHeight > minTimeIntervalHeight - 8 && clampedHeight < maxTimeIntervalHeight + 8) {
         const newOffsetY = startOffsetY.value + heightDiff * scaleOrigin;
         startOffsetY.value = newOffsetY;
         scrollTo(verticalListRef, 0, newOffsetY, false);

@@ -1,11 +1,10 @@
-import { useTheme } from '@calendar-kit/core';
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { useTheme } from '../context/ThemeProvider';
+
 const DragDot = () => {
-  const primaryColor = useTheme(
-    useCallback((state) => state.colors.primary, [])
-  );
+  const primaryColor = useTheme(useCallback((state) => state.colors.primary, []));
   return (
     <View style={styles.container}>
       <View style={styles.dotBackground}>

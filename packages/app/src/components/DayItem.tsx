@@ -1,24 +1,14 @@
-import {
-  dateUtils,
-  type ThemeConfigs,
-  useActions,
-  useHighlightDates,
-  useLocale,
-  useNowIndicator,
-  useTheme,
-} from '@calendar-kit/core';
 import React, { type PropsWithChildren, useMemo } from 'react';
-import {
-  type StyleProp,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { type StyleProp, StyleSheet, TouchableOpacity, View, type ViewStyle } from 'react-native';
 
+import { useActions } from '../context/ActionsProvider';
+import { useHighlightDates } from '../context/HighlightDatesProvider';
+import { useLocale } from '../context/LocaleProvider';
+import { useNowIndicator } from '../context/NowIndicatorProvider';
+import { useTheme } from '../context/ThemeProvider';
+import type { ThemeConfigs } from '../types';
+import { dateTimeToISOString, parseDateTime } from '../utils/dateUtils';
 import Text from './Text';
-
-const { dateTimeToISOString, parseDateTime } = dateUtils;
 
 interface DayItemProps {
   dateUnix: number;
@@ -99,27 +89,14 @@ const DayItem: React.FC<PropsWithChildren<DayItemProps>> = ({
   return (
     <View style={dayItemContainerStyle}>
       {showDayItem && (
-        <TouchableOpacity
-          activeOpacity={0.6}
-          disabled={!onPressDayNumber}
-          onPress={_onDayPress}>
+        <TouchableOpacity activeOpacity={0.6} disabled={!onPressDayNumber} onPress={_onDayPress}>
           <View style={[styles.dayContainer, dayContainer]}>
-            <Text
-              style={[
-                styles.weekDayText,
-                { color: colors.text },
-                customStyle.dayText,
-              ]}>
+            <Text style={[styles.weekDayText, { color: colors.text }, customStyle.dayText]}>
               {weekDayShort[date.weekday % 7]}
             </Text>
 
             <View style={[styles.dayNumContainer, customStyle.container]}>
-              <Text
-                style={[
-                  styles.dayNumText,
-                  { color: colors.text },
-                  customStyle.numText,
-                ]}>
+              <Text style={[styles.dayNumText, { color: colors.text }, customStyle.numText]}>
                 {date.day}
               </Text>
             </View>

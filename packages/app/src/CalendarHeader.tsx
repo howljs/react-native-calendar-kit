@@ -1,10 +1,3 @@
-import {
-  CalendarListView,
-  useCalendar,
-  useEventCountsByWeek,
-  useResources,
-  useTheme,
-} from '@calendar-kit/core';
 import React, { useCallback, useMemo } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -15,6 +8,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import CalendarListView from './components/CalendarListView';
 import ExpandButton from './components/ExpandButton';
 import MultiDayBarItem from './components/MultiDayBarItem';
 import ResourceHeaderItem from './components/ResourceHeaderItem';
@@ -29,8 +23,11 @@ import {
   MIN_ALL_DAY_MINUTES,
   ScrollType,
 } from './constants';
+import { useCalendar } from './context/CalendarProvider';
 import type { HeaderContextProps } from './context/DayBarContext';
 import { HeaderContext } from './context/DayBarContext';
+import { useEventCountsByWeek, useResources } from './context/EventsProvider';
+import { useTheme } from './context/ThemeProvider';
 import useSyncedList from './hooks/useSyncedList';
 import type { CalendarHeaderProps } from './types';
 import { clampValues } from './utils/utils';
@@ -76,8 +73,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   const headerStyles = useTheme(
     useCallback(
       (state) => ({
-        headerBackgroundColor:
-          state.headerBackgroundColor || state.colors.background,
+        headerBackgroundColor: state.headerBackgroundColor || state.colors.background,
         borderColor: state.colors.border,
         headerContainer: state.headerContainer,
       }),
@@ -236,12 +232,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     }
 
     if (extra.resources) {
-      return (
-        <ResourceHeaderItem
-          resources={extra.resources}
-          startUnix={dateUnixByIndex}
-        />
-      );
+      return <ResourceHeaderItem resources={extra.resources} startUnix={dateUnixByIndex} />;
     }
 
     if (extra.columns === 1) {
@@ -277,11 +268,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
   const _renderLeftArea = () => {
     if (LeftAreaComponent) {
-      return (
-        <View style={[styles.leftArea, { width: hourWidth }]}>
-          {LeftAreaComponent}
-        </View>
-      );
+      return <View style={[styles.leftArea, { width: hourWidth }]}>{LeftAreaComponent}</View>;
     }
 
     return (
@@ -294,9 +281,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             renderExpandIcon={renderExpandIcon}
           />
         )}
-        <View
-          style={[styles.border, { backgroundColor: headerStyles.borderColor }]}
-        />
+        <View style={[styles.border, { backgroundColor: headerStyles.borderColor }]} />
       </View>
     );
   };

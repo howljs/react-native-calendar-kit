@@ -1,4 +1,3 @@
-import { useDragEvent, useTheme } from '@calendar-kit/core';
 import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import type { ViewStyle } from 'react-native';
@@ -9,10 +8,11 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
-  withTiming,
 } from 'react-native-reanimated';
 
 import { useBody } from '../context/BodyContext';
+import { useDragEvent } from '../context/DragEventProvider';
+import { useTheme } from '../context/ThemeProvider';
 import type { ResourceItem, SelectedEventType } from '../types';
 import { clampValues, findNearestNumber } from '../utils/utils';
 import DragDot from './DragDot';
@@ -55,50 +55,36 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     hourWidth,
     visibleDateUnixAnim,
     calendarData,
-    columns,
     numberOfDays,
+    dragToCreateMode,
   } = useBody();
-  const {
-    dragDuration,
-    dragStartMinutes,
-    dragStartUnix,
-    draggingEvent,
-    dragX,
-  } = useDragEvent();
+  const { dragDuration, dragStartMinutes, dragStartUnix, draggingEvent, dragX, selectedEvent } =
+    useDragEvent();
+  const isCreate = !selectedEvent;
+  const isShowDot = (dragToCreateMode !== 'date-time' && isCreate) || !isCreate;
 
-  const totalResources =
-    resources && resources.length > 1 ? resources.length : 1;
+  const totalResources = resources && resources.length > 1 ? resources.length : 1;
   const getDayIndex = (dayUnix: number) => {
     'worklet';
     let currentIndex = calendarData.visibleDatesArray.indexOf(dayUnix);
     if (currentIndex === -1) {
-      const nearestVisibleUnix = findNearestNumber(
-        calendarData.visibleDatesArray,
-        dayUnix
-      );
-      const nearestVisibleIndex =
-        calendarData.visibleDates[nearestVisibleUnix]?.index;
+      const nearestVisibleUnix = findNearestNumber(calendarData.visibleDatesArray, dayUnix);
+      const nearestVisibleIndex = calendarData.visibleDates[nearestVisibleUnix]?.index;
       if (!nearestVisibleIndex) {
         return 0;
       }
       currentIndex = nearestVisibleIndex;
     }
-    let startIndex = calendarData.visibleDatesArray.indexOf(
-      visibleDateUnixAnim.value
-    );
+    let startIndex = calendarData.visibleDatesArray.indexOf(visibleDateUnixAnim.value);
     if (startIndex === -1) {
-      const nearestVisibleUnix = findNearestNumber(
-        calendarData.visibleDatesArray,
-        dayUnix
-      );
-      const nearestVisibleIndex =
-        calendarData.visibleDates[nearestVisibleUnix]?.index;
+      const nearestVisibleUnix = findNearestNumber(calendarData.visibleDatesArray, dayUnix);
+      const nearestVisibleIndex = calendarData.visibleDates[nearestVisibleUnix]?.index;
       if (!nearestVisibleIndex) {
         return 0;
       }
       startIndex = nearestVisibleIndex;
     }
-    return clampValues(currentIndex - startIndex, 0, columns - 1);
+    return clampValues(currentIndex - startIndex, 0, numberOfDays - 1);
   };
   const eventWidth = useDerivedValue(
     () => columnWidthAnim.value / totalResources,
@@ -123,7 +109,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     (dayUnix) => {
       if (dayUnix !== -1) {
         const dayIndex = getDayIndex(dayUnix);
-        internalDayIndex.value = withTiming(dayIndex, { duration: 100 });
+        internalDayIndex.value = dayIndex;
       }
     }
   );
@@ -138,9 +124,42 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
       top: (dragStartMinutes.value - start) * minuteHeight.value,
       height: dragDuration.value * minuteHeight.value,
       width: eventWidth.value,
-      left: startX + hourWidth + eventWidth.value * internalDayIndex.value - 1,
+      left: startX + hourWidth + eventWidth.value * internalDayIndex.value,
+      opacity: dragDuration.value * minuteHeight.value > 0 ? 1 : 0,
     };
   }, [totalResources, hourWidth]);
+
+  const renderTopEdgeComponent = () => {
+    if (!isShowDot) {
+      return null;
+    }
+
+    if (TopEdgeComponent) {
+      return TopEdgeComponent;
+    }
+
+    return (
+      <View style={[styles.dot, styles.dotLeft, numberOfDays === 1 && styles.dotLeftSingle]}>
+        <DragDot />
+      </View>
+    );
+  };
+
+  const renderBottomEdgeComponent = () => {
+    if (!isShowDot) {
+      return null;
+    }
+
+    if (BottomEdgeComponent) {
+      return BottomEdgeComponent;
+    }
+
+    return (
+      <View style={[styles.dot, styles.dotRight, numberOfDays === 1 && styles.dotRightSingle]}>
+        <DragDot />
+      </View>
+    );
+  };
 
   return (
     <Animated.View style={[styles.container, animView]}>
@@ -150,42 +169,24 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
           theme.eventContainerStyle,
           styles.event,
           {
-            backgroundColor: draggingEvent?.color ?? 'transparent',
+            backgroundColor: draggingEvent?.color ?? selectedEvent?.color ?? 'transparent',
             borderColor: theme.primaryColor,
           },
           containerStyle,
         ]}>
         {renderEvent
-          ? renderEvent(draggingEvent, {
+          ? renderEvent(draggingEvent ?? selectedEvent, {
               width: eventWidth,
               height: eventHeight,
             })
-          : !!draggingEvent?.title && (
+          : !!(draggingEvent?.title ?? selectedEvent?.title) && (
               <Text style={[styles.eventTitle, theme.eventTitleStyle]}>
-                {draggingEvent.title}
+                {draggingEvent?.title ?? selectedEvent?.title}
               </Text>
             )}
       </View>
-      {TopEdgeComponent || (
-        <View
-          style={[
-            styles.dot,
-            styles.dotLeft,
-            numberOfDays === 1 && styles.dotLeftSingle,
-          ]}>
-          <DragDot />
-        </View>
-      )}
-      {BottomEdgeComponent || (
-        <View
-          style={[
-            styles.dot,
-            styles.dotRight,
-            numberOfDays === 1 && styles.dotRightSingle,
-          ]}>
-          <DragDot />
-        </View>
-      )}
+      {isShowDot && renderTopEdgeComponent()}
+      {isShowDot && renderBottomEdgeComponent()}
     </Animated.View>
   );
 };
@@ -216,8 +217,8 @@ const DraggingEventWrapper = ({
   renderEvent,
   resources,
 }: DraggingEventWrapperProps) => {
-  const { isDragging } = useDragEvent();
-  if (!isDragging) {
+  const { isDragging, selectedEvent } = useDragEvent();
+  if (!isDragging && !selectedEvent) {
     return null;
   }
 

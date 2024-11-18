@@ -1,4 +1,3 @@
-import { useTheme } from '@calendar-kit/core';
 import type { PropsWithChildren } from 'react';
 import React, { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -7,6 +6,7 @@ import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { EXTRA_HEIGHT, HOUR_SHORT_LINE_WIDTH } from '../constants';
 import { useBody } from '../context/BodyContext';
+import { useTheme } from '../context/ThemeProvider';
 import type { ThemeConfigs } from '../types';
 import Text from './Text';
 
@@ -54,12 +54,7 @@ const TimeColumn = () => {
         height={minuteHeight}
         cellBorderColor={cellBorderColor}
         start={start}>
-        <View
-          style={[
-            styles.absolute,
-            styles.hour,
-            { right: HOUR_SHORT_LINE_WIDTH + 8 },
-          ]}>
+        <View style={[styles.absolute, styles.hour, { right: HOUR_SHORT_LINE_WIDTH + 8 }]}>
           {children}
         </View>
       </HourWrapper>

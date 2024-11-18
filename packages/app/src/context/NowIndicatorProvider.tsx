@@ -1,4 +1,3 @@
-import { dateUtils, useTimezone } from '@calendar-kit/core';
 import { DateTime } from 'luxon';
 import React, {
   createContext,
@@ -16,17 +15,15 @@ import { useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { MILLISECONDS_IN_DAY } from '../constants';
 import useLazyRef from '../hooks/useLazyRef';
+import { forceUpdateZone } from '../utils/dateUtils';
+import { useTimezone } from './TimeZoneProvider';
 
-const { forceUpdateZone } = dateUtils;
-
-export interface NowIndicatorContext {
+export interface NowIndicatorContextType {
   currentDateUnix: number;
   currentTime: SharedValue<number>;
 }
 
-const NowIndicatorContext = createContext<NowIndicatorContext | undefined>(
-  undefined
-);
+const NowIndicatorContext = createContext<NowIndicatorContextType | undefined>(undefined);
 
 const getCurrentDatetime = (timeZone?: string) => {
   const now = forceUpdateZone(DateTime.now().setZone(timeZone));
@@ -63,11 +60,9 @@ const NowIndicatorProvider = ({ children }: NowIndicatorProviderProps) => {
     stopTimer();
 
     const current = getCurrentDatetime(timeZone);
-    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
     setCurrentDateUnix((prev) => {
       const diffMsSeconds = current.date - prev;
-      const isSameDay =
-        diffMsSeconds >= 0 && diffMsSeconds < MILLISECONDS_IN_DAY;
+      const isSameDay = diffMsSeconds >= 0 && diffMsSeconds < MILLISECONDS_IN_DAY;
 
       if (isSameDay) {
         return prev;
@@ -81,10 +76,7 @@ const NowIndicatorProvider = ({ children }: NowIndicatorProviderProps) => {
 
   const handleAppStateChange = useCallback(
     (nextAppState: AppStateStatus) => {
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         updateTime();
       } else {
         stopTimer();
@@ -96,10 +88,7 @@ const NowIndicatorProvider = ({ children }: NowIndicatorProviderProps) => {
 
   useEffect(() => {
     updateTime();
-    appStateListener.current = AppState.addEventListener(
-      'change',
-      handleAppStateChange
-    );
+    appStateListener.current = AppState.addEventListener('change', handleAppStateChange);
 
     return () => {
       stopTimer();
@@ -115,11 +104,7 @@ const NowIndicatorProvider = ({ children }: NowIndicatorProviderProps) => {
     [currentDateUnix, currentTime]
   );
 
-  return (
-    <NowIndicatorContext.Provider value={value}>
-      {children}
-    </NowIndicatorContext.Provider>
-  );
+  return <NowIndicatorContext.Provider value={value}>{children}</NowIndicatorContext.Provider>;
 };
 
 export default NowIndicatorProvider;
@@ -127,9 +112,7 @@ export default NowIndicatorProvider;
 export const useNowIndicator = () => {
   const value = useContext(NowIndicatorContext);
   if (!value) {
-    throw new Error(
-      'useNowIndicator must be called from within NowIndicatorContext!'
-    );
+    throw new Error('useNowIndicator must be called from within NowIndicatorContext!');
   }
   return value;
 };

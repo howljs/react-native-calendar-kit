@@ -20,6 +20,9 @@ export const parseDateTime = (date?: DateType, opts?: DateTimeOptions) => {
   return DateTime.local(opts);
 };
 
+export const toISODate = (date: DateType, opts?: DateTimeOptions) =>
+  parseDateTime(date, opts).toISODate();
+
 export const parseDate = (date?: DateType, forceNewDate: boolean = true) => {
   if (date instanceof Date && !forceNewDate) {
     return forceNewDate ? new Date(date) : date;

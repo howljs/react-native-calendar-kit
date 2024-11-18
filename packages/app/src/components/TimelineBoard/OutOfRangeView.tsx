@@ -1,11 +1,8 @@
-import { useTheme } from '@calendar-kit/core';
 import { StyleSheet } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
 import { useBody } from '../../context/BodyContext';
+import { useTheme } from '../../context/ThemeProvider';
 
 const OutOfRangeView = ({
   position,
@@ -14,18 +11,11 @@ const OutOfRangeView = ({
   diffDays: number;
   position: 'left' | 'right';
 }) => {
-  const {
-    columnWidthAnim,
-    renderCustomOutOfRange,
-    timeIntervalHeight,
-    totalSlots,
-  } = useBody();
+  const { columnWidthAnim, renderCustomOutOfRange, timeIntervalHeight, totalSlots } = useBody();
   const disableBackgroundColor = useTheme(
     (state) => state.outOfRangeBackgroundColor || state.colors.surface
   );
-  const disableHeight = useDerivedValue(
-    () => timeIntervalHeight.value * totalSlots
-  );
+  const disableHeight = useDerivedValue(() => timeIntervalHeight.value * totalSlots);
   const disableWidth = useDerivedValue(() => diffDays * columnWidthAnim.value);
 
   const disableAnim = useAnimatedStyle(() => {

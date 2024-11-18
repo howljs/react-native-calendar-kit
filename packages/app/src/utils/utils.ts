@@ -18,18 +18,13 @@ export type DataByMode = {
   maxDateUnix: number;
   originalMinDateUnix: number;
   originalMaxDateUnix: number;
-  visibleDates: Record<
-    string,
-    { index: number; unix: number; weekday: WeekdayNumbers }
-  >;
+  visibleDates: Record<string, { index: number; unix: number; weekday: WeekdayNumbers }>;
   visibleDatesArray: number[];
   diffMinDays: number;
   diffMaxDays: number;
 };
 
-export const prepareCalendarRange = (
-  props: CalendarRangeOptions
-): DataByMode => {
+export const prepareCalendarRange = (props: CalendarRangeOptions): DataByMode => {
   const { minDate, maxDate, firstDay, isSingleDay, timeZone } = props;
   const minIsoDate = parseDateTime(minDate, { zone: timeZone }).toISODate();
   const maxIsoDate = parseDateTime(maxDate, { zone: timeZone }).toISODate();
@@ -40,10 +35,8 @@ export const prepareCalendarRange = (
 
   // Single Day Mode
   if (isSingleDay) {
-    const visibleDates: Record<
-      string,
-      { unix: number; index: number; weekday: WeekdayNumbers }
-    > = {};
+    const visibleDates: Record<string, { unix: number; index: number; weekday: WeekdayNumbers }> =
+      {};
     const visibleDatesArray: number[] = [];
 
     let currentDateTime = min;
@@ -88,10 +81,7 @@ export const prepareCalendarRange = (
   const diffFromLastDay = (maxWeekDay - firstDay + 7) % 7;
   const adjustedMax = max.plus({ days: 7 - diffFromLastDay });
 
-  const visibleDates: Record<
-    string,
-    { unix: number; index: number; weekday: WeekdayNumbers }
-  > = {};
+  const visibleDates: Record<string, { unix: number; index: number; weekday: WeekdayNumbers }> = {};
   const visibleDatesArray: number[] = [];
 
   let currentDateTime = adjustedMin;
@@ -135,10 +125,7 @@ export const prepareCalendarRange = (
   };
 };
 
-export const findNearestNumber = (
-  numbers: number[],
-  target: number
-): number => {
+export const findNearestNumber = (numbers: number[], target: number): number => {
   'worklet';
   if (numbers.includes(target)) {
     return target;
@@ -149,11 +136,7 @@ export const findNearestNumber = (
   );
 };
 
-export const isNumbersEqual = (
-  num1: number,
-  num2: number,
-  epsilon: number = 0.2
-) => {
+export const isNumbersEqual = (num1: number, num2: number, epsilon: number = 0.2) => {
   return Math.abs(num1 - num2) < epsilon;
 };
 

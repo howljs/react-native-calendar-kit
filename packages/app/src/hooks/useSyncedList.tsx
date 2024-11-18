@@ -1,21 +1,11 @@
-import {
-  dateUtils,
-  ScrollType,
-  useActions,
-  useCalendar,
-  useNotifyDateChanged,
-} from '@calendar-kit/core';
 import { useCallback, useRef } from 'react';
-import {
-  runOnJS,
-  runOnUI,
-  scrollTo,
-  useAnimatedScrollHandler,
-} from 'react-native-reanimated';
+import { runOnJS, runOnUI, scrollTo, useAnimatedScrollHandler } from 'react-native-reanimated';
 
-import { MILLISECONDS_IN_DAY } from '../constants';
-
-const { dateTimeToISOString, parseDateTime } = dateUtils;
+import { MILLISECONDS_IN_DAY, ScrollType } from '../constants';
+import { useActions } from '../context/ActionsProvider';
+import { useCalendar } from '../context/CalendarProvider';
+import { useNotifyDateChanged } from '../context/VisibleDateProvider';
+import { dateTimeToISOString, parseDateTime } from '../utils/dateUtils';
 
 const useSyncedList = ({ id }: { id: ScrollType }) => {
   const {
@@ -33,9 +23,8 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
   const { onChange, onDateChanged } = useActions();
 
   const startDateUnix = useRef(0);
-  const _updateScrolling = (isScrolling: boolean) => {
+  const _beginDrag = () => {
     startDateUnix.current = visibleDateUnix.current;
-    scrollType.current = isScrolling ? id : ScrollType.calendarGrid;
   };
 
   const _updateMomentum = (isTrigger: boolean) => {
@@ -43,14 +32,9 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
   };
 
   const _onMomentumEnd = () => {
-    if (
-      isTriggerMomentum.current &&
-      startDateUnix.current !== visibleDateUnix.current
-    ) {
+    if (isTriggerMomentum.current && startDateUnix.current !== visibleDateUnix.current) {
       triggerDateChanged.current = undefined;
-      onDateChanged?.(
-        dateTimeToISOString(parseDateTime(visibleDateUnix.current))
-      );
+      onDateChanged?.(dateTimeToISOString(parseDateTime(visibleDateUnix.current)));
       notifyDateChanged(visibleDateUnix.current);
       isTriggerMomentum.current = false;
     }
@@ -58,6 +42,10 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
+      if (scrollType.value !== id) {
+        return;
+      }
+
       const x = event.contentOffset.x;
       offsetX.value = x;
       if (id === ScrollType.dayBar) {
@@ -67,13 +55,18 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       }
     },
     onBeginDrag: () => {
-      runOnJS(_updateScrolling)(true);
+      scrollType.value = id;
+      runOnJS(_beginDrag)();
     },
     onMomentumBegin: () => {
-      runOnJS(_updateMomentum)(true);
+      if (scrollType.value === id) {
+        runOnJS(_updateMomentum)(true);
+      }
     },
     onMomentumEnd: () => {
-      runOnJS(_onMomentumEnd)();
+      if (scrollType.value === id) {
+        runOnJS(_onMomentumEnd)();
+      }
     },
   });
 
@@ -88,16 +81,13 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       const { index: pageIndex, column, columns, extraScrollData } = props;
       const { visibleColumns, visibleDates } = extraScrollData;
 
-      if (scrollType.current === id && visibleColumns && visibleDates) {
+      if (scrollType.value === id && visibleColumns && visibleDates) {
         const dayIndex = pageIndex * columns + column;
         const visibleStart = visibleDates[pageIndex * columns];
-        const visibleEnd =
-          visibleDates[pageIndex * columns + column + visibleColumns];
+        const visibleEnd = visibleDates[pageIndex * columns + column + visibleColumns];
 
         if (visibleStart && visibleEnd) {
-          const diffDays = Math.floor(
-            (visibleEnd - visibleStart) / MILLISECONDS_IN_DAY
-          );
+          const diffDays = Math.floor((visibleEnd - visibleStart) / MILLISECONDS_IN_DAY);
           if (diffDays <= 7) {
             visibleWeeks.value = [visibleStart];
           } else {
@@ -117,7 +107,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
         if (visibleDateUnix.current !== currentDate) {
           const dateIsoStr = dateTimeToISOString(parseDateTime(currentDate));
           onChange?.(dateIsoStr);
-          if (triggerDateChanged.current === currentDate) {
+          if (triggerDateChanged.current && triggerDateChanged.current === currentDate) {
             triggerDateChanged.current = undefined;
             onDateChanged?.(dateIsoStr);
             notifyDateChanged(currentDate);

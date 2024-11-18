@@ -4,9 +4,7 @@ type ImportType = ReturnType<typeof require>;
  * Create a lazily-imported module proxy. This is useful for lazily requiring
  * optional dependencies.
  */
-export const createModuleProxy = <TModule>(
-  getModule: () => ImportType
-): TModule => {
+export const createModuleProxy = <TModule>(getModule: () => ImportType): TModule => {
   const holder: { module: TModule | undefined } = { module: undefined };
 
   const proxy = new Proxy(holder, {
