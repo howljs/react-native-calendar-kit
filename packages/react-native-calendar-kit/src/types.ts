@@ -580,6 +580,9 @@ export interface EventItem extends Record<string, any> {
   /** Background color of the event */
   color?: string;
 
+  /** Title color of the event */
+  titleColor?: string;
+
   /** Recurrence rule for the event. */
   recurrence?: string;
 
