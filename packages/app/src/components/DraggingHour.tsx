@@ -1,15 +1,18 @@
+import { toHourStr, useDragContext, useLocale, useTheme } from '@calendar-kit/core';
 import type { FC } from 'react';
-import React, { useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { StyleSheet, type ViewStyle } from 'react-native';
-import Animated, { runOnJS, useAnimatedReaction, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  runOnJS,
+  type SharedValue,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useDerivedValue,
+} from 'react-native-reanimated';
 
 import { HOUR_SHORT_LINE_WIDTH } from '../constants';
 import { useBody } from '../context/BodyContext';
-import { useDragEvent } from '../context/DragEventProvider';
-import { useLocale } from '../context/LocaleProvider';
-import { useTheme } from '../context/ThemeProvider';
 import type { RenderHourProps, ThemeConfigs } from '../types';
-import { toHourStr } from '../utils/dateUtils';
 import Text from './Text';
 
 const selectTheme = (state: ThemeConfigs) => ({
@@ -33,70 +36,32 @@ const DraggingHourInner: FC<DraggingHourProps> = ({
   hideWholeHour,
   containerStyle,
 }) => {
-  const {
-    hourTextColor,
-    hourTextStyle,
-    draggingTextColor,
-    draggingHourTextStyle,
-    draggingHourContainerStyle,
-  } = useTheme(selectTheme);
-  const fontSize = draggingHourTextStyle?.fontSize ?? hourTextStyle?.fontSize ?? 10;
-  const style = StyleSheet.flatten([
-    styles.hourText,
-    { color: hourTextColor, top: -fontSize / 2 },
-    hourTextStyle,
-    draggingHourTextStyle,
-  ]);
+  const { draggingHourContainerStyle } = useTheme(selectTheme);
   const { minuteHeight, start, hourWidth, numberOfDays } = useBody();
-  const locale = useLocale();
-  const { roundedDragStartMinutes, roundedDragDuration } = useDragEvent();
+  const { roundedDragDuration, roundedDragStartMinutes } = useDragContext();
 
-  const [startMinutes, setStartMinutes] = useState(-1);
-  const [endMinutes, setEndMinutes] = useState(-1);
-
-  useAnimatedReaction(
-    () => roundedDragStartMinutes.value,
-    (value, prev) => {
-      if (prev !== value) {
-        runOnJS(setStartMinutes)(value);
-      }
-    }
-  );
-
-  useAnimatedReaction(
-    () => roundedDragStartMinutes.value + roundedDragDuration.value,
-    (value, prev) => {
-      if (prev !== value) {
-        runOnJS(setEndMinutes)(value);
-      }
-    }
-  );
+  const top = useDerivedValue(() => {
+    return roundedDragStartMinutes.value >= 0
+      ? (roundedDragStartMinutes.value - start) * minuteHeight.value
+      : -1;
+  }, [minuteHeight, roundedDragStartMinutes, start]);
 
   const startAnimStyle = useAnimatedStyle(() => ({
-    top: (roundedDragStartMinutes.value - start) * minuteHeight.value,
-    opacity: roundedDragStartMinutes.value !== -1 ? 1 : 0,
+    top: top.value,
+    opacity: top.value >= 0 ? 1 : 0,
   }));
 
+  const endTop = useDerivedValue(() => {
+    const endTime = roundedDragStartMinutes.value + roundedDragDuration.value;
+    return endTime >= 0 ? (endTime - start) * minuteHeight.value : -1;
+  }, [minuteHeight, roundedDragDuration, roundedDragStartMinutes, start]);
+
   const endAnimStyle = useAnimatedStyle(() => ({
-    top: (roundedDragStartMinutes.value + roundedDragDuration.value - start) * minuteHeight.value,
-    opacity: roundedDragStartMinutes.value !== -1 ? 1 : 0,
+    top: endTop.value,
+    opacity: endTop.value >= 0 ? 1 : 0,
   }));
 
   const lineWidth = numberOfDays > 1 ? 0 : 1;
-
-  const startHourStr = useMemo(() => {
-    const isWholeHour = hideWholeHour ? startMinutes % 60 === 0 : false;
-    return startMinutes !== -1 && !isWholeHour
-      ? toHourStr(startMinutes, draggingHourFormat, locale.meridiem)
-      : '';
-  }, [startMinutes, hideWholeHour, draggingHourFormat, locale.meridiem]);
-
-  const endHourStr = useMemo(() => {
-    const isWholeHour = hideWholeHour ? endMinutes % 60 === 0 : false;
-    return endMinutes !== -1 && !isWholeHour
-      ? toHourStr(endMinutes, draggingHourFormat, locale.meridiem)
-      : '';
-  }, [endMinutes, hideWholeHour, draggingHourFormat, locale.meridiem]);
 
   return (
     <>
@@ -109,15 +74,12 @@ const DraggingHourInner: FC<DraggingHourProps> = ({
           containerStyle as any,
           startAnimStyle,
         ]}>
-        {renderHour ? (
-          renderHour({
-            hourStr: startHourStr,
-            minutes: startMinutes,
-            style,
-          })
-        ) : (
-          <Text style={[style, { color: draggingTextColor }]}>{startHourStr}</Text>
-        )}
+        <HourText
+          start={roundedDragStartMinutes}
+          hideWholeHour={hideWholeHour}
+          draggingHourFormat={draggingHourFormat}
+          renderHour={renderHour}
+        />
       </Animated.View>
       <Animated.View
         pointerEvents="box-none"
@@ -128,22 +90,69 @@ const DraggingHourInner: FC<DraggingHourProps> = ({
           containerStyle as any,
           endAnimStyle,
         ]}>
-        {renderHour ? (
-          renderHour({
-            hourStr: endHourStr,
-            minutes: endMinutes,
-            style,
-          })
-        ) : (
-          <Text style={[style, { color: draggingTextColor }]}>{endHourStr}</Text>
-        )}
+        <HourText
+          start={roundedDragStartMinutes}
+          duration={roundedDragDuration}
+          hideWholeHour={hideWholeHour}
+          draggingHourFormat={draggingHourFormat}
+          renderHour={renderHour}
+        />
       </Animated.View>
     </>
   );
 };
 
+const HourText: FC<{
+  start: SharedValue<number>;
+  duration?: SharedValue<number>;
+  hideWholeHour?: boolean;
+  draggingHourFormat: string;
+  renderHour?: (props: RenderHourProps) => React.ReactNode;
+}> = memo(({ start, duration, hideWholeHour, draggingHourFormat, renderHour }) => {
+  const { hourTextColor, hourTextStyle, draggingTextColor, draggingHourTextStyle } =
+    useTheme(selectTheme);
+
+  const fontSize = draggingHourTextStyle?.fontSize ?? hourTextStyle?.fontSize ?? 10;
+  const style = StyleSheet.flatten([
+    styles.hourText,
+    { color: hourTextColor, top: -fontSize / 2 },
+    hourTextStyle,
+    draggingHourTextStyle,
+  ]);
+
+  const locale = useLocale();
+  const [minutes, setMinutes] = useState(-1);
+
+  const hourStr = useMemo(() => {
+    const isWholeHour = hideWholeHour ? minutes % 60 === 0 : false;
+    return minutes !== -1 && !isWholeHour
+      ? toHourStr(minutes, draggingHourFormat, locale.meridiem)
+      : '';
+  }, [minutes, hideWholeHour, draggingHourFormat, locale.meridiem]);
+
+  useAnimatedReaction(
+    () => (duration ? start.value + duration.value : start.value),
+    (value, prev) => {
+      if (value >= 0 && prev !== value) {
+        runOnJS(setMinutes)(value);
+      }
+    }
+  );
+  if (renderHour) {
+    return renderHour({
+      hourStr,
+      minutes,
+      style,
+    });
+  }
+
+  return <Text style={[style, { color: draggingTextColor }]}>{hourStr}</Text>;
+});
+
+HourText.displayName = 'HourText';
+
 const DraggingHour: FC<DraggingHourProps> = (props) => {
-  const { isDragging } = useDragEvent();
+  const { isDragging } = useDragContext();
   if (!isDragging) {
     return null;
   }

@@ -1,4 +1,6 @@
+import type { CalendarData, CalendarList, DraggingMode } from '@calendar-kit/core';
 import React, { type MutableRefObject } from 'react';
+import type { GestureResponderEvent } from 'react-native';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
 
@@ -9,8 +11,6 @@ import type {
   SizeAnimation,
   UnavailableHourProps,
 } from '../types';
-import type { DataByMode } from '../utils/utils';
-import type { Size } from './LayoutProvider';
 
 export interface BodyContextProps {
   offsetY: SharedValue<number>;
@@ -29,15 +29,13 @@ export interface BodyContextProps {
   totalSlots: number;
   numberOfDays: number;
   hourWidth: number;
-  calendarLayout: Size;
   start: number;
   end: number;
   timeInterval: number;
   showNowIndicator: boolean;
   columnWidth: number;
-  isRTL: boolean;
   columns: number;
-  calendarData: DataByMode;
+  calendarData: CalendarData;
   renderHour?: (props: RenderHourProps) => React.ReactNode;
   renderCustomOutOfRange?: (props: OutOfRangeProps) => React.ReactNode;
   renderCustomUnavailableHour?: (
@@ -53,12 +51,17 @@ export interface BodyContextProps {
   overlapEventsSpacing: number;
   visibleDateUnixAnim: SharedValue<number>;
   NowIndicatorComponent?: React.ReactElement | null;
-  allowDragToCreate: boolean;
-  allowDragToEdit: boolean;
-  dragToCreateMode?: 'duration' | 'date-time';
   verticalListRef: AnimatedRef<Animated.ScrollView>;
-  gridListRef: AnimatedRef<Animated.ScrollView>;
+  gridListRef: AnimatedRef<CalendarList>;
   visibleDateUnix: MutableRefObject<number>;
+  onLongPressBackground: (newProps: { dateTime: string }, event: GestureResponderEvent) => void;
+  onPressBackground: (newProps: { dateTime: string }, event: GestureResponderEvent) => void;
+  bodyStartX: MutableRefObject<number>;
+  onPressEvent: (event: PackedEvent) => void;
+  onLongPressEvent: (event: PackedEvent) => void;
+  onPressDraggableEvent: (event: { eventIndex: number; type: DraggingMode }) => void;
+  reduceBrightnessOfPastEvents: boolean;
+  draggingId: SharedValue<string | undefined>;
 }
 
 export const BodyContext = React.createContext<BodyContextProps | undefined>(undefined);

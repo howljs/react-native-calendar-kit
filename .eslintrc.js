@@ -70,6 +70,13 @@ module.exports = {
         '@typescript-eslint/no-misused-promises': 'off',
         '@eslint-react/hooks-extra/no-direct-set-state-in-use-effect': 'off',
         '@eslint-react/no-array-index-key': 'off',
+        '@typescript-eslint/no-redundant-type-constituents': 'off',
+        'react-hooks/exhaustive-deps': [
+          'warn',
+          {
+            additionalHooks: '(useAnimatedStyle|useDerivedValue|useAnimatedProps)',
+          },
+        ],
       },
     },
   ],

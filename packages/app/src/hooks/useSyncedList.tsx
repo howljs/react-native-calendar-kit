@@ -1,34 +1,42 @@
-import { useCallback, useRef } from 'react';
-import { runOnJS, runOnUI, scrollTo, useAnimatedScrollHandler } from 'react-native-reanimated';
+import {
+  dateTimeToISOString,
+  parseDateTime,
+  useActions,
+  useCalendar,
+  useNotifyDateChanged,
+} from '@calendar-kit/core';
+import { useCallback, useEffect, useRef } from 'react';
+import {
+  runOnJS,
+  scrollTo,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 
-import { MILLISECONDS_IN_DAY, ScrollType } from '../constants';
-import { useActions } from '../context/ActionsProvider';
-import { useCalendar } from '../context/CalendarProvider';
-import { useNotifyDateChanged } from '../context/VisibleDateProvider';
-import { dateTimeToISOString, parseDateTime } from '../utils/dateUtils';
+import { ScrollType } from '../constants';
 
 const useSyncedList = ({ id }: { id: ScrollType }) => {
   const {
     scrollType,
     gridListRef,
-    dayBarListRef,
+    headerListRef,
     visibleDateUnix,
     offsetX,
-    isTriggerMomentum,
     triggerDateChanged,
     visibleDateUnixAnim,
-    visibleWeeks,
   } = useCalendar();
+  const isTriggerMomentum = useRef(false);
   const notifyDateChanged = useNotifyDateChanged();
   const { onChange, onDateChanged } = useActions();
-
+  const isDayBarListRefReady = useSharedValue(false);
+  const isGridListRefReady = useSharedValue(false);
   const startDateUnix = useRef(0);
-  const _beginDrag = () => {
+  const _updateScrolling = () => {
     startDateUnix.current = visibleDateUnix.current;
   };
 
-  const _updateMomentum = (isTrigger: boolean) => {
-    isTriggerMomentum.current = isTrigger;
+  const onMomentumBegin = () => {
+    isTriggerMomentum.current = true;
   };
 
   const _onMomentumEnd = () => {
@@ -40,6 +48,11 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
     }
   };
 
+  useEffect(() => {
+    isDayBarListRefReady.value = !!headerListRef?.current;
+    isGridListRefReady.value = !!gridListRef?.current;
+  }, [headerListRef, gridListRef, isDayBarListRefReady, isGridListRefReady]);
+
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       if (scrollType.value !== id) {
@@ -49,18 +62,22 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       const x = event.contentOffset.x;
       offsetX.value = x;
       if (id === ScrollType.dayBar) {
-        scrollTo(gridListRef, offsetX.value, 0, false);
-      } else {
-        scrollTo(dayBarListRef, offsetX.value, 0, false);
+        if (isGridListRefReady.value) {
+          scrollTo(gridListRef, offsetX.value, 0, false);
+        }
+      } else if (id === ScrollType.calendarGrid) {
+        if (isDayBarListRefReady.value) {
+          scrollTo(headerListRef, offsetX.value, 0, false);
+        }
       }
     },
     onBeginDrag: () => {
       scrollType.value = id;
-      runOnJS(_beginDrag)();
+      runOnJS(_updateScrolling)();
     },
     onMomentumBegin: () => {
       if (scrollType.value === id) {
-        runOnJS(_updateMomentum)(true);
+        runOnJS(onMomentumBegin)();
       }
     },
     onMomentumEnd: () => {
@@ -70,69 +87,38 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
     },
   });
 
-  const onVisibleColumnChanged = useCallback(
-    (props: {
-      index: number;
-      column: number;
-      columns: number;
-      offset: number;
-      extraScrollData: Record<string, any>;
-    }) => {
-      const { index: pageIndex, column, columns, extraScrollData } = props;
-      const { visibleColumns, visibleDates } = extraScrollData;
+  const onVisibleItemChanged = useCallback(
+    (item: number) => {
+      if (scrollType.value !== id) {
+        return;
+      }
+      visibleDateUnix.current = item;
+      visibleDateUnixAnim.value = item;
 
-      if (scrollType.value === id && visibleColumns && visibleDates) {
-        const dayIndex = pageIndex * columns + column;
-        const visibleStart = visibleDates[pageIndex * columns];
-        const visibleEnd = visibleDates[pageIndex * columns + column + visibleColumns];
+      // Update visible date and notify of change
+      const dateIsoStr = dateTimeToISOString(parseDateTime(item));
+      onChange?.(dateIsoStr);
 
-        if (visibleStart && visibleEnd) {
-          const diffDays = Math.floor((visibleEnd - visibleStart) / MILLISECONDS_IN_DAY);
-          if (diffDays <= 7) {
-            visibleWeeks.value = [visibleStart];
-          } else {
-            const nextWeekStart = visibleDates[pageIndex * columns + 7];
-            if (nextWeekStart) {
-              visibleWeeks.value = [visibleStart, nextWeekStart];
-            }
-          }
-        }
-
-        const currentDate = visibleDates[dayIndex];
-        if (!currentDate) {
-          triggerDateChanged.current = undefined;
-          return;
-        }
-
-        if (visibleDateUnix.current !== currentDate) {
-          const dateIsoStr = dateTimeToISOString(parseDateTime(currentDate));
-          onChange?.(dateIsoStr);
-          if (triggerDateChanged.current && triggerDateChanged.current === currentDate) {
-            triggerDateChanged.current = undefined;
-            onDateChanged?.(dateIsoStr);
-            notifyDateChanged(currentDate);
-          }
-          visibleDateUnix.current = currentDate;
-          runOnUI(() => {
-            visibleDateUnixAnim.value = currentDate;
-          })();
-        }
+      // Handle triggered date change if matches current date
+      if (triggerDateChanged.current && triggerDateChanged.current === item) {
+        triggerDateChanged.current = undefined;
+        onDateChanged?.(dateIsoStr);
+        notifyDateChanged(item);
       }
     },
     [
-      scrollType,
       id,
-      visibleDateUnix,
-      visibleWeeks,
-      triggerDateChanged,
+      notifyDateChanged,
       onChange,
       onDateChanged,
-      notifyDateChanged,
+      scrollType,
+      triggerDateChanged,
+      visibleDateUnix,
       visibleDateUnixAnim,
     ]
   );
 
-  return { onScroll, onVisibleColumnChanged };
+  return { onScroll, onVisibleItemChanged };
 };
 
 export default useSyncedList;

@@ -1,12 +1,14 @@
+import { clampValues, useCalendar } from '@calendar-kit/core';
 import { useRef } from 'react';
 import type { GestureType } from 'react-native-gesture-handler';
 import { Gesture } from 'react-native-gesture-handler';
 import { scrollTo, useSharedValue, withSpring } from 'react-native-reanimated';
 
-import { useCalendar } from '../context/CalendarProvider';
-import { clampValues } from '../utils/utils';
-
-const SCALE_FACTOR = 0.5;
+// Constants for gesture behavior
+const SCALE_FACTOR = 0.5; // Controls how much the pinch affects the zoom
+const SPRING_DAMPING = 15; // Controls bounce-back animation damping
+const SPRING_STIFFNESS = 100; // Controls bounce-back animation stiffness
+const BOUNDARY_PADDING = 8; // Extra padding for zoom boundaries
 
 const usePinchToZoom = () => {
   const {
@@ -34,42 +36,51 @@ const usePinchToZoom = () => {
         return;
       }
 
+      // Calculate new scale and height values
       const newScale = startScale.value * scale;
       const scaledDiff = (newScale - lastScale.value) * SCALE_FACTOR;
       const newHeight = timeIntervalHeight.value * (1 + scaledDiff);
 
+      // Calculate scaling origin point and height difference
       const scaleOrigin = (focalY + startOffsetY.value) / timeIntervalHeight.value;
       const heightDiff = newHeight - timeIntervalHeight.value;
 
+      // Clamp height within allowed bounds
       const clampedHeight = clampValues(
         newHeight,
-        minTimeIntervalHeight - 8,
-        maxTimeIntervalHeight + 8
+        minTimeIntervalHeight - BOUNDARY_PADDING,
+        maxTimeIntervalHeight + BOUNDARY_PADDING
       );
-
       timeIntervalHeight.value = clampedHeight;
 
-      if (clampedHeight > minTimeIntervalHeight - 8 && clampedHeight < maxTimeIntervalHeight + 8) {
+      // Update scroll position if within bounds
+      if (
+        clampedHeight > minTimeIntervalHeight - BOUNDARY_PADDING &&
+        clampedHeight < maxTimeIntervalHeight + BOUNDARY_PADDING
+      ) {
         const newOffsetY = startOffsetY.value + heightDiff * scaleOrigin;
         startOffsetY.value = newOffsetY;
+        offsetY.value = newOffsetY;
         scrollTo(verticalListRef, 0, newOffsetY, false);
       }
       lastScale.value = newScale;
     })
     .onEnd(() => {
+      // When gesture ends, animate to final values within bounds
       const finalHeight = clampValues(
         timeIntervalHeight.value,
         minTimeIntervalHeight,
         maxTimeIntervalHeight
       );
       timeIntervalHeight.value = withSpring(finalHeight, {
-        damping: 15,
-        stiffness: 100,
+        damping: SPRING_DAMPING,
+        stiffness: SPRING_STIFFNESS,
       });
       const scaleFactor = finalHeight / timeIntervalHeight.value;
       const newOffsetY = startOffsetY.value * scaleFactor;
       scrollTo(verticalListRef, 0, newOffsetY, true);
 
+      // Reset scale values
       lastScale.value = 1;
       startScale.value = 1;
     })

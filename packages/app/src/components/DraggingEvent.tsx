@@ -1,23 +1,16 @@
+import { clampValues, useDragContext, useResources, useTheme } from '@calendar-kit/core';
 import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import type { ViewStyle } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
-import Animated, {
-  useAnimatedReaction,
-  useAnimatedStyle,
-  useDerivedValue,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
 import { useBody } from '../context/BodyContext';
-import { useDragEvent } from '../context/DragEventProvider';
-import { useTheme } from '../context/ThemeProvider';
-import type { ResourceItem, SelectedEventType } from '../types';
-import { clampValues, findNearestNumber } from '../utils/utils';
+import type { SelectedEventType } from '../types';
 import DragDot from './DragDot';
 
-export interface DraggingEventProps {
+export interface DraggingEventInnerProps {
   renderEvent?: (
     event: SelectedEventType | undefined,
     options: {
@@ -28,16 +21,15 @@ export interface DraggingEventProps {
   TopEdgeComponent?: React.ReactElement | null;
   BottomEdgeComponent?: React.ReactElement | null;
   containerStyle?: ViewStyle;
-  resources?: ResourceItem[];
 }
 
-export const DraggingEvent: FC<DraggingEventProps> = ({
+const DraggingEventInner: FC<DraggingEventInnerProps> = ({
   renderEvent,
   TopEdgeComponent,
   BottomEdgeComponent,
   containerStyle,
-  resources,
 }) => {
+  const resources = useResources();
   const theme = useTheme(
     useCallback((state) => {
       return {
@@ -48,86 +40,66 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     }, [])
   );
 
+  const { minuteHeight, columnWidthAnim, start, hourWidth, numberOfDays } = useBody();
   const {
-    minuteHeight,
-    columnWidthAnim,
-    start,
-    hourWidth,
-    visibleDateUnixAnim,
-    calendarData,
-    numberOfDays,
     dragToCreateMode,
-  } = useBody();
-  const { dragDuration, dragStartMinutes, dragStartUnix, draggingEvent, dragX, selectedEvent } =
-    useDragEvent();
+    selectedEvent,
+    draggingEvent,
+    draggingColumnIndex,
+    draggingStartMinutes,
+    draggingDuration,
+    dragPosition,
+  } = useDragContext();
   const isCreate = !selectedEvent;
   const isShowDot = (dragToCreateMode !== 'date-time' && isCreate) || !isCreate;
 
   const totalResources = resources && resources.length > 1 ? resources.length : 1;
-  const getDayIndex = (dayUnix: number) => {
-    'worklet';
-    let currentIndex = calendarData.visibleDatesArray.indexOf(dayUnix);
-    if (currentIndex === -1) {
-      const nearestVisibleUnix = findNearestNumber(calendarData.visibleDatesArray, dayUnix);
-      const nearestVisibleIndex = calendarData.visibleDates[nearestVisibleUnix]?.index;
-      if (!nearestVisibleIndex) {
-        return 0;
-      }
-      currentIndex = nearestVisibleIndex;
-    }
-    let startIndex = calendarData.visibleDatesArray.indexOf(visibleDateUnixAnim.value);
-    if (startIndex === -1) {
-      const nearestVisibleUnix = findNearestNumber(calendarData.visibleDatesArray, dayUnix);
-      const nearestVisibleIndex = calendarData.visibleDates[nearestVisibleUnix]?.index;
-      if (!nearestVisibleIndex) {
-        return 0;
-      }
-      startIndex = nearestVisibleIndex;
-    }
-    return clampValues(currentIndex - startIndex, 0, numberOfDays - 1);
-  };
+
   const eventWidth = useDerivedValue(
     () => columnWidthAnim.value / totalResources,
-    [totalResources]
+    [columnWidthAnim, totalResources]
   );
 
   const resourceIndex = useDerivedValue(() => {
-    if (totalResources === 1) {
+    const posX = dragPosition.value?.x;
+    if (totalResources === 1 || !posX) {
       return 0;
     }
 
-    const dragPosition = Math.floor(dragX.value - hourWidth);
-    const columnIndex = Math.floor(dragPosition / eventWidth.value);
-
+    const columnIndex = Math.floor((posX - hourWidth) / eventWidth.value);
     return clampValues(columnIndex, 0, totalResources - 1);
-  }, [totalResources, hourWidth]);
-
-  const internalDayIndex = useSharedValue(getDayIndex(dragStartUnix.value));
-
-  useAnimatedReaction(
-    () => dragStartUnix.value,
-    (dayUnix) => {
-      if (dayUnix !== -1) {
-        const dayIndex = getDayIndex(dayUnix);
-        internalDayIndex.value = dayIndex;
-      }
-    }
-  );
+  }, [dragPosition, totalResources, hourWidth, eventWidth]);
 
   const eventHeight = useDerivedValue(() => {
-    return dragDuration.value * minuteHeight.value;
+    const duration = draggingDuration.value;
+    if (duration < 0) {
+      return 0;
+    }
+    return duration * minuteHeight.value;
   });
 
-  const animView = useAnimatedStyle(() => {
+  const top = useDerivedValue(() => {
+    const minutes = draggingStartMinutes.value;
+    return (minutes - start) * minuteHeight.value;
+  }, [draggingStartMinutes, minuteHeight, start]);
+
+  const left = useDerivedValue(() => {
+    if (draggingColumnIndex.value < 0) {
+      return -1;
+    }
     const startX = resourceIndex.value * eventWidth.value;
+    return startX + hourWidth + eventWidth.value * draggingColumnIndex.value - 1;
+  }, [eventWidth, hourWidth, draggingColumnIndex, resourceIndex]);
+
+  const animView = useAnimatedStyle(() => {
     return {
-      top: (dragStartMinutes.value - start) * minuteHeight.value,
-      height: dragDuration.value * minuteHeight.value,
+      top: top.value,
+      height: eventHeight.value,
       width: eventWidth.value,
-      left: startX + hourWidth + eventWidth.value * internalDayIndex.value,
-      opacity: dragDuration.value * minuteHeight.value > 0 ? 1 : 0,
+      left: left.value,
+      opacity: eventHeight.value > 0 ? 1 : 0,
     };
-  }, [totalResources, hourWidth]);
+  }, [top, eventHeight, eventWidth, left]);
 
   const renderTopEdgeComponent = () => {
     if (!isShowDot) {
@@ -191,7 +163,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
   );
 };
 
-interface DraggingEventWrapperProps {
+export interface DraggingEventProps {
   renderEvent?: (
     event: SelectedEventType | undefined,
     options: {
@@ -199,40 +171,18 @@ interface DraggingEventWrapperProps {
       height: SharedValue<number>;
     }
   ) => React.ReactElement | null;
-  renderDraggingEvent?: (props: {
-    renderEvent?: (
-      event: SelectedEventType | undefined,
-      options: {
-        width: SharedValue<number>;
-        height: SharedValue<number>;
-      }
-    ) => React.ReactElement | null;
-    resources?: ResourceItem[];
-  }) => React.ReactElement | null;
-  resources?: ResourceItem[];
 }
 
-const DraggingEventWrapper = ({
-  renderDraggingEvent,
-  renderEvent,
-  resources,
-}: DraggingEventWrapperProps) => {
-  const { isDragging, selectedEvent } = useDragEvent();
+const DraggingEvent = ({ renderEvent }: DraggingEventProps) => {
+  const { isDragging, selectedEvent } = useDragContext();
   if (!isDragging && !selectedEvent) {
     return null;
   }
 
-  if (renderDraggingEvent) {
-    return renderDraggingEvent({
-      renderEvent,
-      resources,
-    });
-  }
-
-  return <DraggingEvent renderEvent={renderEvent} resources={resources} />;
+  return <DraggingEventInner renderEvent={renderEvent} />;
 };
 
-export default DraggingEventWrapper;
+export default DraggingEvent;
 
 const styles = StyleSheet.create({
   container: {

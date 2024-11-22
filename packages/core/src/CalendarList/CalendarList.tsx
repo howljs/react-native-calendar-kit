@@ -4,7 +4,6 @@ import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  StyleSheet,
   View,
 } from 'react-native';
 import {
@@ -28,41 +27,37 @@ type ScrollEvent = {
   };
 };
 
-export interface CalendarListState<T> {
+export interface CalendarListState {
   dataProvider: DataProvider;
   numColumns: number;
-  layoutProvider: LayoutProviderWithProps<T>;
-  data?: readonly T[] | null;
-  extraData?: ExtraData<unknown>;
-  renderItem?: CalendarListProps<T>['renderItem'];
+  layoutProvider: LayoutProviderWithProps;
+  data?: readonly number[] | null;
+  extraData?: any;
+  renderItem?: CalendarListProps['renderItem'];
 }
 
-interface ExtraData<T> {
-  value?: T;
-}
-
-class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, CalendarListState<T>> {
+class CalendarList extends React.PureComponent<CalendarListProps, CalendarListState> {
   private rlvRef?: RecyclerListView<RecyclerListViewProps, any>;
   private _layoutSize = { width: 0, height: 0 };
-  private loadStartTime = 0;
-  private _isMounted = false;
+  private _currentDate: any = 0;
+  private _isFirstMount = true;
 
-  constructor(props: CalendarListProps<T>) {
+  constructor(props: CalendarListProps) {
     super(props);
-    this.loadStartTime = Date.now();
     this._layoutSize = props.layoutSize;
     this.state = CalendarList.getInitialMutableState(this);
+    this._currentDate = props.initialDate ?? 0;
   }
 
-  static getDerivedStateFromProps<T>(
-    nextProps: Readonly<CalendarListProps<T>>,
-    prevState: CalendarListState<T>
-  ): CalendarListState<T> {
+  static getDerivedStateFromProps(
+    nextProps: Readonly<CalendarListProps>,
+    prevState: CalendarListState
+  ): CalendarListState {
     const newState = { ...prevState };
     if (!prevState.layoutProvider) {
-      newState.layoutProvider = new LayoutProviderWithProps<T>(nextProps);
+      newState.layoutProvider = new LayoutProviderWithProps(nextProps);
     } else if (prevState.layoutProvider.updateProps(nextProps).hasExpired) {
-      newState.layoutProvider = new LayoutProviderWithProps<T>(nextProps);
+      newState.layoutProvider = new LayoutProviderWithProps(nextProps);
     }
     newState.layoutProvider.shouldRefreshWithAnchoring = false;
 
@@ -90,16 +85,14 @@ class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, Calendar
     return newState;
   }
 
-  componentDidMount(): void {
-    if (!this._isMounted) {
-      this.props.onLoad?.({
-        elapsedTimeInMs: Date.now() - this.loadStartTime,
-      });
-      this._isMounted = true;
+  componentDidMount() {
+    if (this._isFirstMount) {
+      this._isFirstMount = false;
+      this.props.onLoad?.();
     }
   }
 
-  componentDidUpdate(prevProps: CalendarListProps<T>) {
+  componentDidUpdate(prevProps: CalendarListProps) {
     const isColumnsChanged =
       this.props.numColumns && prevProps.numColumns !== this.props.numColumns;
     const isLayoutSizeChanged = prevProps.layoutSize.width !== this.props.layoutSize.width;
@@ -113,11 +106,11 @@ class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, Calendar
     }
   }
 
-  private static getInitialMutableState<T>(calendarList: CalendarList<T>): CalendarListState<T> {
+  private static getInitialMutableState(calendarList: CalendarList): CalendarListState {
     let getStableId: ((index: number) => string) | undefined;
     if (calendarList.props.keyExtractor !== null && calendarList.props.keyExtractor !== undefined) {
       getStableId = (index) =>
-        calendarList.props.keyExtractor!(calendarList.props.data![index], index).toString();
+        calendarList.props.keyExtractor!(calendarList.props.data[index], index).toString();
     }
     return {
       data: null,
@@ -134,8 +127,8 @@ class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, Calendar
       renderAheadItem = 7,
       layoutSize,
       initialDate,
-      renderScrollComponent,
-      numColumns = 1,
+      scrollEventThrottle = 16,
+      showsHorizontalScrollIndicator = false,
       ...restProps
     } = this.props;
 
@@ -148,29 +141,34 @@ class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, Calendar
         rowRenderer={this.emptyRowRenderer}
         canChangeSize
         isHorizontal
+        showsHorizontalScrollIndicator={showsHorizontalScrollIndicator}
         scrollViewProps={{
           onScrollBeginDrag: this.onScrollBeginDrag,
           onLayout: this.handleSizeChange,
           removeClippedSubviews: false,
         }}
+        bounces={false}
+        scrollEventThrottle={scrollEventThrottle}
         renderItemContainer={this.itemContainer}
         extendedState={this.state.extraData}
         layoutSize={layoutSize}
-        renderAheadOffset={renderAheadItem * (layoutSize.width / numColumns)}
-        initialRenderIndex={this.getInitialRenderIndex(initialDate)}
+        renderAheadOffset={renderAheadItem * layoutSize.width}
+        initialOffset={this.getInitialOffset(initialDate)}
         onScroll={this.onScroll}
-        externalScrollView={renderScrollComponent as RecyclerListViewProps['externalScrollView']}
       />
     );
   }
 
-  private getInitialRenderIndex(initialDate: number | undefined) {
+  private getInitialOffset(initialDate: number | undefined) {
     if (!initialDate) {
       return 0;
     }
 
     const index = this.props.data?.findIndex((item) => item === initialDate);
-    return index ? Math.floor(index / this.state.numColumns) : 0;
+    if (this.isScrollByDay) {
+      return index ? index * this.columnWidth : 0;
+    }
+    return this.getPageIndex(index) * this._layoutSize.width;
   }
 
   private emptyRowRenderer = () => {
@@ -182,6 +180,14 @@ class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, Calendar
   };
 
   private onScroll = (event: ScrollEvent) => {
+    const currentIndex = Math.floor(
+      Math.round(event.nativeEvent.contentOffset.x / this.columnWidth)
+    );
+    const newDate = this.props.data[currentIndex];
+    if (newDate && newDate !== this._currentDate) {
+      this._currentDate = newDate;
+      this.props.onVisibleItemChanged?.(newDate);
+    }
     this.props.onScroll?.(event as NativeSyntheticEvent<NativeScrollEvent>);
   };
 
@@ -202,50 +208,36 @@ class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, Calendar
     }
   };
 
-  private _renderContainer = (parentProps: any) => {
-    if (!this.props.renderPageItem) {
-      return null;
-    }
-
-    return (
-      <View style={StyleSheet.absoluteFill}>
-        {this.props.renderPageItem({
-          item: this.props.data![parentProps.index * this.state.numColumns],
-          index: parentProps.index,
-          extraData: this.state.extraData?.value,
-        })}
-      </View>
-    );
-  };
-
-  private _renderItem = (item: T, parentIndex: number, columnIndex: number) => {
-    if (!this.props.renderItem) {
-      return null;
-    }
-
+  private _renderItem = (item: number, parentIndex: number, columnIndex: number) => {
     return (
       <View
         style={{
           position: 'absolute',
-          left: columnIndex * (this._layoutSize.width / this.state.numColumns),
-          width: this._layoutSize.width / this.state.numColumns,
-          height: this._layoutSize.height,
+          left: columnIndex * this.columnWidth,
         }}
-        key={`${parentIndex}-${columnIndex}`}>
-        {this.props.renderItem({
+        key={`${item}-${columnIndex}`}>
+        {this.props.renderItem?.({
           item,
           index: parentIndex * this.state.numColumns + columnIndex,
+          columnIndex,
           extraData: this.state.extraData?.value,
         })}
       </View>
     );
   };
 
-  private itemContainer = (props: any, parentProps: any) => {
+  private _renderItems = (parentProps: any) => {
+    if (!this.props.renderItem) {
+      return null;
+    }
+
     const startIndex = parentProps.index * this.state.numColumns;
     const endIndex = startIndex + this.state.numColumns;
     const items = this.props.data?.slice(startIndex, endIndex) ?? [];
+    return items.map((item, columnIndex) => this._renderItem(item, parentProps.index, columnIndex));
+  };
 
+  private itemContainer = (props: any, parentProps: any) => {
     return (
       <View
         {...props}
@@ -255,8 +247,14 @@ class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, Calendar
           flexDirection: 'row',
           alignItems: 'stretch',
         }}>
-        {this._renderContainer(parentProps)}
-        {items.map((item, columnIndex) => this._renderItem(item, parentProps.index, columnIndex))}
+        {this.props.renderItemContainer
+          ? this.props.renderItemContainer({
+              item: this.props.data[parentProps.index * this.state.numColumns],
+              index: parentProps.index * this.state.numColumns,
+              extraData: this.state.extraData?.value,
+              children: this._renderItems(parentProps),
+            })
+          : this._renderItems(parentProps)}
       </View>
     );
   };
@@ -277,25 +275,73 @@ class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, Calendar
     this.rlvRef?.scrollToEnd(Boolean(params?.animated));
   }
 
-  public getCurrentOffset() {
-    return this.rlvRef?.getCurrentScrollOffset();
+  public get recyclerlistview() {
+    return this.rlvRef;
   }
 
-  public getMaxScrollIndex() {
+  public get numColumns() {
+    return this.props.numColumns || 1;
+  }
+
+  public get columnWidth() {
+    return this._layoutSize.width / this.numColumns;
+  }
+
+  public get extraColumns() {
+    return this.props.data?.length % this.numColumns;
+  }
+
+  public get maxScrollIndex() {
     const totalItems = this.props.data?.length ?? 0;
-    const totalColumns = this.props.numColumns ?? 1;
-    return totalItems - totalColumns;
+    return totalItems - this.numColumns;
+  }
+
+  public get maxPageIndex() {
+    return Math.ceil(this.maxScrollIndex / this.numColumns);
+  }
+
+  public get isScrollByDay() {
+    return !!this.props.snapToOffsets;
+  }
+
+  public getCurrentOffset() {
+    return this.rlvRef?.getCurrentScrollOffset() ?? 0;
   }
 
   public getCurrentScrollIndex() {
-    return this.rlvRef?.findApproxFirstVisibleIndex();
+    const currentOffset = this.getCurrentOffset();
+    return Math.floor(Math.round(currentOffset / this.columnWidth));
+  }
+
+  public getNextScrollIndex(forceScrollByDay: boolean) {
+    const currentIndex = this.getCurrentScrollIndex();
+    const maxIndex = this.maxScrollIndex;
+    let nextIndex = currentIndex + 1;
+    if (!this.isScrollByDay || (this.isScrollByDay && !forceScrollByDay)) {
+      nextIndex = this.getCurrentPageIndex() * this.numColumns + this.numColumns;
+    }
+    const roundedIndex = Math.min(nextIndex, maxIndex);
+    return roundedIndex;
+  }
+
+  public getPrevScrollIndex(forceScrollByDay: boolean) {
+    const currentIndex = this.getCurrentScrollIndex();
+    let nextIndex = currentIndex - 1;
+    if (!this.isScrollByDay || (this.isScrollByDay && !forceScrollByDay)) {
+      nextIndex = this.getCurrentPageIndex() * this.numColumns - this.numColumns;
+    }
+    const roundedIndex = Math.max(nextIndex, 0);
+    return roundedIndex;
   }
 
   public scrollToIndex(params: { animated?: boolean | null | undefined; index: number }) {
     const listSize = this.rlvRef?.getRenderedSize();
-
     if (listSize) {
-      const itemOffset = params.index * (this._layoutSize.width / this.state.numColumns);
+      let itemIndex = params.index;
+      if (!this.isScrollByDay) {
+        itemIndex = this.getPageIndex(itemIndex) * this.numColumns;
+      }
+      const itemOffset = itemIndex * this.columnWidth;
       const scrollOffset = Math.max(0, itemOffset);
       this.rlvRef?.scrollToOffset(scrollOffset, scrollOffset, Boolean(params.animated), true);
     }
@@ -316,12 +362,65 @@ class CalendarList<T> extends React.PureComponent<CalendarListProps<T>, Calendar
     return this.rlvRef?.getScrollableNode?.() || null;
   }
 
-  public get recyclerlistview() {
-    return this.rlvRef;
+  public getNode() {
+    return this.rlvRef?.getNativeScrollRef?.();
   }
 
-  public getNumColumns() {
-    return this.props.numColumns || 1;
+  public getCurrentPageIndex() {
+    const currentOffset = this.getCurrentOffset();
+    return Math.floor(Math.round(currentOffset / this._layoutSize.width));
+  }
+
+  public getPageIndex(childIndex: number) {
+    return Math.floor(childIndex / this.numColumns);
+  }
+
+  public isScrollable(offset: number) {
+    return offset >= 0 && offset <= this.maxScrollIndex * this.columnWidth;
+  }
+
+  public isScrollableByIndex(index: number) {
+    return index <= this.maxScrollIndex;
+  }
+
+  public getMaxOffset() {
+    return this.maxScrollIndex * this.columnWidth;
+  }
+
+  public getFirstVisibleItem() {
+    const currentIndex = this.getCurrentScrollIndex();
+    return this.props.data[currentIndex];
+  }
+
+  public getDates() {
+    return this.props.data;
+  }
+
+  public getGroupedDates() {
+    return this.state.dataProvider.getAllData();
+  }
+
+  public getItemByIndex(index: number) {
+    return this.props.data[index];
+  }
+
+  public getIndexByItem(item: number) {
+    return this.props.data.indexOf(item);
+  }
+
+  public getVisibleDates(startDate: number, endDate: number) {
+    const startIndex = this.getIndexByItem(startDate);
+    if (startIndex === -1) {
+      return [];
+    }
+    let endIndex = this.getIndexByItem(endDate);
+    if (endIndex === -1) {
+      endIndex = this.props.data.findIndex((item) => item > startDate && item < endDate);
+      if (endIndex === -1) {
+        return [];
+      }
+    }
+    return this.props.data.slice(startIndex, endIndex + 1);
   }
 }
 

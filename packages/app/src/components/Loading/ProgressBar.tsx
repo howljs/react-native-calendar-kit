@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useLoading, useTheme } from '@calendar-kit/core';
+import { useCallback, useEffect } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, {
   interpolate,
@@ -8,15 +9,20 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { useLoading } from '../../context/LoadingContext';
-import { useTheme } from '../../context/ThemeProvider';
-
 const DEVICE_WIDTH = Dimensions.get('window').width;
-const DURATION = 2000;
-const BAR_HEIGHT = 3;
+const DURATION = 1000;
+const BAR_HEIGHT = 2;
 
 const ProgressBarInner = () => {
-  const barColor = useTheme((state) => state.colors.primary);
+  const barStyles = useTheme(
+    useCallback(
+      (state) => ({
+        color: state.progressBarStyle?.color ?? state.colors.primary,
+        height: state.progressBarStyle?.height ?? BAR_HEIGHT,
+      }),
+      []
+    )
+  );
   const sv = useSharedValue(0);
 
   useEffect(() => {
@@ -31,10 +37,17 @@ const ProgressBarInner = () => {
   });
 
   return (
-    <View style={[styles.progressBar, { height: BAR_HEIGHT }]}>
-      <View style={[styles.bgLoading, { backgroundColor: barColor, height: BAR_HEIGHT }]} />
+    <View style={[styles.progressBar, { height: barStyles.height }]}>
+      <View
+        style={[styles.bgLoading, { backgroundColor: barStyles.color, height: barStyles.height }]}
+      />
       <Animated.View style={animatedStyle}>
-        <View style={[styles.loadingBar, { backgroundColor: barColor, height: BAR_HEIGHT }]} />
+        <View
+          style={[
+            styles.loadingBar,
+            { backgroundColor: barStyles.color, height: barStyles.height },
+          ]}
+        />
       </Animated.View>
     </View>
   );

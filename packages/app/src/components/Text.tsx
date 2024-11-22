@@ -1,11 +1,11 @@
+import { useTheme } from '@calendar-kit/core';
+import { useCallback } from 'react';
 import type { TextProps } from 'react-native';
 import { StyleSheet, Text as DefaultText } from 'react-native';
 
-import { useTheme } from '../context/ThemeProvider';
-
 const Text = ({ style, allowFontScaling = false, ...props }: TextProps) => {
-  const textColor = useTheme((state) => state.colors.text);
-  const defaultTextStyle = useTheme((state) => state.textStyle);
+  const textColor = useTheme(useCallback((state) => state.colors.text, []));
+  const defaultTextStyle = useTheme(useCallback((state) => state.textStyle, []));
 
   return (
     <DefaultText

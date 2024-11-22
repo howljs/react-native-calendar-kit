@@ -1,31 +1,52 @@
-import React, { useCallback, useMemo } from 'react';
-import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import {
+  AnimatedCalendarList,
+  dateTimeToISOString,
+  type DraggingMode,
+  type ListRenderItemContainerInfo,
+  type ListRenderItemInfo,
+  parseDateTime,
+  toHourStr,
+  useActions,
+  useCalendar,
+  useDragContext,
+  useLayout,
+  useLocale,
+  useResources,
+} from '@calendar-kit/core';
+import { type FC, memo, useCallback, useMemo, useRef } from 'react';
+import type {
+  GestureResponderEvent,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from 'react-native';
 import { Platform, RefreshControl, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector, ScrollView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
-import BodyItem from './components/BodyItem';
-import CalendarListView from './components/CalendarListView';
-import DragEventPlaceholder from './components/DraggingEvent';
+import BodyBoard from './components/BodyItem/BodyBoard';
+import BodyColumn from './components/BodyItem/BodyColumn';
+import BodyContainer from './components/BodyItem/BodyContainer';
+import BodyContent from './components/BodyItem/BodyContent';
+import BodyEvents from './components/BodyItem/BodyEvents';
+import DraggableEvent from './components/BodyItem/DraggableEvent';
+import NowIndicator from './components/BodyItem/NowIndicator';
+import TimeColumn from './components/BodyItem/TimeColumn';
+import DraggingEvent from './components/DraggingEvent';
 import DraggingHour from './components/DraggingHour';
-import TimeColumn from './components/TimeColumn';
+import LoadingOverlay from './components/Loading/Overlay';
 import { EXTRA_HEIGHT, ScrollType } from './constants';
-import { useActions } from './context/ActionsProvider';
 import type { BodyContextProps } from './context/BodyContext';
 import { BodyContext } from './context/BodyContext';
-import { useCalendar } from './context/CalendarProvider';
-import { useResources } from './context/EventsProvider';
-import { useLocale } from './context/LocaleProvider';
 import useDragEventGesture from './hooks/useDragEventGesture';
-import useDragToCreateGesture from './hooks/useDragToCreateGesture';
+import useDragToCreate from './hooks/useDragToCreate';
 import usePinchToZoom from './hooks/usePinchToZoom';
 import useSyncedList from './hooks/useSyncedList';
-import type { CalendarBodyProps } from './types';
-import { dateTimeToISOString, parseDateTime, toHourStr } from './utils/dateUtils';
+import type { CalendarBodyProps, PackedEvent } from './types';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
-const CalendarBody: React.FC<CalendarBodyProps> = ({
+const CalendarBody: FC<CalendarBodyProps> = ({
   hourFormat = 'HH:mm',
   draggingHourFormat = hourFormat,
   renderHour,
@@ -33,14 +54,11 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   renderCustomOutOfRange,
   renderCustomUnavailableHour,
   renderEvent,
-  renderDraggableEvent,
-  renderDraggingEvent,
   renderDraggingHour,
   NowIndicatorComponent,
   renderCustomHorizontalLine,
 }) => {
   const {
-    calendarLayout,
     hourWidth,
     columnWidthAnim,
     numberOfDays,
@@ -66,11 +84,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     gridListRef,
     calendarData,
     calendarGridWidth,
-    initialOffset,
-    isRTL,
     columns,
-    snapToInterval,
-    calendarListRef,
+    snapToOffsets,
     startOffset,
     scrollVisibleHeightAnim,
     visibleDateUnixAnim,
@@ -78,26 +93,39 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     rightEdgeSpacing,
     overlapEventsSpacing,
     allowDragToCreate,
-    allowDragToEdit,
     firstDay,
-    dragToCreateMode,
+    dateList,
+    allowDragToEdit,
+    manualHorizontalScroll,
+    reduceBrightnessOfPastEvents,
   } = useCalendar();
   const locale = useLocale();
-  const { onRefresh, onLoad } = useActions();
+  const {
+    onRefresh,
+    onLoad,
+    onPressBackground,
+    onLongPressBackground,
+    onPressEvent,
+    onLongPressEvent,
+  } = useActions();
+  const calendarWidth = useLayout((state) => state.width);
   const resources = useResources();
-  const { onScroll, onVisibleColumnChanged } = useSyncedList({
+  const scrollProps = useSyncedList({
     id: ScrollType.calendarGrid,
   });
-
+  const bodyStartX = useRef<number>(0);
   const animContentStyle = useAnimatedStyle(() => ({
     height: timelineHeight.value,
   }));
 
+  const { isDragging, draggingId } = useDragContext();
   const { pinchGesture, pinchGestureRef } = usePinchToZoom();
-  const dragEventGesture = useDragEventGesture();
-  const dragToCreateGesture = useDragToCreateGesture({
-    mode: dragToCreateMode,
-  });
+  const {
+    gesture: dragEventGesture,
+    triggerDragEvent,
+    triggerDragSelectedEvent,
+  } = useDragEventGesture();
+  const { gesture: dragToCreateGesture, triggerDragCreateEvent } = useDragToCreate();
 
   const _onLayout = (event: LayoutChangeEvent) => {
     scrollVisibleHeight.current = event.nativeEvent.layout.height;
@@ -116,46 +144,14 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       firstDay,
       minDate: calendarData.minDateUnix,
       columns,
-      visibleDatesArray: calendarData.visibleDatesArray,
-      renderDraggableEvent,
+      visibleDatesArray: dateList,
       resources,
     };
-  }, [
-    calendarData.minDateUnix,
-    calendarData.visibleDatesArray,
-    columns,
-    renderDraggableEvent,
-    firstDay,
-    resources,
-  ]);
+  }, [calendarData.minDateUnix, dateList, columns, firstDay, resources]);
 
-  const _renderTimeSlots = useCallback((index: number, extra: typeof extraData) => {
-    const pageIndex = index * extra.columns;
-    const dateUnixByIndex = extra.visibleDatesArray[pageIndex];
-    if (!dateUnixByIndex) {
-      return null;
-    }
-
-    return (
-      <BodyItem
-        pageIndex={pageIndex}
-        startUnix={dateUnixByIndex}
-        renderDraggableEvent={extra.renderDraggableEvent}
-        resources={extra.resources}
-      />
-    );
-  }, []);
-
-  const _onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const _onVerticalScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     offsetY.value = e.nativeEvent.contentOffset.y;
   };
-
-  const extraScrollData = useMemo(() => {
-    return {
-      visibleDates: calendarData.visibleDatesArray,
-      visibleColumns: numberOfDays,
-    };
-  }, [calendarData.visibleDatesArray, numberOfDays]);
 
   const hours = useMemo(() => {
     return slots.map((slot) => {
@@ -165,6 +161,47 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       };
     });
   }, [hourFormat, locale.meridiem, slots]);
+
+  const handlePressBackground = useCallback(
+    (newProps: { dateTime: string }, event: GestureResponderEvent) => {
+      onPressBackground?.(newProps, event);
+    },
+    [onPressBackground]
+  );
+  const handleLongPressBackground = useCallback(
+    (newProps: { dateTime: string }, event: GestureResponderEvent) => {
+      onLongPressBackground?.(newProps, event);
+      if (allowDragToCreate) {
+        const posX = event.nativeEvent.pageX - bodyStartX.current;
+        triggerDragCreateEvent(newProps.dateTime, posX);
+      }
+    },
+    [allowDragToCreate, onLongPressBackground, triggerDragCreateEvent]
+  );
+
+  const handlePressEvent = useCallback(
+    (event: PackedEvent) => {
+      onPressEvent?.(event);
+    },
+    [onPressEvent]
+  );
+
+  const handleLongPressEvent = useCallback(
+    (event: PackedEvent) => {
+      onLongPressEvent?.(event);
+      if (allowDragToEdit) {
+        triggerDragEvent(event);
+      }
+    },
+    [allowDragToEdit, onLongPressEvent, triggerDragEvent]
+  );
+
+  const handlePressDraggableEvent = useCallback(
+    (event: { eventIndex: number; type: DraggingMode }) => {
+      triggerDragSelectedEvent?.(event);
+    },
+    [triggerDragSelectedEvent]
+  );
 
   const value = useMemo<BodyContextProps>(
     () => ({
@@ -190,8 +227,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       timeInterval,
       showNowIndicator,
       columnWidth,
-      calendarLayout,
-      isRTL,
       columns,
       calendarData,
       renderCustomOutOfRange,
@@ -202,13 +237,18 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       overlapEventsSpacing,
       visibleDateUnixAnim,
       NowIndicatorComponent,
-      allowDragToCreate,
-      allowDragToEdit,
       renderCustomHorizontalLine,
-      dragToCreateMode,
       verticalListRef,
       gridListRef,
       visibleDateUnix,
+      onPressBackground: handlePressBackground,
+      onLongPressBackground: handleLongPressBackground,
+      bodyStartX,
+      onPressEvent: handlePressEvent,
+      onLongPressEvent: handleLongPressEvent,
+      onPressDraggableEvent: handlePressDraggableEvent,
+      reduceBrightnessOfPastEvents,
+      draggingId,
     }),
     [
       renderHour,
@@ -233,8 +273,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       timeInterval,
       showNowIndicator,
       columnWidth,
-      calendarLayout,
-      isRTL,
       columns,
       calendarData,
       renderCustomOutOfRange,
@@ -245,19 +283,50 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       overlapEventsSpacing,
       visibleDateUnixAnim,
       NowIndicatorComponent,
-      allowDragToCreate,
-      allowDragToEdit,
       renderCustomHorizontalLine,
-      dragToCreateMode,
       verticalListRef,
       gridListRef,
       visibleDateUnix,
+      handlePressBackground,
+      handleLongPressBackground,
+      bodyStartX,
+      handlePressEvent,
+      handleLongPressEvent,
+      handlePressDraggableEvent,
+      reduceBrightnessOfPastEvents,
+      draggingId,
     ]
   );
 
   const composedGesture = Gesture.Race(pinchGesture, dragEventGesture, dragToCreateGesture);
 
   const leftSize = numberOfDays > 1 || !!resources ? hourWidth : 0;
+
+  const _renderContainer = useCallback(({ item, index, children }: ListRenderItemContainerInfo) => {
+    return (
+      <BodyContainer item={item} index={index}>
+        <BodyBoard />
+        <BodyContent>{children}</BodyContent>
+        <LoadingOverlay />
+      </BodyContainer>
+    );
+  }, []);
+
+  const _renderItem = useCallback(({ item, index }: ListRenderItemInfo) => {
+    return (
+      <BodyColumn item={item} index={index}>
+        <BodyEvents />
+        <DraggableEvent />
+        <NowIndicator />
+      </BodyColumn>
+    );
+  }, []);
+
+  const _onCalendarLayout = (event: LayoutChangeEvent) => {
+    event.currentTarget.measure((_x, _y, _width, _height, pageX) => {
+      bodyStartX.current = pageX;
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -268,16 +337,18 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
           pinchGestureEnabled={false}
           showsVerticalScrollIndicator={false}
           onLayout={_onLayout}
-          onScroll={_onScroll}
+          onScroll={_onVerticalScroll}
           refreshControl={
             onRefresh ? <RefreshControl refreshing={false} onRefresh={_onRefresh} /> : undefined
           }
+          scrollEnabled={!isDragging}
           simultaneousHandlers={pinchGestureRef}>
           <BodyContext.Provider value={value}>
+            {(numberOfDays > 1 || !!resources) && <TimeColumn />}
             <Animated.View
               style={[
                 {
-                  width: calendarLayout.width,
+                  width: calendarWidth,
                   overflow: Platform.select({
                     web: 'hidden',
                     default: 'visible',
@@ -285,54 +356,48 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                 },
                 animContentStyle,
               ]}>
-              <View style={[styles.absolute, { top: -EXTRA_HEIGHT, width: calendarLayout.width }]}>
-                {(numberOfDays > 1 || !!resources) && <TimeColumn />}
-                <View
-                  style={[
-                    styles.absolute,
-                    {
-                      left: Math.max(0, leftSize - 1),
-                      width: calendarLayout.width - leftSize,
-                    },
-                  ]}>
-                  <CalendarListView
-                    ref={calendarListRef}
-                    animatedRef={gridListRef}
-                    count={calendarData.count}
-                    scrollEnabled={Platform.OS !== 'web'}
-                    width={calendarGridWidth}
-                    height={maxTimelineHeight + EXTRA_HEIGHT * 2}
-                    renderItem={_renderTimeSlots}
-                    extraData={extraData}
-                    inverted={isRTL}
-                    snapToInterval={snapToInterval}
-                    initialOffset={initialOffset}
-                    onScroll={onScroll}
-                    columnsPerPage={columns}
-                    onVisibleColumnChanged={onVisibleColumnChanged}
-                    renderAheadItem={pagesPerSide}
-                    extraScrollData={extraScrollData}
-                    onLoad={onLoad}
-                  />
-                </View>
-                <View
-                  pointerEvents="box-none"
-                  style={[
-                    styles.absolute,
-                    { top: EXTRA_HEIGHT + spaceFromTop },
-                    styles.dragContainer,
-                  ]}>
-                  <DragEventPlaceholder
-                    renderDraggingEvent={renderDraggingEvent}
-                    resources={resources}
-                  />
-                  <DraggingHour
-                    renderHour={renderDraggingHour}
-                    draggingHourFormat={draggingHourFormat}
-                  />
-                </View>
+              <View
+                onLayout={_onCalendarLayout}
+                style={[
+                  styles.absolute,
+                  {
+                    top: -EXTRA_HEIGHT,
+                    left: Math.max(0, leftSize - 1),
+                    width: calendarWidth - leftSize,
+                  },
+                ]}>
+                <AnimatedCalendarList
+                  ref={gridListRef}
+                  data={dateList}
+                  scrollEnabled={!isDragging && !manualHorizontalScroll && Platform.OS !== 'web'}
+                  layoutSize={{
+                    width: calendarGridWidth,
+                    height: maxTimelineHeight + EXTRA_HEIGHT * 2,
+                  }}
+                  renderItemContainer={_renderContainer}
+                  renderItem={_renderItem}
+                  extraData={extraData}
+                  snapToOffsets={snapToOffsets}
+                  initialDate={visibleDateUnix.current}
+                  numColumns={numberOfDays}
+                  renderAheadItem={pagesPerSide}
+                  pagingEnabled
+                  snapToAlignment={snapToOffsets ? 'start' : undefined}
+                  decelerationRate={snapToOffsets ? 'fast' : undefined}
+                  onLoad={onLoad}
+                  {...scrollProps}
+                />
               </View>
             </Animated.View>
+            <View
+              pointerEvents="box-none"
+              style={[styles.absolute, { top: spaceFromTop }, styles.dragContainer]}>
+              <DraggingEvent />
+              <DraggingHour
+                renderHour={renderDraggingHour}
+                draggingHourFormat={draggingHourFormat}
+              />
+            </View>
           </BodyContext.Provider>
         </AnimatedScrollView>
       </GestureDetector>
@@ -340,10 +405,10 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   );
 };
 
-export default React.memo(CalendarBody);
+export default memo(CalendarBody);
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   absolute: { position: 'absolute' },
-  dragContainer: { zIndex: 99999 },
+  dragContainer: { zIndex: 11 },
 });

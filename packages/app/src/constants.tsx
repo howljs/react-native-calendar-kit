@@ -65,3 +65,7 @@ export const MAX_ALL_DAY_MINUTES = 30;
 export const DEFAULT_ALL_DAY_MINUTES = 20;
 
 export const DEFAULT_MIN_START_DIFFERENCE = 30;
+
+export const AUTO_SCROLL_INTERVAL = 800;
+export const SCROLL_THRESHOLD = 100;
+export const AUTO_SCROLL_SPEED = 100;

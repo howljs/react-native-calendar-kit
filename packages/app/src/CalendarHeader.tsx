@@ -1,75 +1,52 @@
+import {
+  AnimatedCalendarList,
+  type ListRenderItemContainerInfo,
+  type ListRenderItemInfo,
+  useCalendar,
+  useLayout,
+  useResources,
+  useTheme,
+} from '@calendar-kit/core';
 import React, { useCallback, useMemo } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 
-import CalendarListView from './components/CalendarListView';
-import ExpandButton from './components/ExpandButton';
-import MultiDayBarItem from './components/MultiDayBarItem';
-import ResourceHeaderItem from './components/ResourceHeaderItem';
-import SingleDayBarItem from './components/SingleDayBarItem';
-import WeekNumber from './components/WeekNumber';
-import {
-  COLLAPSED_ITEMS,
-  DAY_BAR_HEIGHT,
-  DEFAULT_ALL_DAY_MINUTES,
-  HEADER_BOTTOM_HEIGHT,
-  MAX_ALL_DAY_MINUTES,
-  MIN_ALL_DAY_MINUTES,
-  ScrollType,
-} from './constants';
-import { useCalendar } from './context/CalendarProvider';
-import type { HeaderContextProps } from './context/DayBarContext';
-import { HeaderContext } from './context/DayBarContext';
-import { useEventCountsByWeek, useResources } from './context/EventsProvider';
-import { useTheme } from './context/ThemeProvider';
+import DayItem from './components/HeaderItem/DayItem';
+import HeaderColumn from './components/HeaderItem/HeaderColumn';
+import HeaderContainer from './components/HeaderItem/HeaderContainer';
+import WeekNumber from './components/HeaderItem/WeekNumber';
+import LoadingOverlay from './components/Loading/Overlay';
+import ProgressBar from './components/Loading/ProgressBar';
+import { DAY_BAR_HEIGHT, ScrollType } from './constants';
+import type { HeaderContextProps } from './context/HeaderContext';
+import { HeaderContext } from './context/HeaderContext';
 import useSyncedList from './hooks/useSyncedList';
 import type { CalendarHeaderProps } from './types';
-import { clampValues } from './utils/utils';
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   dayBarHeight = DAY_BAR_HEIGHT,
-  renderHeaderItem,
-  renderExpandIcon,
   LeftAreaComponent,
-  headerBottomHeight = HEADER_BOTTOM_HEIGHT,
-  collapsedItems = COLLAPSED_ITEMS,
-  renderEvent,
-  eventMinMinutes = MIN_ALL_DAY_MINUTES,
-  eventMaxMinutes = MAX_ALL_DAY_MINUTES,
-  eventInitialMinutes = DEFAULT_ALL_DAY_MINUTES,
-  renderDayItem,
 }) => {
   const {
-    calendarLayout,
     numberOfDays,
     columnWidthAnim,
-    minuteHeight,
     hourWidth,
-    dayBarListRef,
+    headerListRef,
     calendarData,
     calendarGridWidth,
-    isRTL,
-    snapToInterval,
+    snapToOffsets,
     scrollByDay,
-    initialOffset,
     columns,
     showWeekNumber,
     visibleDateUnixAnim,
-    visibleWeeks,
+    visibleDateUnix,
     columnWidth,
-    useAllDayEvent,
-    rightEdgeSpacing,
-    overlapEventsSpacing,
-    firstDay,
+    dateList,
+    pagesPerSide,
+    manualHorizontalScroll,
   } = useCalendar();
   const resources = useResources();
-
+  const calendarWidth = useLayout(useCallback((state) => state.width, []));
   const headerStyles = useTheme(
     useCallback(
       (state) => ({
@@ -81,188 +58,59 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     )
   );
 
-  const { onScroll, onVisibleColumnChanged } = useSyncedList({
+  const scrollProps = useSyncedList({
     id: ScrollType.dayBar,
   });
-
-  const isExpanded = useSharedValue(false);
-  const eventHeight = useDerivedValue(
-    () =>
-      clampValues(
-        eventInitialMinutes * minuteHeight.value,
-        eventMinMinutes * minuteHeight.value,
-        eventMaxMinutes * minuteHeight.value
-      ),
-    [eventInitialMinutes, eventMinMinutes, eventMaxMinutes]
-  );
-  const eventCounts = useEventCountsByWeek(columns === 1 ? 'day' : 'week');
-  const maxEventRows = useDerivedValue(() => {
-    const currentStartWeek = visibleWeeks.value[0];
-    const nextStartWeek = visibleWeeks.value[1];
-    let count = currentStartWeek ? (eventCounts[currentStartWeek] ?? 0) : 0;
-    if (nextStartWeek) {
-      const countNextWeek = eventCounts[nextStartWeek] ?? 0;
-      count = Math.max(count, countNextWeek);
-    }
-    return count;
-  }, [eventCounts]);
-
-  const isShowExpandButton = useDerivedValue(
-    () => maxEventRows.value > collapsedItems,
-    [maxEventRows, collapsedItems]
-  );
-
-  const visibleRows = useDerivedValue(() => {
-    const minRows = Math.min(maxEventRows.value, collapsedItems);
-    if (isExpanded.value) {
-      return withTiming(maxEventRows.value, { duration: 250 });
-    }
-    return withTiming(minRows, { duration: 250 });
-  }, [maxEventRows, collapsedItems]);
-
-  const allDayEventsHeight = useDerivedValue(() => {
-    const extraHeight = numberOfDays > 1 ? headerBottomHeight : 0;
-    let nextHeight = 0;
-    if (visibleRows.value) {
-      nextHeight = visibleRows.value * eventHeight.value + extraHeight;
-    }
-    return nextHeight;
-  }, [numberOfDays, headerBottomHeight]);
-
-  const contentHeight = useDerivedValue(() => {
-    if (!useAllDayEvent) {
-      return dayBarHeight;
-    }
-
-    if (numberOfDays === 1) {
-      const bottomHeight = isExpanded.value ? 10 : headerBottomHeight + 10;
-      return Math.max(dayBarHeight, allDayEventsHeight.value + bottomHeight);
-    }
-    return dayBarHeight + allDayEventsHeight.value;
-  }, [numberOfDays, dayBarHeight, headerBottomHeight]);
-
-  const contentStyle = useAnimatedStyle(() => ({
-    height: contentHeight.value,
-  }));
 
   const value = useMemo<HeaderContextProps>(
     () => ({
       dayBarHeight,
       numberOfDays,
       columnWidthAnim,
-      calendarLayout,
       hourWidth,
-      minuteHeight,
-      isRTL,
       scrollByDay,
       columns,
-      calendarData,
-      eventHeight,
-      isExpanded,
-      allDayEventsHeight,
       columnWidth,
-      useAllDayEvent,
-      isShowExpandButton,
-      collapsedItems,
-      headerBottomHeight,
-      rightEdgeSpacing,
-      overlapEventsSpacing,
-      firstDay,
+      headerListRef,
     }),
     [
       dayBarHeight,
       numberOfDays,
       columnWidthAnim,
-      calendarLayout,
       hourWidth,
-      minuteHeight,
-      isRTL,
       scrollByDay,
       columns,
-      calendarData,
-      eventHeight,
-      isExpanded,
-      allDayEventsHeight,
       columnWidth,
-      useAllDayEvent,
-      isShowExpandButton,
-      headerBottomHeight,
-      collapsedItems,
-      rightEdgeSpacing,
-      overlapEventsSpacing,
-      firstDay,
+      headerListRef,
     ]
   );
 
   const extraData = useMemo(
     () => ({
       minDate: calendarData.minDateUnix,
-      visibleDatesArray: calendarData.visibleDatesArray,
       columns,
-      renderHeaderItem,
-      renderEvent,
-      renderExpandIcon,
       resources,
-      renderDayItem,
     }),
-    [
-      calendarData.minDateUnix,
-      calendarData.visibleDatesArray,
-      columns,
-      renderHeaderItem,
-      renderEvent,
-      renderExpandIcon,
-      resources,
-      renderDayItem,
-    ]
+    [calendarData.minDateUnix, columns, resources]
   );
 
-  const _renderHeaderItem = (index: number, extra: typeof extraData) => {
-    const dateUnixByIndex = extra.visibleDatesArray[index * extra.columns];
-    if (!dateUnixByIndex) {
-      return null;
-    }
-
-    if (extra.renderHeaderItem) {
-      return extra.renderHeaderItem({
-        startUnix: dateUnixByIndex,
-        index,
-        extra,
-      });
-    }
-
-    if (extra.resources) {
-      return <ResourceHeaderItem resources={extra.resources} startUnix={dateUnixByIndex} />;
-    }
-
-    if (extra.columns === 1) {
-      return (
-        <SingleDayBarItem
-          startUnix={dateUnixByIndex}
-          renderExpandIcon={extra.renderExpandIcon}
-          renderEvent={extra.renderEvent}
-          pageIndex={index}
-          renderDayItem={extra.renderDayItem}
-        />
-      );
-    }
-
+  const _renderItemContainer = ({ item, index, children }: ListRenderItemContainerInfo) => {
     return (
-      <MultiDayBarItem
-        pageIndex={index * extra.columns}
-        startUnix={dateUnixByIndex}
-        renderEvent={extra.renderEvent}
-        renderDayItem={extra.renderDayItem}
-      />
+      <HeaderContainer item={item} index={index}>
+        {children}
+        <LoadingOverlay />
+        <ProgressBar />
+      </HeaderContainer>
     );
   };
 
-  const extraScrollData = useMemo(() => {
-    return {
-      visibleDates: calendarData.visibleDatesArray,
-      visibleColumns: numberOfDays,
-    };
-  }, [calendarData.visibleDatesArray, numberOfDays]);
+  const _renderItem = ({ item, index }: ListRenderItemInfo) => {
+    return (
+      <HeaderColumn item={item} index={index}>
+        <DayItem />
+      </HeaderColumn>
+    );
+  };
 
   const leftSize = numberOfDays > 1 || !!resources ? hourWidth : 0;
 
@@ -274,13 +122,6 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     return (
       <View style={[styles.leftArea, { width: hourWidth }]}>
         {showWeekNumber && <WeekNumber date={visibleDateUnixAnim} />}
-        {useAllDayEvent && (
-          <ExpandButton
-            isExpanded={isExpanded}
-            isShowExpandButton={isShowExpandButton}
-            renderExpandIcon={renderExpandIcon}
-          />
-        )}
         <View style={[styles.border, { backgroundColor: headerStyles.borderColor }]} />
       </View>
     );
@@ -295,14 +136,14 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           borderBottomColor: headerStyles.borderColor,
         },
         headerStyles.headerContainer,
-        { width: calendarLayout.width },
+        { width: calendarWidth },
       ]}>
       <ScrollView alwaysBounceVertical={false} overScrollMode="never">
         <HeaderContext.Provider value={value}>
-          <Animated.View
+          <View
             style={[
-              contentStyle,
               {
+                height: dayBarHeight,
                 overflow: Platform.select({
                   web: 'hidden',
                   default: 'visible',
@@ -315,27 +156,31 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 styles.absolute,
                 {
                   left: Math.max(0, leftSize - 1),
-                  width: calendarLayout.width - leftSize,
+                  width: calendarWidth - leftSize,
                 },
               ]}>
-              <CalendarListView
-                animatedRef={dayBarListRef}
-                count={calendarData.count}
-                width={calendarGridWidth}
-                height={useAllDayEvent ? calendarLayout.height : dayBarHeight}
-                renderItem={_renderHeaderItem}
+              <AnimatedCalendarList
+                ref={headerListRef}
+                data={dateList}
+                layoutSize={{
+                  width: calendarGridWidth,
+                  height: dayBarHeight,
+                }}
+                renderItemContainer={_renderItemContainer}
+                renderItem={_renderItem}
                 extraData={extraData}
-                inverted={isRTL}
-                snapToInterval={snapToInterval}
-                initialOffset={initialOffset}
-                onScroll={onScroll}
-                columnsPerPage={columns}
-                onVisibleColumnChanged={onVisibleColumnChanged}
-                extraScrollData={extraScrollData}
-                scrollEnabled={Platform.OS !== 'web'}
+                snapToOffsets={snapToOffsets}
+                initialDate={visibleDateUnix.current}
+                numColumns={numberOfDays}
+                scrollEnabled={!manualHorizontalScroll && Platform.OS !== 'web'}
+                renderAheadItem={pagesPerSide}
+                pagingEnabled
+                snapToAlignment={snapToOffsets ? 'start' : undefined}
+                decelerationRate={snapToOffsets ? 'fast' : undefined}
+                {...scrollProps}
               />
             </View>
-          </Animated.View>
+          </View>
         </HeaderContext.Provider>
       </ScrollView>
     </View>
@@ -346,7 +191,7 @@ export default React.memo(CalendarHeader);
 
 const styles = StyleSheet.create({
   headerContainer: {
-    zIndex: 999,
+    zIndex: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },

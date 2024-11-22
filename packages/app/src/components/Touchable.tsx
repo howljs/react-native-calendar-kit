@@ -1,3 +1,4 @@
+import { forwardRef, type ForwardRefRenderFunction } from 'react';
 import {
   type GestureResponderEvent,
   TouchableOpacity,
@@ -6,7 +7,10 @@ import {
 
 type TouchableProps = TouchableWithoutFeedbackProps;
 
-const Touchable = ({ children, onPress, onLongPress, ...props }: TouchableProps) => {
+const Touchable: ForwardRefRenderFunction<
+  React.ElementRef<typeof TouchableOpacity>,
+  TouchableProps
+> = ({ children, onPress, onLongPress, ...props }, ref) => {
   const handlePress = (e: GestureResponderEvent) => {
     const event = {
       ...e,
@@ -34,6 +38,7 @@ const Touchable = ({ children, onPress, onLongPress, ...props }: TouchableProps)
   return (
     <TouchableOpacity
       {...props}
+      ref={ref}
       activeOpacity={1}
       onPress={onPress ? handlePress : undefined}
       onLongPress={onLongPress ? handleLongPress : undefined}>
@@ -42,4 +47,4 @@ const Touchable = ({ children, onPress, onLongPress, ...props }: TouchableProps)
   );
 };
 
-export default Touchable;
+export default forwardRef(Touchable);

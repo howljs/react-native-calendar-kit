@@ -1,7 +1,7 @@
 {
   "name": "@calendar-kit/core",
   "description": "React Native Calendar Kit",
-  "version": "3.0.0-alpha.2",
+  "version": "3.0.0-alpha.1",
   "keywords": [
     "react-native",
     "ios",
@@ -74,10 +74,20 @@
     "typescript": "~5.3.3"
   },
   "peerDependencies": {
+    "expo-haptics": "*",
     "react": "*",
     "react-native": "*",
     "react-native-gesture-handler": "*",
+    "react-native-haptic-feedback": "*",
     "react-native-reanimated": "*"
+  },
+  "peerDependenciesMeta": {
+    "expo-haptics": {
+      "optional": true
+    },
+    "react-native-haptic-feedback": {
+      "optional": true
+    }
   },
   "react-native-builder-bob": {
     "source": "src",

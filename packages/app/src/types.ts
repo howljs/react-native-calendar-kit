@@ -2,7 +2,7 @@ import type { DateTime, WeekdayNumbers } from 'luxon';
 import type { GestureResponderEvent, TextStyle, ViewStyle } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 
-import type { DraggableEventProps } from './components/DraggableEvent';
+import type { DraggableEventProps } from './components/BodyItem/DraggableEvent';
 import type { DraggingEventProps } from './components/DraggingEvent';
 
 export type DeepPartial<T> = T extends object
@@ -83,6 +83,11 @@ export interface ThemeConfigs {
 
   /** Default style of the event */
   eventTitleStyle?: TextStyle;
+
+  progressBarStyle?: {
+    height?: number;
+    color?: string;
+  };
 }
 
 export type GoToDateOptions = {
@@ -132,6 +137,8 @@ export interface CalendarKitHandle {
   getVisibleStart: () => string;
 
   getCurrentOffsetY: () => number;
+
+  clearCachedEvents: () => void;
 }
 
 /**
@@ -160,10 +167,12 @@ export type DateOrDateTime = DateOnlyType | DateTimeType;
 
 export interface OnEventResponse extends EventItem {
   localId: string;
+  isDirty?: boolean;
 }
 
 export interface SelectedEventType extends Omit<EventItem, 'id'> {
   id?: string;
+  isDirty?: boolean;
 }
 
 export interface DraggingEventType extends Omit<EventItem, 'id'> {
@@ -193,7 +202,7 @@ export interface ActionsProviderProps {
   onRefresh?: (date: string) => void;
 
   /** Callback when the event is pressed */
-  onPressEvent?: (event: OnEventResponse) => void;
+  onPressEvent?: (event: PackedEvent) => void;
 
   /** Callback when the drag event is started */
   onDragEventStart?: (event: OnEventResponse) => void;
@@ -202,7 +211,7 @@ export interface ActionsProviderProps {
   onDragEventEnd?: (event: OnEventResponse) => Promise<void> | void;
 
   /** Callback when the event is long pressed */
-  onLongPressEvent?: (event: OnEventResponse) => void;
+  onLongPressEvent?: (event: PackedEvent) => void;
 
   /** Callback when the selected event is dragged */
   onDragSelectedEventStart?: (event: SelectedEventType) => void;
@@ -410,9 +419,6 @@ export interface CalendarProviderProps extends ActionsProviderProps {
   /** Show loading progress */
   isLoading?: boolean;
 
-  /** RTL mode */
-  // isRTL?: boolean;
-
   /**
    * Unavailable hours
    *
@@ -529,6 +535,12 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    * - Default: `duration`
    */
   dragToCreateMode?: 'duration' | 'date-time';
+
+  /** Manual horizontal scroll */
+  manualHorizontalScroll?: boolean;
+
+  /** Reduce the brightness of past events */
+  reduceBrightnessOfPastEvents?: boolean;
 }
 
 export interface ResourceItem extends Record<string, any> {

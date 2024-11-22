@@ -20,6 +20,8 @@ export const parseDateTime = (date?: DateType, opts?: DateTimeOptions) => {
   return DateTime.local(opts);
 };
 
+export const parseDateTimeUTC = (date?: DateType) => parseDateTime(date, { zone: 'utc' });
+
 export const toISODate = (date: DateType, opts?: DateTimeOptions) =>
   parseDateTime(date, opts).toISODate();
 

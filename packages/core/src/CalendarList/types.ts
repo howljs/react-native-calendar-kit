@@ -1,35 +1,42 @@
 import type React from 'react';
 import type { ScrollViewProps } from 'react-native';
 
-export interface ListRenderItemInfo<TItem> {
-  item: TItem;
+export interface ListRenderItemInfo {
+  item: number;
   index: number;
   extraData?: any;
+  columnIndex: number;
 }
 
-export type ListRenderItem<TItem> = (info: ListRenderItemInfo<TItem>) => React.ReactElement | null;
+export interface ListRenderItemContainerInfo {
+  item: number;
+  index: number;
+  extraData?: any;
+  children: React.ReactNode;
+}
 
-export interface CalendarListProps<TItem>
+export type ListRenderItem = (info: ListRenderItemInfo) => React.ReactElement | null;
+
+export type ListRenderItemContainer = (
+  info: ListRenderItemContainerInfo
+) => React.ReactElement | null;
+
+export interface CalendarListProps
   extends Omit<
     ScrollViewProps,
     'horizontal' | 'removeClippedSubviews' | 'style' | 'contentContainerStyle'
   > {
-  data: readonly TItem[] | null | undefined;
+  data: readonly number[];
 
   layoutSize: { height: number; width: number };
 
-  renderItem: ListRenderItem<TItem> | null | undefined;
+  renderItem?: ListRenderItem | null | undefined;
 
-  renderPageItem?: ListRenderItem<TItem> | null | undefined;
+  renderItemContainer?: ListRenderItemContainer | null | undefined;
 
   numColumns?: number | undefined;
 
   initialDate?: number | undefined;
-
-  /**
-   * Rendered as the main scrollview.
-   */
-  renderScrollComponent?: React.ComponentType<ScrollViewProps> | React.FC<ScrollViewProps>;
 
   /**
    * Render ahead item count
@@ -49,12 +56,14 @@ export interface CalendarListProps<TItem>
    * when doing [layout animations](https://shopify.github.io/flash-list/docs/guides/layout-animation)
    * to uniquely identify animated components.
    */
-  keyExtractor?: ((item: TItem, index: number) => string) | undefined;
+  keyExtractor?: ((item: number, index: number) => string) | undefined;
 
   /**
    * This event is raised once the list has drawn items on the screen. It also reports @param elapsedTimeInMs which is the time it took to draw the items.
    * This is required because FlashList doesn't render items in the first cycle. Items are drawn after it measures itself at the end of first render.
    * If you're using ListEmptyComponent, this event is raised as soon as ListEmptyComponent is rendered.
    */
-  onLoad?: (info: { elapsedTimeInMs: number }) => void;
+  onLoad?: () => void;
+
+  onVisibleItemChanged?: (item: number) => void;
 }

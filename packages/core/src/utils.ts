@@ -1,25 +1,14 @@
 import type { WeekdayNumbers } from 'luxon';
 
-import { parseDateTime, toISODate } from './dateUtils';
+import { MILLISECONDS_IN_DAY } from './constants';
+import { parseDateTime } from './dateUtils';
 import type { DateType } from './types';
-
-export const calculateSlots = (start: number, end: number, step: number) => {
-  const slots = [];
-  const endInMinutes = end;
-  let tempStart = start;
-  while (tempStart < endInMinutes) {
-    slots.push(tempStart);
-    tempStart += step;
-  }
-  return slots;
-};
 
 type CalendarRangeOptions = {
   minDate: DateType;
   maxDate: DateType;
   firstDay: WeekdayNumbers;
   hideWeekDays?: WeekdayNumbers[];
-  timeZone?: string;
 };
 
 export type CalendarData = {
@@ -33,53 +22,63 @@ export type CalendarData = {
 };
 
 export const prepareCalendarRange = (props: CalendarRangeOptions): CalendarData => {
-  const { minDate, maxDate, firstDay, timeZone } = props;
-  const minIsoDate = toISODate(minDate, { zone: timeZone });
-  const maxIsoDate = toISODate(maxDate, { zone: timeZone });
-  const min = parseDateTime(minIsoDate);
-  const max = parseDateTime(maxIsoDate);
+  const { minDate, maxDate, firstDay, hideWeekDays = [] } = props;
+
+  // Convert dates to UTC midnight and get Unix timestamps
+  const min = parseDateTime(minDate).setZone('utc', { keepLocalTime: true }).startOf('day');
+  const max = parseDateTime(maxDate).setZone('utc', { keepLocalTime: true }).startOf('day');
   const originalMinDateUnix = min.toMillis();
   const originalMaxDateUnix = max.toMillis();
 
-  const minWeekDay = min.weekday;
-  const diffToFirstDay = (minWeekDay - firstDay + 7) % 7;
-  const adjustedMin = min.minus({ days: diffToFirstDay });
-
-  const maxWeekDay = max.weekday;
-  const diffFromLastDay = (maxWeekDay - firstDay + 7) % 7;
-  const adjustedMax = max.plus({ days: 7 - diffFromLastDay });
+  // Calculate adjusted date range to align with first day of week
+  const diffToFirstDay = (min.weekday - firstDay + 7) % 7;
+  const adjustedMin = originalMinDateUnix - diffToFirstDay * MILLISECONDS_IN_DAY;
+  const diffFromLastDay = (max.weekday - firstDay + 7) % 7;
+  const adjustedMax = originalMaxDateUnix - (diffFromLastDay - 6) * MILLISECONDS_IN_DAY;
 
   const availableDates: number[] = [];
   const bufferBefore: number[] = [];
   const bufferAfter: number[] = [];
 
-  let currentDateTime = adjustedMin;
+  // Populate date arrays
+  const totalDays = Math.ceil((adjustedMax - adjustedMin) / MILLISECONDS_IN_DAY) + 1;
+  for (let i = 0; i < totalDays; i++) {
+    const dateUnix = adjustedMin + i * MILLISECONDS_IN_DAY;
+    const currentWeekDay = ((firstDay + i - 1) % 7) + 1;
 
-  while (currentDateTime.toMillis() < adjustedMax.toMillis()) {
-    const currentWeekDay = currentDateTime.weekday;
-    const dateUnix = currentDateTime.toMillis();
-
-    if (!props.hideWeekDays?.includes(currentWeekDay)) {
-      if (dateUnix < originalMinDateUnix) {
-        bufferBefore.push(dateUnix);
-      } else if (dateUnix > originalMaxDateUnix) {
-        bufferAfter.push(dateUnix);
-      } else {
-        availableDates.push(dateUnix);
-      }
+    if (hideWeekDays.includes(currentWeekDay as WeekdayNumbers)) {
+      continue;
     }
-    currentDateTime = currentDateTime.plus({ days: 1 });
+
+    if (dateUnix < originalMinDateUnix) {
+      bufferBefore.push(dateUnix);
+    } else if (dateUnix > originalMaxDateUnix) {
+      bufferAfter.push(dateUnix);
+    } else {
+      availableDates.push(dateUnix);
+    }
   }
 
   return {
-    minDateUnix: adjustedMin.toMillis(),
-    maxDateUnix: adjustedMax.toMillis(),
+    minDateUnix: adjustedMin,
+    maxDateUnix: adjustedMax,
     originalMinDateUnix,
     originalMaxDateUnix,
     availableDates,
     bufferBefore,
     bufferAfter,
   };
+};
+
+export const findNearestNumber = (numbers: number[], target: number): number => {
+  'worklet';
+  if (numbers.includes(target)) {
+    return target;
+  }
+
+  return numbers.reduce((nearest, current) =>
+    Math.abs(current - target) < Math.abs(nearest - target) ? current : nearest
+  );
 };
 
 export const findNearestDate = (numbers: number[], target: number) => {
@@ -99,16 +98,31 @@ export const findNearestDate = (numbers: number[], target: number) => {
   );
 };
 
-export const getFirstVisibleDate = (
-  dateList: number[],
-  dateUnix: number,
-  numberOfDays: number,
-  scrollByDay: boolean
-) => {
-  const index = findNearestDate(dateList, dateUnix).index;
-  if (scrollByDay) {
-    return dateList[index];
+export const isNumbersEqual = (num1: number, num2: number, epsilon: number = 0.2) => {
+  return Math.abs(num1 - num2) < epsilon;
+};
+
+export const calculateSlots = (start: number, end: number, step: number) => {
+  const slots = [];
+  const endInMinutes = end;
+  let tempStart = start;
+  while (tempStart < endInMinutes) {
+    slots.push(tempStart);
+    tempStart += step;
   }
-  const roundedIndex = Math.floor(index / numberOfDays) * numberOfDays;
-  return dateList[roundedIndex];
+  return slots;
+};
+
+export const clampValues = (value: number, min: number, max: number) => {
+  'worklet';
+  return Math.max(min, Math.min(value, max));
+};
+
+export const roundMinutes = (
+  minutes: number,
+  step: number,
+  type: 'round' | 'ceil' | 'floor' = 'round'
+) => {
+  'worklet';
+  return Math[type](minutes / step) * step;
 };

@@ -50,7 +50,6 @@ export function useSelector<Snapshot, Selection>(
 
       const prevSnapshot = memoizedSnapshot;
       const prevSelection = memoizedSelection;
-
       if (is(prevSnapshot, nextSnapshot)) {
         return prevSelection;
       }
