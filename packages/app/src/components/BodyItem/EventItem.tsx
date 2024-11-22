@@ -3,12 +3,7 @@ import isEqual from 'lodash.isequal';
 import type { FC } from 'react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import Animated, {
-  interpolateColor,
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from 'react-native-reanimated';
 
 import { useBody } from '../../context/BodyContext';
 import type { PackedEvent, SizeAnimation } from '../../types';
@@ -55,23 +50,19 @@ const EventItem: FC<EventItemProps> = ({ event: eventInput, renderEvent }) => {
     startUnix,
     endUnix,
   } = _internal;
-  const progress = useDerivedValue(() => {
+  const eventId = eventInput.id;
+
+  const opacity = useDerivedValue(() => {
+    if (draggingId.value === eventId) {
+      return 0.4;
+    }
     if (!reduceBrightnessOfPastEvents) {
       return 1;
     }
 
-    return currentTime.value > startUnix && currentTime.value > endUnix ? 0 : 1;
-  }, [reduceBrightnessOfPastEvents, currentTime, startUnix, endUnix]);
-
-  const overlayStyle = useAnimatedStyle(() => {
-    return {
-      backgroundColor: interpolateColor(
-        progress.value,
-        [0, 1],
-        ['rgba(255,255,255,0.8)', 'rgba(255,255,255,0)']
-      ),
-    };
-  }, [progress]);
+    const isPast = currentTime.value > startUnix && currentTime.value > endUnix;
+    return isPast ? 0.6 : 1;
+  }, [draggingId, eventId, reduceBrightnessOfPastEvents, currentTime, startUnix, endUnix]);
 
   const data = useMemo(() => {
     const maxDuration = end - start;
@@ -88,10 +79,6 @@ const EventItem: FC<EventItemProps> = ({ event: eventInput, renderEvent }) => {
     () => data.totalDuration * minuteHeight.value - 1,
     [data.totalDuration, minuteHeight]
   );
-
-  const opacity = useDerivedValue(() => {
-    return draggingId.value === eventInput.id ? 0.6 : 1;
-  }, [draggingId, eventInput.id]);
 
   const widthPercent = useDerivedValue(() => {
     if (total && columnSpan) {
@@ -167,7 +154,6 @@ const EventItem: FC<EventItemProps> = ({ event: eventInput, renderEvent }) => {
             { backgroundColor: event.color },
             theme.eventContainerStyle,
           ]}>
-          <Animated.View style={[StyleSheet.absoluteFill, overlayStyle]} />
           {renderEvent ? (
             renderEvent(eventInput, {
               width: eventWidth,

@@ -1,5 +1,6 @@
 import type { WeekdayNumbers } from 'luxon';
 import React from 'react';
+import type { View } from 'react-native';
 import type Animated from 'react-native-reanimated';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 
@@ -59,6 +60,8 @@ export interface CalendarContextProps {
   allowDragToEdit: boolean;
   manualHorizontalScroll: boolean;
   reduceBrightnessOfPastEvents: boolean;
+  bodyContainerRef?: React.MutableRefObject<View | null>;
+  headerContainerRef?: React.MutableRefObject<View | null>;
 }
 
 export const CalendarContext = React.createContext<CalendarContextProps | undefined>(undefined);

@@ -70,19 +70,7 @@ export const prepareCalendarRange = (props: CalendarRangeOptions): CalendarData 
   };
 };
 
-export const findNearestNumber = (numbers: number[], target: number): number => {
-  'worklet';
-  if (numbers.includes(target)) {
-    return target;
-  }
-
-  return numbers.reduce((nearest, current) =>
-    Math.abs(current - target) < Math.abs(nearest - target) ? current : nearest
-  );
-};
-
 export const findNearestDate = (numbers: number[], target: number) => {
-  'worklet';
   const index = numbers.indexOf(target);
   if (index !== -1) {
     return { target, index };

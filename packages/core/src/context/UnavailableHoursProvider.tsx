@@ -1,7 +1,7 @@
 import type { FC, PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useEffect } from 'react';
 
-import { parseDateTime } from '../dateUtils';
+import { parseDateTimeUTC } from '../dateUtils';
 import useLazyRef from '../hooks/useLazyRef';
 import { createStore, type Store } from '../store/storeBuilder';
 import { useSelector } from '../store/useSelector';
@@ -61,7 +61,7 @@ const UnavailableHoursProvider: FC<
         if (item === undefined) {
           continue;
         }
-        const forceDate = parseDateTime(item);
+        const forceDate = parseDateTimeUTC(item);
         const weekDay = forceDate.weekday;
         const dateStr = forceDate.toFormat('yyyy-MM-dd');
         // Get unavailable hours either by specific date or by weekday

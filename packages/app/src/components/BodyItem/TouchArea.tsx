@@ -1,4 +1,4 @@
-import { parseDateTime, useTimezone } from '@calendar-kit/core';
+import { forceUpdateZone, parseDateTime, useTimezone } from '@calendar-kit/core';
 import { memo, useRef } from 'react';
 import { type GestureResponderEvent, StyleSheet, TouchableOpacity } from 'react-native';
 
@@ -33,11 +33,12 @@ const TouchArea = () => {
     const minutes = event.nativeEvent.locationY / minuteHeight.value + start;
     const hour = Math.floor(minutes / 60);
     const minute = minutes % 60;
-    const dateTimeObj = parseDateTime(dayUnix, { zone: 'utc' })
-      .setZone(timeZone)
-      .set({ hour, minute });
+    const dateTimeObj = forceUpdateZone(
+      parseDateTime(dayUnix, { zone: 'utc' }).plus({ hours: hour, minutes: minute }),
+      timeZone
+    );
     const newProps: { dateTime: string } = {
-      dateTime: dateTimeObj.toISO(),
+      dateTime: dateTimeObj.toUTC().toISO(),
     };
     onPressBackground(newProps, event);
   };
@@ -58,11 +59,12 @@ const TouchArea = () => {
     const hour = Math.floor(minutes / 60);
     const minute = minutes % 60;
 
-    const dateTimeObj = parseDateTime(dayUnix, { zone: 'utc' })
-      .setZone(timeZone)
-      .set({ hour, minute });
+    const dateTimeObj = forceUpdateZone(
+      parseDateTime(dayUnix, { zone: 'utc' }).plus({ hours: hour, minutes: minute }),
+      timeZone
+    );
     const newProps: { dateTime: string } = {
-      dateTime: dateTimeObj.toISO(),
+      dateTime: dateTimeObj.toUTC().toISO(),
     };
     onLongPressBackground(newProps, event);
   };

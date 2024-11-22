@@ -78,254 +78,256 @@ const randomColor = () => {
 
 const minDate = new Date(new Date().getFullYear(), new Date().getMonth() - 4, new Date().getDate());
 
-// const allDayEvents: EventItem[] = [
-//   {
-//     id: 'event_0',
-//     start: {
-//       date: '2024-09-14',
-//     },
-//     end: {
-//       date: '2024-09-24',
-//     },
-//     title: 'Event 0',
-//     color: '#5428F2',
-//   },
-//   {
-//     id: 'event_0x',
-//     start: {
-//       dateTime: '2024-09-16T22:00:00.000+07:00',
-//     },
-//     end: {
-//       dateTime: '2024-09-22T23:00:00.000+07:00',
-//     },
-//     title: 'Event 0x',
-//     color: '#5428F2',
-//   },
-//   {
-//     id: 'event_1',
-//     start: {
-//       dateTime: '2024-09-16T22:00:00.000+07:00',
-//     },
-//     end: {
-//       dateTime: '2024-09-18T22:00:00.000+07:00',
-//     },
-//     title: 'Event 1',
-//     color: '#5428F2',
-//   },
-//   {
-//     id: 'event_1x',
-//     start: {
-//       dateTime: '2024-09-16T00:00:00.000+07:00',
-//     },
-//     end: {
-//       dateTime: '2024-09-19T00:00:00.000+07:00',
-//     },
-//     title: 'Event 1x',
-//     color: '#5428F2',
-//   },
-//   {
-//     id: 'event_2',
-//     start: {
-//       dateTime: '2024-09-21T00:00:00.000+07:00',
-//     },
-//     end: {
-//       dateTime: '2024-09-22T00:00:00.000+07:00',
-//     },
-//     title: 'Event 2',
-//     color: '#8EBB85',
-//   },
-//   {
-//     id: 'event_2x',
-//     start: {
-//       date: '2024-09-18',
-//     },
-//     end: {
-//       date: '2024-09-21',
-//     },
-//     title: 'Event 2x',
-//     color: '#5428F2',
-//   },
-//   {
-//     id: 'event_3c',
-//     start: {
-//       date: '2024-09-16',
-//     },
-//     end: {
-//       date: '2024-09-16',
-//     },
-//     title: 'Event 3',
-//     color: '#B70100',
-//   },
-//   {
-//     id: 'event_3xx',
-//     start: {
-//       dateTime: '2024-09-16T22:00:00.000+07:00',
-//     },
-//     end: {
-//       dateTime: '2024-09-17T22:00:00.000+07:00',
-//     },
-//     title: 'Event 3xx',
-//     color: '#5428F2',
-//   },
-//   {
-//     id: 'event_3x',
-//     start: {
-//       dateTime: '2024-09-16T15:00:00.000+07:00',
-//     },
-//     end: {
-//       dateTime: '2024-09-17T23:00:00.000+07:00',
-//     },
-//     title: 'Event 3x',
-//     color: '#5428F2',
-//   },
-//   {
-//     id: 'event_4',
-//     start: {
-//       dateTime: '2024-09-20T17:00:00.000Z',
-//     },
-//     end: {
-//       dateTime: '2024-09-21T17:00:00.000Z',
-//     },
-//     title: 'Event 4',
-//     color: '#B70100',
-//   },
-//   {
-//     id: 'event_5',
-//     start: {
-//       dateTime: '2024-09-19T17:00:00.000Z',
-//     },
-//     end: {
-//       dateTime: '2024-09-21T17:00:00.000Z',
-//     },
-//     title: 'Event 5',
-//     color: '#EAAB7E',
-//   },
-//   {
-//     id: 'event_6',
-//     start: {
-//       dateTime: '2024-09-17T17:00:00.000Z',
-//     },
-//     end: {
-//       dateTime: '2024-09-18T17:00:00.000Z',
-//     },
-//     title: 'Event 6x',
-//     color: '#AC2A57',
-//   },
-//   {
-//     id: 'event_7',
-//     start: {
-//       dateTime: '2024-09-20T17:00:00.000Z',
-//     },
-//     end: {
-//       dateTime: '2024-09-21T17:00:00.000Z',
-//     },
-//     title: 'Event 7',
-//     color: '#DC1F98',
-//   },
-//   {
-//     id: 'event_8',
-//     start: {
-//       dateTime: '2024-09-19T17:00:00.000Z',
-//     },
-//     end: {
-//       dateTime: '2024-09-21T17:00:00.000Z',
-//     },
-//     title: 'Event 8',
-//     color: '#6E911C',
-//   },
-//   {
-//     id: 'event_9',
-//     start: {
-//       dateTime: '2024-09-20T17:00:00.000Z',
-//     },
-//     end: {
-//       dateTime: '2024-09-22T17:00:00.000Z',
-//     },
-//     title: 'Event 9',
-//     color: '#BE1459',
-//   },
-//   {
-//     id: 'event_10',
-//     start: {
-//       dateTime: '2024-09-19T17:00:00.000Z',
-//     },
-//     end: {
-//       dateTime: '2024-09-21T17:00:00.000Z',
-//     },
-//     title: 'Event 10',
-//     color: '#BA3D9D',
-//   },
-//   {
-//     id: 'event_11',
-//     start: {
-//       dateTime: '2024-09-20T00:00:00.000+07:00',
-//     },
-//     end: {
-//       dateTime: '2024-09-26T00:00:00.000+07:00',
-//     },
-//     title: 'Event 11',
-//     color: '#BA3D9D',
-//   },
-//   {
-//     id: 'event_2xx3',
-//     start: {
-//       date: '2024-09-16',
-//     },
-//     end: {
-//       date: '2024-09-17',
-//     },
-//     title: 'All day Recurring',
-//     color: '#BA3D9D',
-//     recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
-//     excludeDates: ['2024-09-16', '2024-09-22'],
-//   },
-//   {
-//     id: 'event_26',
-//     start: {
-//       dateTime: '2024-09-16T05:00:00.000Z',
-//     },
-//     end: {
-//       dateTime: '2024-09-16T07:00:00.000Z',
-//     },
-//     title: 'Event Recurring',
-//     color: '#BA3D9D',
-//     recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
-//     excludeDates: [
-//       '2024-09-16T05:00:00.000Z',
-//       '2024-09-22T05:00:00.000Z',
-//       '2024-10-11T05:00:00.000Z',
-//     ],
-//   },
-// ];
+const allDayEvents: EventItem[] = [
+  //   {
+  //     id: 'event_0',
+  //     start: {
+  //       date: '2024-09-14',
+  //     },
+  //     end: {
+  //       date: '2024-09-24',
+  //     },
+  //     title: 'Event 0',
+  //     color: '#5428F2',
+  //   },
+  //   {
+  //     id: 'event_0x',
+  //     start: {
+  //       dateTime: '2024-09-16T22:00:00.000+07:00',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-22T23:00:00.000+07:00',
+  //     },
+  //     title: 'Event 0x',
+  //     color: '#5428F2',
+  //   },
+  //   {
+  //     id: 'event_1',
+  //     start: {
+  //       dateTime: '2024-09-16T22:00:00.000+07:00',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-18T22:00:00.000+07:00',
+  //     },
+  //     title: 'Event 1',
+  //     color: '#5428F2',
+  //   },
+  //   {
+  //     id: 'event_1x',
+  //     start: {
+  //       dateTime: '2024-09-16T00:00:00.000+07:00',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-19T00:00:00.000+07:00',
+  //     },
+  //     title: 'Event 1x',
+  //     color: '#5428F2',
+  //   },
+  //   {
+  //     id: 'event_2',
+  //     start: {
+  //       dateTime: '2024-09-21T00:00:00.000+07:00',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-22T00:00:00.000+07:00',
+  //     },
+  //     title: 'Event 2',
+  //     color: '#8EBB85',
+  //   },
+  //   {
+  //     id: 'event_2x',
+  //     start: {
+  //       date: '2024-09-18',
+  //     },
+  //     end: {
+  //       date: '2024-09-21',
+  //     },
+  //     title: 'Event 2x',
+  //     color: '#5428F2',
+  //   },
+  //   {
+  //     id: 'event_3c',
+  //     start: {
+  //       date: '2024-09-16',
+  //     },
+  //     end: {
+  //       date: '2024-09-16',
+  //     },
+  //     title: 'Event 3',
+  //     color: '#B70100',
+  //   },
+  //   {
+  //     id: 'event_3xx',
+  //     start: {
+  //       dateTime: '2024-09-16T22:00:00.000+07:00',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-17T22:00:00.000+07:00',
+  //     },
+  //     title: 'Event 3xx',
+  //     color: '#5428F2',
+  //   },
+  //   {
+  //     id: 'event_3x',
+  //     start: {
+  //       dateTime: '2024-09-16T15:00:00.000+07:00',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-17T23:00:00.000+07:00',
+  //     },
+  //     title: 'Event 3x',
+  //     color: '#5428F2',
+  //   },
+  //   {
+  //     id: 'event_4',
+  //     start: {
+  //       dateTime: '2024-09-20T17:00:00.000Z',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-21T17:00:00.000Z',
+  //     },
+  //     title: 'Event 4',
+  //     color: '#B70100',
+  //   },
+  //   {
+  //     id: 'event_5',
+  //     start: {
+  //       dateTime: '2024-09-19T17:00:00.000Z',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-21T17:00:00.000Z',
+  //     },
+  //     title: 'Event 5',
+  //     color: '#EAAB7E',
+  //   },
+  //   {
+  //     id: 'event_6',
+  //     start: {
+  //       dateTime: '2024-09-17T17:00:00.000Z',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-18T17:00:00.000Z',
+  //     },
+  //     title: 'Event 6x',
+  //     color: '#AC2A57',
+  //   },
+  //   {
+  //     id: 'event_7',
+  //     start: {
+  //       dateTime: '2024-09-20T17:00:00.000Z',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-21T17:00:00.000Z',
+  //     },
+  //     title: 'Event 7',
+  //     color: '#DC1F98',
+  //   },
+  //   {
+  //     id: 'event_8',
+  //     start: {
+  //       dateTime: '2024-09-19T17:00:00.000Z',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-21T17:00:00.000Z',
+  //     },
+  //     title: 'Event 8',
+  //     color: '#6E911C',
+  //   },
+  //   {
+  //     id: 'event_9',
+  //     start: {
+  //       dateTime: '2024-09-20T17:00:00.000Z',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-22T17:00:00.000Z',
+  //     },
+  //     title: 'Event 9',
+  //     color: '#BE1459',
+  //   },
+  //   {
+  //     id: 'event_10',
+  //     start: {
+  //       dateTime: '2024-09-19T17:00:00.000Z',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-21T17:00:00.000Z',
+  //     },
+  //     title: 'Event 10',
+  //     color: '#BA3D9D',
+  //   },
+  //   {
+  //     id: 'event_11',
+  //     start: {
+  //       dateTime: '2024-09-20T00:00:00.000+07:00',
+  //     },
+  //     end: {
+  //       dateTime: '2024-09-26T00:00:00.000+07:00',
+  //     },
+  //     title: 'Event 11',
+  //     color: '#BA3D9D',
+  //   },
+  //   {
+  //     id: 'event_2xx3',
+  //     start: {
+  //       date: '2024-09-16',
+  //     },
+  //     end: {
+  //       date: '2024-09-17',
+  //     },
+  //     title: 'All day Recurring',
+  //     color: '#BA3D9D',
+  //     recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
+  //     excludeDates: ['2024-09-16', '2024-09-22'],
+  //   },
+  // {
+  //   id: 'event_26',
+  //   start: {
+  //     dateTime: '2024-09-16T05:00:00.000Z',
+  //   },
+  //   end: {
+  //     dateTime: '2024-09-16T07:00:00.000Z',
+  //   },
+  //   title: 'Event Recurring',
+  //   color: '#BA3D9D',
+  //   recurrence: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR',
+  //   excludeDates: [
+  //     '2024-09-16T05:00:00.000Z',
+  //     '2024-09-22T05:00:00.000Z',
+  //     '2024-10-11T05:00:00.000Z',
+  //   ],
+  // },
+];
 
 const TOTAL_RESOURCES = 3;
 
 const generateEvents = () => {
-  return new Array(500).fill(0).map((_, index) => {
-    const randomDateByIndex = new Date(
-      minDate.getFullYear(),
-      minDate.getMonth(),
-      minDate.getDate() + Math.floor(index / 2),
-      Math.floor(Math.random() * 24),
-      Math.round((Math.random() * 60) / 15) * 15
-    );
-    const duration = (Math.floor(Math.random() * 15) + 1) * 15 * 60 * 1000;
-    const endDate = new Date(randomDateByIndex.getTime() + duration);
+  return new Array(500)
+    .fill(0)
+    .map((_, index) => {
+      const randomDateByIndex = new Date(
+        minDate.getFullYear(),
+        minDate.getMonth(),
+        minDate.getDate() + Math.floor(index / 2),
+        Math.floor(Math.random() * 24),
+        Math.round((Math.random() * 60) / 15) * 15
+      );
+      const duration = (Math.floor(Math.random() * 15) + 1) * 15 * 60 * 1000;
+      const endDate = new Date(randomDateByIndex.getTime() + duration);
 
-    return {
-      id: `event_${index + 1}`,
-      start: {
-        dateTime: randomDateByIndex.toISOString(),
-      },
-      end: {
-        dateTime: endDate.toISOString(),
-      },
-      title: `Event ${index + 1}`,
-      color: randomColor(),
-      resourceId: `resource_${Math.floor(Math.random() * TOTAL_RESOURCES) + 1}`,
-    } as EventItem;
-  });
-  // .concat(allDayEvents);
+      return {
+        id: `event_${index + 1}`,
+        start: {
+          dateTime: randomDateByIndex.toISOString(),
+        },
+        end: {
+          dateTime: endDate.toISOString(),
+        },
+        title: `Event ${index + 1}`,
+        color: randomColor(),
+        resourceId: `resource_${Math.floor(Math.random() * TOTAL_RESOURCES) + 1}`,
+      } as EventItem;
+    })
+    .concat(allDayEvents);
 };
 
 const Calendar = () => {
@@ -490,7 +492,7 @@ const Calendar = () => {
 
           setSelectedEvent(event);
         }}
-        // timeZone="Asia/Ho_Chi_Minh"
+        timeZone="Asia/Ho_Chi_Minh"
         onDragSelectedEventEnd={async (event) => {
           console.log('onDragSelectedEventEnd', event);
           const { originalRecurringEvent, ...rest } = event;

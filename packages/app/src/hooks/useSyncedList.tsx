@@ -4,6 +4,7 @@ import {
   useActions,
   useCalendar,
   useNotifyDateChanged,
+  useTimezone,
 } from '@calendar-kit/core';
 import { useCallback, useEffect, useRef } from 'react';
 import {
@@ -25,6 +26,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
     triggerDateChanged,
     visibleDateUnixAnim,
   } = useCalendar();
+  const { timeZone } = useTimezone();
   const isTriggerMomentum = useRef(false);
   const notifyDateChanged = useNotifyDateChanged();
   const { onChange, onDateChanged } = useActions();
@@ -42,7 +44,11 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
   const _onMomentumEnd = () => {
     if (isTriggerMomentum.current && startDateUnix.current !== visibleDateUnix.current) {
       triggerDateChanged.current = undefined;
-      onDateChanged?.(dateTimeToISOString(parseDateTime(visibleDateUnix.current)));
+      const currentDate = parseDateTime(visibleDateUnix.current, {
+        zone: 'utc',
+        setZone: true,
+      }).setZone(timeZone, { keepLocalTime: true });
+      onDateChanged?.(dateTimeToISOString(currentDate));
       notifyDateChanged(visibleDateUnix.current);
       isTriggerMomentum.current = false;
     }
@@ -96,7 +102,11 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       visibleDateUnixAnim.value = item;
 
       // Update visible date and notify of change
-      const dateIsoStr = dateTimeToISOString(parseDateTime(item));
+      const currentDate = parseDateTime(visibleDateUnix.current, {
+        zone: 'utc',
+        setZone: true,
+      }).setZone(timeZone, { keepLocalTime: true });
+      const dateIsoStr = dateTimeToISOString(currentDate);
       onChange?.(dateIsoStr);
 
       // Handle triggered date change if matches current date
@@ -111,7 +121,8 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       notifyDateChanged,
       onChange,
       onDateChanged,
-      scrollType,
+      scrollType.value,
+      timeZone,
       triggerDateChanged,
       visibleDateUnix,
       visibleDateUnixAnim,

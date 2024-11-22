@@ -98,6 +98,7 @@ const CalendarBody: FC<CalendarBodyProps> = ({
     allowDragToEdit,
     manualHorizontalScroll,
     reduceBrightnessOfPastEvents,
+    bodyContainerRef,
   } = useCalendar();
   const locale = useLocale();
   const {
@@ -329,7 +330,7 @@ const CalendarBody: FC<CalendarBodyProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} ref={bodyContainerRef}>
       <GestureDetector gesture={composedGesture}>
         <AnimatedScrollView
           ref={verticalListRef}

@@ -22,15 +22,10 @@ export class RRuleGenerator {
   }
 
   generateOccurrences(start: DateType, end: DateType): DateTime[] {
-    const startDate = parseDateTime(start);
-    const endDate = parseDateTime(end);
-    const occurrences = this.rule.between(
-      forceUpdateZone(startDate, 'UTC').toJSDate(),
-      forceUpdateZone(endDate, 'UTC').toJSDate(),
-      true
-    );
-
-    return occurrences.map((occurrence) => parseDateTime(occurrence).setZone('utc'));
+    const startDate = parseDateTime(start).toUTC().toJSDate();
+    const endDate = parseDateTime(end).toUTC().toJSDate();
+    const occurrences = this.rule.between(startDate, endDate, true);
+    return occurrences.map((occurrence) => parseDateTime(occurrence, { zone: 'utc' }));
   }
 
   firstOccurrence(): DateTime | null {

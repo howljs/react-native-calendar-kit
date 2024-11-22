@@ -1,5 +1,5 @@
 import isEqual from 'lodash.isequal';
-import type { WeekdayNumbers } from 'luxon';
+import { type WeekdayNumbers } from 'luxon';
 import type { ForwardRefRenderFunction, PropsWithChildren } from 'react';
 import {
   createContext,
@@ -12,7 +12,7 @@ import {
 } from 'react';
 
 import { DEFAULT_MIN_START_DIFFERENCE } from '../constants';
-import { forceUpdateZone, parseDateTime, toISODate } from '../dateUtils';
+import { parseDateTime, toISODate } from '../dateUtils';
 import { divideEvents, filterEvents, populateEvents, processEventOccurrences } from '../eventUtils';
 import useLazyRef from '../hooks/useLazyRef';
 import { createStore, type Store } from '../store/storeBuilder';
@@ -48,7 +48,8 @@ interface EventCache {
 }
 
 export interface EventsRef {
-  getEventsByDate: (date: string) => PackedEvent[];
+  getEventStore: () => Store<EventsState>;
+  getEventsByDate: (dateString: string) => PackedEvent[];
   clearCachedEvents: () => void;
 }
 
@@ -156,9 +157,7 @@ const EventsProvider: ForwardRefRenderFunction<
         mergedRegularMap.forEach((rEvents, date) => {
           mergedRegularMap.set(
             date,
-            rEvents.filter((event) =>
-              event.localId ? event.localId !== updatedEvent.localId : event.id !== updatedEvent.id
-            )
+            rEvents.filter((event) => event.id !== updatedEvent.id)
           );
         });
       });
@@ -294,19 +293,26 @@ const EventsProvider: ForwardRefRenderFunction<
   );
 
   useImperativeHandle(ref, () => ({
-    getEventsByDate: (date: string) => {
-      const dateObj = parseDateTime(date);
-      const dateUnix = dateObj.startOf('day').toMillis();
+    getEventStore: () => eventsStore,
+    getEventsByDate: (dateString: string) => {
       const eventState = eventsStore.getState();
-      const packedRegularEvents = eventState.regularEvents.get(dateUnix) ?? [];
+      const utcUnix = parseDateTime(dateString, { setZone: true })
+        .startOf('day')
+        .toUTC(undefined, {
+          keepLocalTime: true,
+        })
+        .toMillis();
+
+      const packedRegularEvents = eventState.regularEvents.get(utcUnix) ?? [];
       if (!packedRegularEvents) {
         return [];
       }
-      const targetUnix = forceUpdateZone(dateObj, timeZone).toMillis();
+
+      const dateUnix = parseDateTime(dateString).toISO();
       return packedRegularEvents.filter((event) => {
-        const eventStart = parseDateTime(event.start.dateTime).toMillis();
-        const eventEnd = parseDateTime(event.end.dateTime).toMillis();
-        return eventStart <= targetUnix && eventEnd >= targetUnix;
+        const eventStart = parseDateTime(event.start.dateTime).toISO();
+        const eventEnd = parseDateTime(event.end.dateTime).toISO();
+        return eventStart <= dateUnix && eventEnd >= dateUnix;
       });
     },
     clearCachedEvents: () => {

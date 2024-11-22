@@ -335,16 +335,14 @@ class CalendarList extends React.PureComponent<CalendarListProps, CalendarListSt
   }
 
   public scrollToIndex(params: { animated?: boolean | null | undefined; index: number }) {
-    const listSize = this.rlvRef?.getRenderedSize();
-    if (listSize) {
-      let itemIndex = params.index;
-      if (!this.isScrollByDay) {
-        itemIndex = this.getPageIndex(itemIndex) * this.numColumns;
-      }
-      const itemOffset = itemIndex * this.columnWidth;
-      const scrollOffset = Math.max(0, itemOffset);
-      this.rlvRef?.scrollToOffset(scrollOffset, scrollOffset, Boolean(params.animated), true);
+    let itemIndex = params.index;
+    if (!this.isScrollByDay) {
+      itemIndex = this.getPageIndex(itemIndex) * this.numColumns;
     }
+    const itemOffset = itemIndex * this.columnWidth;
+    const maxOffset = this.maxScrollIndex * this.columnWidth;
+    const scrollOffset = Math.min(Math.max(0, itemOffset), maxOffset);
+    this.rlvRef?.scrollToOffset(scrollOffset, scrollOffset, Boolean(params.animated), true);
   }
 
   public scrollToItem(params: { animated?: boolean | null | undefined; item: any }) {
@@ -400,7 +398,7 @@ class CalendarList extends React.PureComponent<CalendarListProps, CalendarListSt
     return this.state.dataProvider.getAllData();
   }
 
-  public getItemByIndex(index: number) {
+  public getItemByIndex(index: number): number | undefined {
     return this.props.data[index];
   }
 
@@ -421,6 +419,22 @@ class CalendarList extends React.PureComponent<CalendarListProps, CalendarListSt
       }
     }
     return this.props.data.slice(startIndex, endIndex + 1);
+  }
+
+  public findNearestItem(target: number) {
+    const index = this.props.data.indexOf(target);
+    if (index !== -1) {
+      return { target, index };
+    }
+
+    return this.props.data.reduce(
+      (nearest, current, currentIndex) => {
+        return Math.abs(current - target) < Math.abs(nearest.target - target)
+          ? { target: current, index: currentIndex }
+          : nearest;
+      },
+      { target: this.props.data[0], index: 0 }
+    );
   }
 }
 

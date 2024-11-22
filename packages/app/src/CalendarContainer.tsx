@@ -37,7 +37,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { PixelRatio } from 'react-native';
+import { PixelRatio, type View } from 'react-native';
 import type Animated from 'react-native-reanimated';
 import {
   runOnUI,
@@ -204,7 +204,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const isTriggerMomentum = useRef(false);
   const scrollVisibleHeight = useRef(0);
   const triggerDateChanged = useRef<number>();
-
+  const bodyContainerRef = useRef<View>(null);
+  const headerContainerRef = useRef<View>(null);
   // Current visible date
   const visibleDateUnix = useLazyRef(() => {
     const zonedInitialDate = parseDateTime(initialDate, {
@@ -246,7 +247,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     const date = parseDateTime(props?.date, { zone: timeZone });
     const isoDate = date.toISODate();
     const targetDateUnix = parseDateTime(isoDate).toMillis();
-    const nearestDate = findNearestDate(dateList, targetDateUnix);
+    const nearestDate = listRef.findNearestItem(targetDateUnix);
     let targetIndex = nearestDate.index;
     const isScrollByDay = listRef.isScrollByDay;
     if (!isScrollByDay) {
@@ -257,7 +258,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       triggerDateChanged.current = undefined;
       return;
     }
-    const visibleDateIndex = findNearestDate(dateList, visibleDateUnix.current).index;
+    const visibleDateIndex = listRef.findNearestItem(visibleDateUnix.current).index;
     if (visibleDateIndex !== targetIndex) {
       triggerDateChanged.current = listRef.getItemByIndex(targetIndex);
       scrollType.value = ScrollType.calendarGrid;
@@ -366,63 +367,105 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     const dateObj = parseDateTime(initDate, { zone: timeZone });
     const isoDate = dateObj.toISODate();
     const targetDateUnix = parseDateTime(isoDate).toMillis();
-    const nearestDate = findNearestDate(dateList, targetDateUnix);
-    visibleDateUnix.current = nearestDate.target;
-    visibleDateUnixAnim.value = nearestDate.target;
+    const nearestDate = gridListRef.current?.findNearestItem(targetDateUnix)?.target;
+    if (!nearestDate) {
+      return;
+    }
+    visibleDateUnix.current = nearestDate;
+    visibleDateUnixAnim.value = nearestDate;
+  });
+
+  const getLayout = useLatestCallback((layoutRef: React.RefObject<View>) => {
+    return new Promise<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      pageX: number;
+      pageY: number;
+    }>((resolve) => {
+      layoutRef.current?.measure((x, y, width, height, pageX, pageY) => {
+        resolve({ x, y, width, height, pageX, pageY });
+      });
+    });
   });
 
   const getDateByOffset = useLatestCallback((position: { x: number; y: number }) => {
-    const nearestDate = findNearestDate(dateList, visibleDateUnix.current);
-    if (nearestDate.index === -1) {
-      return;
+    if (!gridListRef.current || !bodyContainerRef.current) {
+      return undefined;
     }
+    const currentIndex = gridListRef.current.getCurrentScrollIndex();
     const columnIndex = Math.floor(position.x / columnWidth);
-    const dateUnixByIndex = dateList[nearestDate.index + columnIndex];
-    if (!dateUnixByIndex) {
-      return;
+    const dayUnix = gridListRef.current.getItemByIndex(currentIndex + columnIndex);
+    if (!dayUnix) {
+      return undefined;
     }
+
     const minutes = Math.floor(position.y / minuteHeight.value) + start;
-    return parseDateTime(dateUnixByIndex).plus({ minutes });
+    const dateTimeObj = forceUpdateZone(
+      parseDateTime(dayUnix, { zone: 'utc' }).plus({ minutes }),
+      timeZone
+    );
+    return dateTimeObj;
   });
 
-  const getDateStringByOffset = useLatestCallback((position: { x: number; y: number }) => {
-    const date = getDateByOffset(position);
-    if (!date) {
+  const getDateStringByOffset = useLatestCallback(
+    async (position: { x: number; y: number }, excludeBodyOffset: boolean = false) => {
+      let adjustedY = position.y + offsetY.value - spaceFromTop;
+      let adjustedX = position.x;
+      if (!excludeBodyOffset) {
+        const layout = await getLayout(bodyContainerRef);
+        adjustedY -= layout.y;
+        adjustedX -= hourWidth;
+      }
+      const date = getDateByOffset({ x: adjustedX, y: adjustedY });
+      if (!date) {
+        return null;
+      }
+      const dateObj = forceUpdateZone(date, timeZone);
+      return dateTimeToISOString(dateObj);
+    }
+  );
+
+  const getEventByOffset = useLatestCallback(
+    async (position: { x: number; y: number }, excludeBodyOffset: boolean = false) => {
+      let adjustedY = position.y + offsetY.value - spaceFromTop;
+      let adjustedX = position.x;
+      if (!excludeBodyOffset) {
+        const layout = await getLayout(bodyContainerRef);
+        adjustedY -= layout.y;
+        adjustedX -= hourWidth;
+      }
+      const date = getDateByOffset({ x: adjustedX, y: adjustedY });
+      if (!date) {
+        return null;
+      }
+      const columnIndex = Math.floor(adjustedX / columnWidth);
+      const dateString = date.toISO();
+      const eventsByDate = eventsRef.current?.getEventsByDate(dateString) ?? [];
+      for (const event of eventsByDate) {
+        let eventX = 0;
+        let eventWidth = 0;
+
+        const { total, index, xOffsetPercentage, widthPercentage } = event._internal;
+        if (xOffsetPercentage && widthPercentage) {
+          eventWidth = columnWidth * widthPercentage;
+          eventX = columnWidth * xOffsetPercentage;
+        } else if (total !== undefined && index !== undefined) {
+          eventWidth = columnWidth / total;
+          eventX = index * eventWidth;
+        }
+
+        const targetX = adjustedX - columnIndex * columnWidth;
+        if (targetX >= eventX && targetX <= eventX + eventWidth) {
+          const clonedEvent = { ...event } as EventItem;
+          delete clonedEvent._internal;
+          return clonedEvent;
+        }
+      }
       return null;
     }
-    const dateObj = forceUpdateZone(date, timeZone);
-    return dateTimeToISOString(dateObj);
-  });
-
-  const getEventByOffset = useLatestCallback((position: { x: number; y: number }) => {
-    const date = getDateByOffset(position);
-    if (!date) {
-      return null;
-    }
-    const columnIndex = Math.floor(position.x / columnWidth);
-    const dateString = dateTimeToISOString(date);
-    const eventsByDate = eventsRef.current?.getEventsByDate(dateString) ?? [];
-    for (const event of eventsByDate) {
-      let eventX = 0;
-      let eventWidth = 0;
-      const { total, index, xOffsetPercentage, widthPercentage } = event._internal;
-      if (xOffsetPercentage && widthPercentage) {
-        eventWidth = columnWidth * widthPercentage;
-        eventX = columnWidth * xOffsetPercentage;
-      } else if (total && index) {
-        eventWidth = columnWidth / total;
-        eventX = index * eventWidth;
-      }
-
-      const targetX = position.x - columnIndex * columnWidth;
-      if (targetX >= eventX && targetX <= eventX + eventWidth) {
-        const clonedEvent = { ...event } as EventItem;
-        delete clonedEvent._internal;
-        return clonedEvent;
-      }
-    }
-    return null;
-  });
+  );
 
   const getSizeByDuration = useLatestCallback((duration: number) => {
     const height = duration * minuteHeight.value;
@@ -430,10 +473,18 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   });
 
   const getVisibleStart = useLatestCallback(() => {
-    const currentDate = forceUpdateZone(visibleDateUnix.current, timeZone);
-    const startMinutes = offsetY.value / minuteHeight.value - start;
-    currentDate.plus({ minutes: startMinutes });
-    return dateTimeToISOString(currentDate);
+    // Calculate minutes from top of calendar view, accounting for scroll position and initial offset
+    const startMinutes = (offsetY.value - spaceFromTop) / minuteHeight.value - start;
+
+    // Clamp minutes to valid 24-hour range (0-1440 minutes)
+    const clampedStartMinutes = clampValues(startMinutes, 0, 1440);
+
+    // Get current date in UTC, add clamped minutes, then convert to target timezone
+    return parseDateTime(visibleDateUnix.current, { zone: 'utc', setZone: true })
+      .plus({ minutes: clampedStartMinutes })
+      .setZone(timeZone, { keepLocalTime: true })
+      .toUTC()
+      .toISO();
   });
 
   const getCurrentOffsetY = useLatestCallback(() => {
@@ -555,6 +606,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       timeZone,
       manualHorizontalScroll,
       reduceBrightnessOfPastEvents,
+      bodyContainerRef,
+      headerContainerRef,
     }),
     [
       hourWidth,

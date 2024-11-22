@@ -127,8 +127,14 @@ export interface CalendarKitHandle {
    * Set the visible date of the calendar.
    */
   setVisibleDate: (date: string) => void;
-  getDateByOffset: (position: { x: number; y: number }) => string | null;
-  getEventByOffset: (position: { x: number; y: number }) => EventItem | null;
+  getDateByOffset: (
+    position: { x: number; y: number },
+    excludeBodyOffset?: boolean
+  ) => Promise<string | null>;
+  getEventByOffset: (
+    position: { x: number; y: number },
+    excludeBodyOffset?: boolean
+  ) => Promise<EventItem | null>;
   /** Duration in minutes */
   getSizeByDuration: (duration: number) => { width: number; height: number };
   /**

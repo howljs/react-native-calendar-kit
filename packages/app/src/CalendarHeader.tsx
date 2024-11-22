@@ -44,6 +44,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     dateList,
     pagesPerSide,
     manualHorizontalScroll,
+    headerContainerRef,
   } = useCalendar();
   const resources = useResources();
   const calendarWidth = useLayout(useCallback((state) => state.width, []));
@@ -129,6 +130,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
   return (
     <View
+      ref={headerContainerRef}
       style={[
         styles.headerContainer,
         {
