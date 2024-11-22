@@ -1854,10 +1854,17 @@ __metadata:
     rrule: "npm:^2.8.1"
     typescript: "npm:~5.3.3"
   peerDependencies:
+    expo-haptics: "*"
     react: "*"
     react-native: "*"
     react-native-gesture-handler: "*"
+    react-native-haptic-feedback: "*"
     react-native-reanimated: "*"
+  peerDependenciesMeta:
+    expo-haptics:
+      optional: true
+    react-native-haptic-feedback:
+      optional: true
   languageName: unknown
   linkType: soft
 
