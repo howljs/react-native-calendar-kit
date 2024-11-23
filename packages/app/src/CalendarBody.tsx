@@ -11,6 +11,7 @@ import {
   useDragContext,
   useLayout,
   useLocale,
+  usePinchToZoom,
   useResources,
 } from '@calendar-kit/core';
 import { type FC, memo, useCallback, useMemo, useRef } from 'react';
@@ -40,7 +41,6 @@ import type { BodyContextProps } from './context/BodyContext';
 import { BodyContext } from './context/BodyContext';
 import useDragEventGesture from './hooks/useDragEventGesture';
 import useDragToCreate from './hooks/useDragToCreate';
-import usePinchToZoom from './hooks/usePinchToZoom';
 import useSyncedList from './hooks/useSyncedList';
 import type { CalendarBodyProps, PackedEvent } from './types';
 

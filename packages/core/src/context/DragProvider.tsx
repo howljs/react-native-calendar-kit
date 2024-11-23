@@ -12,7 +12,7 @@ import { Platform } from 'react-native';
 import {
   runOnJS,
   runOnUI,
-  scrollTo,
+  setNativeProps,
   type SharedValue,
   useAnimatedReaction,
   useSharedValue,
@@ -428,7 +428,7 @@ const DragProvider: FC<PropsWithChildren<DragProviderProps>> = ({
           }
           extraMinutes.value += minutes;
           offsetY.value = targetOffset;
-          scrollTo(verticalListRef, 0, targetOffset, false);
+          setNativeProps(verticalListRef, { contentOffset: { y: targetOffset, x: 0 } });
         }
       })();
 

@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import {
   runOnJS,
   scrollTo,
+  setNativeProps,
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
@@ -69,11 +70,19 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       offsetX.value = x;
       if (id === ScrollType.dayBar) {
         if (isGridListRefReady.value) {
-          scrollTo(gridListRef, offsetX.value, 0, false);
+          if (setNativeProps) {
+            setNativeProps(gridListRef, { contentOffset: { x: offsetX.value, y: 0 } });
+          } else {
+            scrollTo(gridListRef, offsetX.value, 0, false);
+          }
         }
       } else if (id === ScrollType.calendarGrid) {
         if (isDayBarListRefReady.value) {
-          scrollTo(headerListRef, offsetX.value, 0, false);
+          if (setNativeProps) {
+            setNativeProps(headerListRef, { contentOffset: { x: offsetX.value, y: 0 } });
+          } else {
+            scrollTo(headerListRef, offsetX.value, 0, false);
+          }
         }
       }
     },

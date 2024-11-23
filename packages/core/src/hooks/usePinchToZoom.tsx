@@ -1,8 +1,10 @@
-import { clampValues, useCalendar } from '@calendar-kit/core';
 import { useRef } from 'react';
 import type { GestureType } from 'react-native-gesture-handler';
 import { Gesture } from 'react-native-gesture-handler';
-import { setNativeProps, useSharedValue, withSpring } from 'react-native-reanimated';
+import { scrollTo, setNativeProps, useSharedValue, withSpring } from 'react-native-reanimated';
+
+import { useCalendar } from '../context/CalendarContext';
+import { clampValues } from '../utils';
 
 // Constants for gesture behavior
 const SCALE_FACTOR = 0.5; // Controls how much the pinch affects the zoom
@@ -57,7 +59,11 @@ const usePinchToZoom = () => {
         const newOffsetY = startOffsetY.value + heightDiff * scaleOrigin;
         startOffsetY.value = newOffsetY;
         offsetY.value = newOffsetY;
-        setNativeProps(verticalListRef, { contentOffset: { y: newOffsetY, x: 0 } });
+        if (setNativeProps) {
+          setNativeProps(verticalListRef, { contentOffset: { y: newOffsetY, x: 0 } });
+        } else {
+          scrollTo(verticalListRef, 0, newOffsetY, false);
+        }
       }
       lastScale.value = newScale;
     })

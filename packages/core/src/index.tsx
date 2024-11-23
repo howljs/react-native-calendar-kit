@@ -68,6 +68,7 @@ export * from './eventUtils';
 export { default as useHideWeekDays } from './hooks/useHideWeekDays';
 export { default as useLatestCallback } from './hooks/useLatestCallback';
 export { default as useLazyRef } from './hooks/useLazyRef';
+export { default as usePinchToZoom } from './hooks/usePinchToZoom';
 export { default as HapticService } from './service/HapticService';
 export { RRuleGenerator } from './service/rrule';
 export { createStore, type Store } from './store/storeBuilder';
