@@ -26,7 +26,6 @@ export {
   type EventsRef,
   type EventsState as GroupedEventsState,
   useRegularEventsByDay,
-  useResources,
 } from './context/EventsProvider';
 export {
   HighlightDatesContext,
@@ -45,6 +44,12 @@ export {
   useCurrentTimeAnim,
   useNowIndicator,
 } from './context/NowIndicatorProvider';
+export {
+  ResourcesContext,
+  default as ResourcesProvider,
+  type ResourcesStore,
+  useResources,
+} from './context/ResourcesContext';
 export { default as ThemeProvider, useTheme } from './context/ThemeProvider';
 export { TimezoneContext, useTimezone } from './context/TimezoneContext';
 export {

@@ -19,6 +19,7 @@ import {
   NowIndicatorProvider,
   parseDateTime,
   prepareCalendarRange,
+  ResourcesProvider,
   ThemeProvider,
   TimezoneContext,
   UnavailableHoursProvider,
@@ -701,24 +702,26 @@ const CalendarContainer: React.ForwardRefRenderFunction<
                     <VisibleDateProvider initialStart={visibleDateUnix}>
                       <HighlightDatesProvider highlightDates={highlightDates}>
                         <UnavailableHoursProvider unavailableHours={unavailableHours}>
-                          <EventsProvider
-                            ref={eventsRef}
-                            events={events}
-                            minRegularEventMinutes={minRegularEventMinutes}
-                            hideWeekDays={hideWeekDays}
-                            overlapType={overlapType}
-                            resources={resources}
-                            minStartDifference={minStartDifference}>
-                            <DragProvider
-                              dragStep={dragStep}
-                              defaultDuration={defaultDuration}
-                              allowDragToCreate={allowDragToCreate}
-                              allowDragToEdit={allowDragToEdit}
-                              dragToCreateMode={dragToCreateMode}
-                              selectedEvent={selectedEvent}>
-                              {children}
-                            </DragProvider>
-                          </EventsProvider>
+                          <ResourcesProvider resources={resources}>
+                            <EventsProvider
+                              ref={eventsRef}
+                              events={events}
+                              minRegularEventMinutes={minRegularEventMinutes}
+                              hideWeekDays={hideWeekDays}
+                              overlapType={overlapType}
+                              resources={resources}
+                              minStartDifference={minStartDifference}>
+                              <DragProvider
+                                dragStep={dragStep}
+                                defaultDuration={defaultDuration}
+                                allowDragToCreate={allowDragToCreate}
+                                allowDragToEdit={allowDragToEdit}
+                                dragToCreateMode={dragToCreateMode}
+                                selectedEvent={selectedEvent}>
+                                {children}
+                              </DragProvider>
+                            </EventsProvider>
+                          </ResourcesProvider>
                         </UnavailableHoursProvider>
                       </HighlightDatesProvider>
                     </VisibleDateProvider>

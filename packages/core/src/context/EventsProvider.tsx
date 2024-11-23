@@ -24,7 +24,6 @@ import { useDateChangedListener } from './VisibleDateProvider';
 
 export interface EventsState {
   regularEvents: Map<number, PackedEvent[]>;
-  resources?: ResourceItem[];
   minDateUnix?: number;
   maxDateUnix?: number;
   overlapType?: 'no-overlap' | 'overlap';
@@ -80,7 +79,6 @@ const EventsProvider: ForwardRefRenderFunction<
   const eventsStore = useLazyRef(() =>
     createStore<EventsState>({
       regularEvents: new Map(),
-      resources: undefined,
       minDateUnix: undefined,
       maxDateUnix: undefined,
       overlapType,
@@ -269,10 +267,8 @@ const EventsProvider: ForwardRefRenderFunction<
       if (!updatedMaps) {
         return;
       }
-
       eventsStore.setState({
         regularEvents: updatedMaps.regularEvents,
-        resources,
         minDateUnix,
         maxDateUnix,
         overlapType,
@@ -286,7 +282,6 @@ const EventsProvider: ForwardRefRenderFunction<
       events,
       updateEventCache,
       eventsStore,
-      resources,
       overlapType,
       minStartDifference,
     ]
@@ -348,16 +343,4 @@ export const useRegularEventsByDay = (dateUnix: number) => {
   );
 
   return useSelector(eventsContext.subscribe, eventsContext.getState, selectorByDate);
-};
-
-export const useResources = () => {
-  const eventsContext = useContext(EventsContext);
-  const selectResources = useCallback(() => eventsContext?.getState().resources, [eventsContext]);
-
-  if (!eventsContext) {
-    throw new Error('useResources must be used within a EventsProvider');
-  }
-
-  const state = useSelector(eventsContext.subscribe, eventsContext.getState, selectResources);
-  return state;
 };
