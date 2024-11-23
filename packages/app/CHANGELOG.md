@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.0.0-alpha.6](https://github.com/howljs/react-native-calendar-kit/compare/@calendar-kit/app@3.0.0-alpha.5...@calendar-kit/app@3.0.0-alpha.6) (2024-11-23)
+
+### Bug Fixes
+
+* convert scrollTo to setNativeProps ([d40ba6f](https://github.com/howljs/react-native-calendar-kit/commit/d40ba6f59b8d17c9da8e232560dd5fbdb269c329))
+
 # [3.0.0-alpha.5](https://github.com/howljs/react-native-calendar-kit/compare/@calendar-kit/app@3.0.0-alpha.4...@calendar-kit/app@3.0.0-alpha.5) (2024-11-23)
 
 ### Bug Fixes
