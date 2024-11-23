@@ -2,7 +2,7 @@ import { clampValues, useCalendar } from '@calendar-kit/core';
 import { useRef } from 'react';
 import type { GestureType } from 'react-native-gesture-handler';
 import { Gesture } from 'react-native-gesture-handler';
-import { scrollTo, useSharedValue, withSpring } from 'react-native-reanimated';
+import { setNativeProps, useSharedValue, withSpring } from 'react-native-reanimated';
 
 // Constants for gesture behavior
 const SCALE_FACTOR = 0.5; // Controls how much the pinch affects the zoom
@@ -35,25 +35,21 @@ const usePinchToZoom = () => {
         startOffsetY.value = offsetY.value;
         return;
       }
-
       // Calculate new scale and height values
       const newScale = startScale.value * scale;
       const scaledDiff = (newScale - lastScale.value) * SCALE_FACTOR;
       const newHeight = timeIntervalHeight.value * (1 + scaledDiff);
-
       // Calculate scaling origin point and height difference
       const scaleOrigin = (focalY + startOffsetY.value) / timeIntervalHeight.value;
       const heightDiff = newHeight - timeIntervalHeight.value;
-
       // Clamp height within allowed bounds
       const clampedHeight = clampValues(
         newHeight,
         minTimeIntervalHeight - BOUNDARY_PADDING,
         maxTimeIntervalHeight + BOUNDARY_PADDING
       );
-      timeIntervalHeight.value = clampedHeight;
 
-      // Update scroll position if within bounds
+      timeIntervalHeight.value = clampedHeight;
       if (
         clampedHeight > minTimeIntervalHeight - BOUNDARY_PADDING &&
         clampedHeight < maxTimeIntervalHeight + BOUNDARY_PADDING
@@ -61,7 +57,7 @@ const usePinchToZoom = () => {
         const newOffsetY = startOffsetY.value + heightDiff * scaleOrigin;
         startOffsetY.value = newOffsetY;
         offsetY.value = newOffsetY;
-        scrollTo(verticalListRef, 0, newOffsetY, false);
+        setNativeProps(verticalListRef, { contentOffset: { y: newOffsetY, x: 0 } });
       }
       lastScale.value = newScale;
     })
@@ -78,7 +74,8 @@ const usePinchToZoom = () => {
       });
       const scaleFactor = finalHeight / timeIntervalHeight.value;
       const newOffsetY = startOffsetY.value * scaleFactor;
-      scrollTo(verticalListRef, 0, newOffsetY, true);
+      offsetY.value = newOffsetY;
+      setNativeProps(verticalListRef, { contentOffset: { y: newOffsetY, x: 0 } });
 
       // Reset scale values
       lastScale.value = 1;
