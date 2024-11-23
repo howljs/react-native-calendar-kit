@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.0.0-alpha.5](https://github.com/howljs/react-native-calendar-kit/compare/@calendar-kit/core@3.0.0-alpha.4...@calendar-kit/core@3.0.0-alpha.5) (2024-11-23)
+
+### Bug Fixes
+
+* add resources context ([8af4ecd](https://github.com/howljs/react-native-calendar-kit/commit/8af4ecdb97f6341d1fb47f446f6ad5684ba4c064))
+
 # [3.0.0-alpha.4](https://github.com/howljs/react-native-calendar-kit/compare/@calendar-kit/core@3.0.0-alpha.3...@calendar-kit/core@3.0.0-alpha.4) (2024-11-23)
 
 ### Bug Fixes
