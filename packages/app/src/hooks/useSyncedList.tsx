@@ -70,7 +70,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       offsetX.value = x;
       if (id === ScrollType.dayBar) {
         if (isGridListRefReady.value) {
-          if (setNativeProps) {
+          if (typeof setNativeProps === 'function') {
             setNativeProps(gridListRef, { contentOffset: { x: offsetX.value, y: 0 } });
           } else {
             scrollTo(gridListRef, offsetX.value, 0, false);
@@ -78,7 +78,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
         }
       } else if (id === ScrollType.calendarGrid) {
         if (isDayBarListRefReady.value) {
-          if (setNativeProps) {
+          if (typeof setNativeProps === 'function') {
             setNativeProps(headerListRef, { contentOffset: { x: offsetX.value, y: 0 } });
           } else {
             scrollTo(headerListRef, offsetX.value, 0, false);

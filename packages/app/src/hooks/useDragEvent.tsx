@@ -385,13 +385,18 @@ const useDragEventGesture = () => {
       const endDate = parseDateTime(event.end.dateTime, {
         zone: event.end.timeZone,
       }).setZone(timeZone);
-      const startMinutes = startDate.hour * 60 + startDate.minute;
-      const endMinutes = endDate.hour * 60 + endDate.minute;
-      const duration = endMinutes - startMinutes;
+
+      const eventIndex = event._internal.eventIndex ?? 0;
       const startUnix = forceUpdateZone(startDate.startOf('day'), 'utc').toMillis();
-      const targetIndex = gridListRef.current.getIndexByItem(startUnix);
+      const targetIndex = gridListRef.current.getIndexByItem(startUnix) + eventIndex;
       const currentIndex = gridListRef.current.getCurrentScrollIndex();
       const columnIndex = targetIndex - currentIndex;
+
+      let startMinutes = startDate.hour * 60 + startDate.minute;
+      const duration = endDate.diff(startDate, 'minutes').minutes;
+      if (eventIndex > 0) {
+        startMinutes = calendarStart - (24 * 60 - startMinutes);
+      }
 
       dragPosition.value = {
         x: columnIndex * columnWidth + hourWidth,
@@ -406,6 +411,7 @@ const useDragEventGesture = () => {
       isDraggingAnim.value = true;
     },
     [
+      calendarStart,
       columnWidth,
       dragPosition,
       draggingColumnIndex,

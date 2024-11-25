@@ -140,6 +140,7 @@ export interface EventItemInternal extends EventItem {
     startMinutes?: number;
     weekStart?: number;
     resourceIndex?: number;
+    eventIndex?: number;
   };
 }
 

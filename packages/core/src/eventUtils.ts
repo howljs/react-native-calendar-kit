@@ -219,6 +219,7 @@ export const divideAllDayEvents = (
           endUnix: weekEnd,
           duration,
           weekStart,
+          eventIndex: i,
         },
       };
       events.push(newEvent);
@@ -303,6 +304,7 @@ export const divideEvents = (
         endUnix,
         duration,
         startMinutes: segmentStart.hour * 60 + segmentStart.minute,
+        eventIndex: i,
       },
     };
   });

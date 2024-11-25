@@ -59,10 +59,10 @@ const usePinchToZoom = () => {
         const newOffsetY = startOffsetY.value + heightDiff * scaleOrigin;
         startOffsetY.value = newOffsetY;
         offsetY.value = newOffsetY;
-        if (setNativeProps) {
+        if (typeof setNativeProps === 'function') {
           setNativeProps(verticalListRef, { contentOffset: { y: newOffsetY, x: 0 } });
         } else {
-          scrollTo(verticalListRef, 0, newOffsetY, false);
+          scrollTo(verticalListRef, 0, newOffsetY, true);
         }
       }
       lastScale.value = newScale;
@@ -79,10 +79,13 @@ const usePinchToZoom = () => {
         stiffness: SPRING_STIFFNESS,
       });
       const scaleFactor = finalHeight / timeIntervalHeight.value;
-      const newOffsetY = startOffsetY.value * scaleFactor;
-      offsetY.value = newOffsetY;
-      setNativeProps(verticalListRef, { contentOffset: { y: newOffsetY, x: 0 } });
-
+      const targetOffset = startOffsetY.value * scaleFactor;
+      offsetY.value = targetOffset;
+      if (typeof setNativeProps === 'function') {
+        setNativeProps(verticalListRef, { contentOffset: { y: targetOffset, x: 0 } });
+      } else {
+        scrollTo(verticalListRef, 0, targetOffset, true);
+      }
       // Reset scale values
       lastScale.value = 1;
       startScale.value = 1;

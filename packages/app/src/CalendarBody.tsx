@@ -39,7 +39,7 @@ import LoadingOverlay from './components/Loading/Overlay';
 import { EXTRA_HEIGHT, ScrollType } from './constants';
 import type { BodyContextProps } from './context/BodyContext';
 import { BodyContext } from './context/BodyContext';
-import useDragEventGesture from './hooks/useDragEventGesture';
+import useDragEvent from './hooks/useDragEvent';
 import useDragToCreate from './hooks/useDragToCreate';
 import useSyncedList from './hooks/useSyncedList';
 import type { CalendarBodyProps, PackedEvent } from './types';
@@ -121,11 +121,7 @@ const CalendarBody: FC<CalendarBodyProps> = ({
 
   const { isDragging, draggingId } = useDragContext();
   const { pinchGesture, pinchGestureRef } = usePinchToZoom();
-  const {
-    gesture: dragEventGesture,
-    triggerDragEvent,
-    triggerDragSelectedEvent,
-  } = useDragEventGesture();
+  const { gesture: dragEventGesture, triggerDragEvent, triggerDragSelectedEvent } = useDragEvent();
   const { gesture: dragToCreateGesture, triggerDragCreateEvent } = useDragToCreate();
 
   const _onLayout = (event: LayoutChangeEvent) => {
