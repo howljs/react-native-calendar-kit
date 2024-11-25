@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.0.0-alpha.7](https://github.com/howljs/react-native-calendar-kit/compare/@calendar-kit/app@3.0.0-alpha.6...@calendar-kit/app@3.0.0-alpha.7) (2024-11-25)
+
+### Bug Fixes
+
+* drag/drop issues ([d8d99b4](https://github.com/howljs/react-native-calendar-kit/commit/d8d99b48389951af1f144a1d6ba697150d7a24bb))
+
 # [3.0.0-alpha.6](https://github.com/howljs/react-native-calendar-kit/compare/@calendar-kit/app@3.0.0-alpha.5...@calendar-kit/app@3.0.0-alpha.6) (2024-11-23)
 
 ### Bug Fixes
