@@ -1,16 +1,12 @@
-import type { CalendarList } from '@calendar-kit/core';
 import React from 'react';
-import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
+import type { SharedValue } from 'react-native-reanimated';
 
 export interface HeaderContextProps {
   dayBarHeight: number;
   numberOfDays: number;
   columnWidthAnim: SharedValue<number>;
   hourWidth: number;
-  scrollByDay: boolean;
-  columns: number;
   columnWidth: number;
-  headerListRef: AnimatedRef<CalendarList>;
 }
 
 export const HeaderContext = React.createContext<HeaderContextProps | undefined>(undefined);

@@ -28,10 +28,10 @@ const TimeColumn: FC<TimeColumnProps> = ({ includeExtraHeight = false }) => {
     spaceFromTop,
     spaceFromBottom,
     timelineHeight,
-    renderHour,
     hourWidth,
     minuteHeight,
     start,
+    renderHour,
   } = useBody();
   const { cellBorderColor, hourTextColor, hourTextStyle, hourBackgroundColor } =
     useTheme(selectTimeColumnTheme);
@@ -44,11 +44,15 @@ const TimeColumn: FC<TimeColumnProps> = ({ includeExtraHeight = false }) => {
   ]);
 
   const _renderHour = (hour: { slot: number; time: string }, index: number) => {
-    let children: React.ReactNode;
+    let children;
     if (renderHour) {
       children = renderHour({ hourStr: hour.time, minutes: hour.slot, style });
     } else {
-      children = <Text style={style}>{hour.time}</Text>;
+      children = (
+        <View style={[styles.absolute, styles.hour, { right: HOUR_SHORT_LINE_WIDTH + 8 }]}>
+          <Text style={style}>{hour.time}</Text>
+        </View>
+      );
     }
 
     return (
@@ -58,9 +62,7 @@ const TimeColumn: FC<TimeColumnProps> = ({ includeExtraHeight = false }) => {
         height={minuteHeight}
         cellBorderColor={cellBorderColor}
         start={start}>
-        <View style={[styles.absolute, styles.hour, { right: HOUR_SHORT_LINE_WIDTH + 8 }]}>
-          {children}
-        </View>
+        {children}
       </HourWrapper>
     );
   };

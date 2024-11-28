@@ -1,19 +1,17 @@
 import { useNowIndicator, useTheme } from '@calendar-kit/core';
-import React, { useCallback } from 'react';
+import { type FC, memo, type PropsWithChildren, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
-import { useBody } from '../../context/BodyContext';
-import { useBodyColumn } from './BodyItemContext';
+import { useBody, useBodyItem } from '../../context/BodyContext';
 
 interface NowIndicatorProps {
   currentTime: SharedValue<number>;
 }
 
-const NowIndicatorInner = ({ currentTime }: NowIndicatorProps) => {
-  const { minuteHeight, start, end, startOffset, columnWidthAnim, NowIndicatorComponent } =
-    useBody();
+const NowIndicatorInner: FC<PropsWithChildren<NowIndicatorProps>> = ({ currentTime, children }) => {
+  const { minuteHeight, start, end, columnWidthAnim } = useBody();
   const nowIndicatorColor = useTheme(
     useCallback((state) => state.nowIndicatorColor || state.colors.primary, [])
   );
@@ -22,17 +20,21 @@ const NowIndicatorInner = ({ currentTime }: NowIndicatorProps) => {
     return currentTime.value >= start && currentTime.value <= end ? 1 : 0;
   }, [currentTime, start, end]);
 
+  const top = useDerivedValue(() => {
+    return (currentTime.value - start) * minuteHeight.value;
+  }, [currentTime, start, minuteHeight]);
+
   const animView = useAnimatedStyle(() => {
     return {
       width: columnWidthAnim.value,
-      top: currentTime.value * minuteHeight.value - startOffset.value,
+      top: top.value,
       opacity: opacity.value,
     };
   });
 
   return (
     <Animated.View pointerEvents="box-none" style={[styles.container, animView]}>
-      {NowIndicatorComponent || (
+      {children || (
         <View style={styles.lineContainer}>
           <View style={[styles.line, { backgroundColor: nowIndicatorColor }]} />
           <View style={[styles.dot, { backgroundColor: nowIndicatorColor }]} />
@@ -42,8 +44,8 @@ const NowIndicatorInner = ({ currentTime }: NowIndicatorProps) => {
   );
 };
 
-const NowIndicator = () => {
-  const { item } = useBodyColumn();
+const NowIndicator: FC<PropsWithChildren> = ({ children }) => {
+  const { item } = useBodyItem();
   const { showNowIndicator } = useBody();
   const { currentDateUnix, currentTime } = useNowIndicator();
 
@@ -52,10 +54,10 @@ const NowIndicator = () => {
     return null;
   }
 
-  return <NowIndicatorInner currentTime={currentTime} />;
+  return <NowIndicatorInner currentTime={currentTime}>{children}</NowIndicatorInner>;
 };
 
-export default React.memo(NowIndicator);
+export default memo(NowIndicator);
 
 const styles = StyleSheet.create({
   container: { position: 'absolute' },

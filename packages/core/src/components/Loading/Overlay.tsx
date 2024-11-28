@@ -1,5 +1,6 @@
-import { useLoading } from '@calendar-kit/core';
 import { StyleSheet, View } from 'react-native';
+
+import { useLoading } from '../../context/LoadingContext';
 
 const LoadingOverlay = () => {
   const isLoading = useLoading();

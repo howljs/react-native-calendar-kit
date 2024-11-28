@@ -1,8 +1,14 @@
 export { default as CalendarBody } from './CalendarBody';
 export { default as CalendarContainer } from './CalendarContainer';
 export { default as CalendarHeader } from './CalendarHeader';
+export { default as BodyEvents } from './components/BodyItem/BodyEvents';
+export { default as BodyItem } from './components/BodyItem/BodyItem';
+export { default as DraggableEvent } from './components/BodyItem/DraggableEvent';
+export { default as EventItemWrapper } from './components/BodyItem/EventItemWrapper';
+export { default as BodyNowIndicator } from './components/BodyItem/NowIndicator';
 export { default as DayItem } from './components/HeaderItem/DayItem';
-export { useBody } from './context/BodyContext';
+export { useBody, useBodyItem, useBodyItemContainer } from './context/BodyContext';
 export { useHeader } from './context/HeaderContext';
 export * from './types';
+export { type ListRenderItemInfo, useTheme } from '@calendar-kit/core';
 export type { WeekdayNumbers } from 'luxon';

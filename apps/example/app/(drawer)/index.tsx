@@ -6,20 +6,21 @@ import {
   type DateOrDateTime,
   type EventItem,
   type LocaleConfigsProps,
+  type PackedEvent,
   type SelectedEventType,
 } from '@calendar-kit/app';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, useColorScheme, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Header from '../../components/Header';
 import { useAppContext } from '../../context/AppProvider';
 
-const MIN_DATE = new Date(2010, new Date().getMonth(), new Date().getDate()).toISOString();
+const MIN_DATE = new Date(2024, new Date().getMonth() - 5, new Date().getDate()).toISOString();
 
-const MAX_DATE = new Date(2100, new Date().getMonth() + 1, new Date().getDate() + 2).toISOString();
+const MAX_DATE = new Date(2024, new Date().getMonth() + 5, new Date().getDate() + 2).toISOString();
 
 const INITIAL_DATE = new Date(
   new Date().getFullYear(),
@@ -413,6 +414,18 @@ const Calendar = () => {
     calendarRef.current?.goToNextPage();
   };
 
+  const renderEvent = useCallback((event: PackedEvent) => {
+    return (
+      <View>
+        <Text>{event.title}</Text>
+      </View>
+    );
+  }, []);
+
+  const NowIndicatorComponent = useMemo(() => {
+    return <View style={{ height: 2, backgroundColor: 'red', width: '100%' }} />;
+  }, []);
+
   return (
     <View style={styles.container}>
       <Header
@@ -425,7 +438,7 @@ const Calendar = () => {
         ref={calendarRef}
         calendarWidth={calendarWidth}
         numberOfDays={configs.numberOfDays}
-        scrollByDay={configs.numberOfDays < 5}
+        scrollByDay={false}
         firstDay={configs.startOfWeek}
         hideWeekDays={configs.hideWeekDays}
         initialLocales={initialLocales}
@@ -514,7 +527,6 @@ const Calendar = () => {
             }, 100);
           });
         }}
-        resources={undefined}
         reduceBrightnessOfPastEvents
         onDragCreateEventEnd={(event) => {
           console.log('onDragCreateEventEnd', event);
@@ -531,13 +543,7 @@ const Calendar = () => {
           setSelectedEvent(newEvent);
         }}>
         <CalendarHeader />
-        <CalendarBody
-        // renderCustomHorizontalLine={_renderCustomHorizontalLine}
-        // renderCustomUnavailableHour={_renderCustomUnavailableHour}
-        // renderDraggingEvent={
-        //   configs.dragToCreateMode === 'duration' ? undefined : _renderDraggingEvent
-        // }
-        />
+        <CalendarBody renderEvent={renderEvent} NowIndicatorComponent={NowIndicatorComponent} />
       </CalendarContainer>
     </View>
   );

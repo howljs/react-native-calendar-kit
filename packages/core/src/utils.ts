@@ -86,10 +86,6 @@ export const findNearestDate = (numbers: number[], target: number) => {
   );
 };
 
-export const isNumbersEqual = (num1: number, num2: number, epsilon: number = 0.2) => {
-  return Math.abs(num1 - num2) < epsilon;
-};
-
 export const calculateSlots = (start: number, end: number, step: number) => {
   const slots = [];
   const endInMinutes = end;

@@ -1,3 +1,4 @@
+import { forceUpdateZone, parseDateTime, RRuleGenerator, startOfWeek } from '@calendar-kit/core';
 import type { DateTime, WeekdayNumbers } from 'luxon';
 
 import {
@@ -5,9 +6,7 @@ import {
   MILLISECONDS_IN_DAY,
   MILLISECONDS_IN_MINUTE,
   MINUTES_IN_DAY,
-} from './constants';
-import { forceUpdateZone, parseDateTime, startOfWeek } from './dateUtils';
-import { RRuleGenerator } from './service/rrule';
+} from '../constants';
 import type {
   EventItem,
   EventItemInternal,
@@ -16,7 +15,7 @@ import type {
   PackedAllDayEvent,
   PackedEvent,
   ResourceItem,
-} from './types';
+} from '../types';
 
 const isValidEventDates = (event: EventItem): boolean => {
   return !!(event.start.date && event.end.date) || !!(event.start.dateTime && event.end.dateTime);

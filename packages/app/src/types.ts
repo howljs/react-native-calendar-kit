@@ -233,34 +233,6 @@ export interface ActionsProviderProps {
 
   /** Callback when the calendar is loaded */
   onLoad?: () => void;
-
-  /**
-   * Use all day event
-   *
-   * Default: `true`
-   */
-  useAllDayEvent?: boolean;
-
-  /**
-   * Spacing at the right edge of events.
-   *
-   * Default is `1`
-   */
-  rightEdgeSpacing?: number;
-
-  /**
-   * Spacing between overlapping events.
-   *
-   * Default is 1
-   */
-  overlapEventsSpacing?: number;
-
-  /**
-   * Minimum minutes to calculate height of regular event
-   *
-   * Default is `1`
-   */
-  minRegularEventMinutes?: number;
 }
 
 export interface CalendarProviderProps extends ActionsProviderProps {
@@ -526,9 +498,6 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    */
   minStartDifference?: number;
 
-  /** Resource list */
-  resources?: ResourceItem[];
-
   /**
    * Column width will be animated when the number of days changes.
    *
@@ -547,6 +516,34 @@ export interface CalendarProviderProps extends ActionsProviderProps {
 
   /** Reduce the brightness of past events */
   reduceBrightnessOfPastEvents?: boolean;
+
+  /**
+   * Use all day event
+   *
+   * Default: `true`
+   */
+  useAllDayEvent?: boolean;
+
+  /**
+   * Spacing at the right edge of events.
+   *
+   * Default is `1`
+   */
+  rightEdgeSpacing?: number;
+
+  /**
+   * Spacing between overlapping events.
+   *
+   * Default is 1
+   */
+  overlapEventsSpacing?: number;
+
+  /**
+   * Minimum minutes to calculate height of regular event
+   *
+   * Default is `1`
+   */
+  minRegularEventMinutes?: number;
 }
 
 export interface ResourceItem extends Record<string, any> {
@@ -716,6 +713,9 @@ export interface CalendarBodyProps {
   /** Custom dragging hour format */
   draggingHourFormat?: string;
 
+  /** Show now indicator */
+  showNowIndicator?: boolean;
+
   /** Custom hour text
    *
    * Note: Please use `useCallback` to memoize the function
@@ -727,9 +727,6 @@ export interface CalendarBodyProps {
    * Note: Please use `useCallback` to memoize the function
    */
   renderDraggingHour?: (props: RenderHourProps) => React.ReactElement | null;
-
-  /** Show now indicator */
-  showNowIndicator?: boolean;
 
   /** Custom Out of Range item
    *
@@ -755,6 +752,16 @@ export interface CalendarBodyProps {
   renderCustomHorizontalLine?: (props: {
     index: number;
     borderColor: string;
+    isHalf: boolean;
+  }) => React.ReactElement | null;
+
+  /** Custom vertical line
+   *
+   * Note: Please use `useCallback` to memoize the function
+   */
+  renderCustomVerticalLine?: (props: {
+    index: number;
+    borderColor: string;
   }) => React.ReactElement | null;
 
   /** Custom event item
@@ -775,8 +782,14 @@ export interface CalendarBodyProps {
    */
   renderDraggingEvent?: (props: DraggingEventProps) => React.ReactElement | null;
 
-  /** Custom now indicator */
+  /** Custom now indicator
+   *
+   * Note: Please use `useMemo` to memoize the component
+   */
   NowIndicatorComponent?: React.ReactElement | null;
+
+  /** Show half hour line */
+  isShowHalfHourLine?: boolean;
 }
 
 export interface RenderHourProps {

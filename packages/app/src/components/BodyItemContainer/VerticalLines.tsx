@@ -1,12 +1,12 @@
 import { useTheme } from '@calendar-kit/core';
 import { memo, useCallback, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
 import { useBody } from '../../context/BodyContext';
 
 const VerticalLines = ({ columns }: { columns: number }) => {
-  const { columnWidthAnim } = useBody();
+  const { columnWidthAnim, renderCustomVerticalLine } = useBody();
   const borderColor = useTheme(useCallback((state) => state.colors.border, []));
 
   const verticalLines = useMemo(() => {
@@ -24,6 +24,7 @@ const VerticalLines = ({ columns }: { columns: number }) => {
         borderColor={borderColor}
         index={index}
         columnWidth={columnWidthAnim}
+        renderCustomVerticalLine={renderCustomVerticalLine}
       />
     );
   };
@@ -35,9 +36,18 @@ interface VerticalLineProps {
   borderColor: string;
   index: number;
   columnWidth: SharedValue<number>;
+  renderCustomVerticalLine?: (props: {
+    index: number;
+    borderColor: string;
+  }) => React.ReactElement | null;
 }
 
-const VerticalLine = ({ index, borderColor, columnWidth }: VerticalLineProps) => {
+const VerticalLine = ({
+  index,
+  borderColor,
+  columnWidth,
+  renderCustomVerticalLine,
+}: VerticalLineProps) => {
   const animStyle = useAnimatedStyle(
     () => ({
       left: index * columnWidth.value,
@@ -46,10 +56,11 @@ const VerticalLine = ({ index, borderColor, columnWidth }: VerticalLineProps) =>
   );
 
   return (
-    <Animated.View
-      pointerEvents="box-none"
-      style={[styles.verticalLine, { backgroundColor: borderColor }, animStyle]}
-    />
+    <Animated.View pointerEvents="box-none" style={[styles.verticalLine, animStyle]}>
+      {renderCustomVerticalLine?.({ index, borderColor }) ?? (
+        <View style={[styles.line, { backgroundColor: borderColor }]} />
+      )}
+    </Animated.View>
   );
 };
 
@@ -58,8 +69,11 @@ export default memo(VerticalLines);
 const styles = StyleSheet.create({
   verticalLine: {
     position: 'absolute',
+    height: '100%',
+    zIndex: 10,
+  },
+  line: {
     width: 1,
-    backgroundColor: 'grey',
     height: '100%',
   },
 });

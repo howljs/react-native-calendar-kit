@@ -1,4 +1,4 @@
-import { useDragContext, useTheme } from '@calendar-kit/core';
+import { useTheme } from '@calendar-kit/core';
 import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import type { ViewStyle } from 'react-native';
@@ -7,10 +7,10 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
-import { useBody } from '../../context/BodyContext';
+import { useBody, useBodyItem } from '../../context/BodyContext';
+import { useDragContext } from '../../context/DragProvider';
 import type { SelectedEventType } from '../../types';
 import DragDot from '../DragDot';
-import { useBodyColumn } from './BodyItemContext';
 
 export interface DraggableEventInnerProps {
   startUnix: number;
@@ -27,7 +27,7 @@ export interface DraggableEventInnerProps {
   containerStyle?: ViewStyle;
 }
 
-const DraggableEventInner: FC<DraggableEventInnerProps> = ({
+export const DraggableEvent: FC<DraggableEventInnerProps> = ({
   index,
   renderEvent,
   TopEdgeComponent,
@@ -172,6 +172,7 @@ const DraggableEventInner: FC<DraggableEventInnerProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
+    zIndex: 99,
   },
   dot: {
     position: 'absolute',
@@ -202,8 +203,8 @@ export interface DraggableEventProps {
   ) => React.ReactElement | null;
 }
 
-const DraggableEvent: FC<DraggableEventProps> = ({ renderEvent }) => {
-  const { item } = useBodyColumn();
+const DraggableEventWrapper: FC<DraggableEventProps> = ({ renderEvent }) => {
+  const { item } = useBodyItem();
   const { draggableDates } = useDragContext();
 
   const index = draggableDates.findIndex((date) => date === item);
@@ -213,7 +214,7 @@ const DraggableEvent: FC<DraggableEventProps> = ({ renderEvent }) => {
 
   const date = draggableDates[index];
   return (
-    <DraggableEventInner
+    <DraggableEvent
       key={`${date}-${index}`}
       startUnix={date}
       index={index}
@@ -222,4 +223,4 @@ const DraggableEvent: FC<DraggableEventProps> = ({ renderEvent }) => {
   );
 };
 
-export default DraggableEvent;
+export default DraggableEventWrapper;

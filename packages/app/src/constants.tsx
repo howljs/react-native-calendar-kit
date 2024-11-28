@@ -47,11 +47,6 @@ export enum ScrollType {
   calendarGrid,
 }
 
-export enum ScrollTypeMonth {
-  header,
-  body,
-}
-
 export const EXTRA_HEIGHT = 300;
 export const HOUR_SHORT_LINE_WIDTH = 8;
 

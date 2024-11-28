@@ -1,13 +1,17 @@
+import {
+  createStore,
+  parseDateTimeUTC,
+  type Store,
+  useDateChangedListener,
+  useLazyRef,
+  useSelector,
+} from '@calendar-kit/core';
 import type { FC, PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useEffect } from 'react';
 
-import { parseDateTimeUTC } from '../dateUtils';
-import useLazyRef from '../hooks/useLazyRef';
-import { createStore, type Store } from '../store/storeBuilder';
-import { useSelector } from '../store/useSelector';
+import { MILLISECONDS_IN_DAY } from '../constants';
 import type { UnavailableHourProps } from '../types';
 import { useCalendar } from './CalendarContext';
-import { useDateChangedListener } from './VisibleDateProvider';
 
 export type UnavailableHoursStore = {
   unavailableHours?: Record<string, UnavailableHourProps[]>;
@@ -48,20 +52,19 @@ const UnavailableHoursProvider: FC<
       }
 
       const unavailableHours: Record<string, UnavailableHourProps[]> = {};
+
       const listRef = gridListRef.current;
-      const baseIndex = listRef?.getIndexByItem(date);
-      if (baseIndex === undefined || baseIndex < 0) {
+      if (!listRef) {
         return;
       }
-      const numberOfDays = listRef?.numColumns ?? 7;
-      const minIndex = baseIndex - numberOfDays * pagesPerSide;
-      const maxIndex = baseIndex + numberOfDays * (pagesPerSide + 1);
-      for (let i = minIndex; i < maxIndex; i += 1) {
-        const item = listRef?.getItemByIndex(i);
-        if (item === undefined) {
-          continue;
-        }
-        const forceDate = parseDateTimeUTC(item);
+      const numberOfDays = listRef.numColumns;
+      const daysBefore = numberOfDays * pagesPerSide;
+      const daysAfter = numberOfDays * (pagesPerSide + 1);
+      const minUnix = date - daysBefore * MILLISECONDS_IN_DAY;
+      const maxUnix = date + daysAfter * MILLISECONDS_IN_DAY;
+      const visibleDates = listRef.getVisibleDates(minUnix, maxUnix);
+      for (const curDate of visibleDates) {
+        const forceDate = parseDateTimeUTC(curDate);
         const weekDay = forceDate.weekday;
         const dateStr = forceDate.toFormat('yyyy-MM-dd');
         // Get unavailable hours either by specific date or by weekday
@@ -69,13 +72,13 @@ const UnavailableHoursProvider: FC<
 
         // If unavailable hours are found for this day, store them
         if (unavailableHoursByDate) {
-          unavailableHours[item] = unavailableHoursByDate;
+          unavailableHours[curDate] = unavailableHoursByDate;
         }
       }
 
       unavailableHoursStore.setState({ unavailableHours });
     },
-    [gridListRef, rawUnavailableHours, pagesPerSide, unavailableHoursStore]
+    [rawUnavailableHours, gridListRef, pagesPerSide, unavailableHoursStore]
   );
 
   useEffect(() => {

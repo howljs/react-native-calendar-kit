@@ -418,6 +418,7 @@ class CalendarList extends React.PureComponent<CalendarListProps, CalendarListSt
         return [];
       }
     }
+
     return this.props.data.slice(startIndex, endIndex + 1);
   }
 

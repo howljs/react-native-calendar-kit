@@ -1,24 +1,22 @@
-import { useRegularEventsByDay } from '@calendar-kit/core';
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { useBody } from '../../context/BodyContext';
+import { useBodyItem } from '../../context/BodyContext';
+import { useRegularEventsByDay } from '../../context/EventsProvider';
 import type { PackedEvent } from '../../types';
-import { useBodyColumn } from './BodyItemContext';
-import EventItem from './EventItem';
+import EventItemWrapper from './EventItemWrapper';
 
 const BodyEvents = () => {
-  const { item } = useBodyColumn();
+  const { item } = useBodyItem();
   const events = useRegularEventsByDay(item);
-  const { renderEvent } = useBody();
+
+  const _renderEvent = useCallback((event: PackedEvent) => {
+    return <EventItemWrapper key={event.localId} event={event} />;
+  }, []);
 
   if (events.length === 0) {
     return null;
   }
-
-  const _renderEvent = (event: PackedEvent) => {
-    return <EventItem key={event.localId} event={event} renderEvent={renderEvent} />;
-  };
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">

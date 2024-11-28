@@ -1,5 +1,14 @@
+import {
+  createStore,
+  parseDateTime,
+  type Store,
+  toISODate,
+  useDateChangedListener,
+  useLazyRef,
+  useSelector,
+  useTimezone,
+} from '@calendar-kit/core';
 import isEqual from 'lodash.isequal';
-import { type WeekdayNumbers } from 'luxon';
 import type { ForwardRefRenderFunction, PropsWithChildren } from 'react';
 import {
   createContext,
@@ -11,16 +20,15 @@ import {
   useRef,
 } from 'react';
 
-import { DEFAULT_MIN_START_DIFFERENCE } from '../constants';
-import { parseDateTime, toISODate } from '../dateUtils';
-import { divideEvents, filterEvents, populateEvents, processEventOccurrences } from '../eventUtils';
-import useLazyRef from '../hooks/useLazyRef';
-import { createStore, type Store } from '../store/storeBuilder';
-import { useSelector } from '../store/useSelector';
+import { DEFAULT_MIN_START_DIFFERENCE, MILLISECONDS_IN_DAY } from '../constants';
 import type { EventItem, EventItemInternal, PackedEvent, ResourceItem } from '../types';
+import {
+  divideEvents,
+  filterEvents,
+  populateEvents,
+  processEventOccurrences,
+} from '../utils/eventUtils';
 import { useCalendar } from './CalendarContext';
-import { useTimezone } from './TimezoneContext';
-import { useDateChangedListener } from './VisibleDateProvider';
 
 export interface EventsState {
   regularEvents: Map<number, PackedEvent[]>;
@@ -34,7 +42,6 @@ export const EventsContext = createContext<Store<EventsState> | undefined>(undef
 
 export interface EventsProviderProps {
   events?: EventItem[];
-  hideWeekDays: WeekdayNumbers[];
   minRegularEventMinutes?: number;
   overlapType?: 'no-overlap' | 'overlap';
   minStartDifference?: number;
@@ -249,28 +256,23 @@ const EventsProvider: ForwardRefRenderFunction<
   const notifyDataChanged = useCallback(
     (date: number) => {
       const listRef = gridListRef.current;
-      const baseIndex = listRef?.getIndexByItem(date);
-      if (baseIndex === undefined) {
+      if (!listRef) {
         return;
       }
-      const numberOfDays = listRef?.numColumns ?? 7;
-      const minIndex = baseIndex - numberOfDays * pagesPerSide;
-      const maxIndex = baseIndex + numberOfDays * (pagesPerSide + 1);
-      const minDateUnix = listRef?.getItemByIndex(minIndex);
-      const maxDateUnix = listRef?.getItemByIndex(maxIndex);
-      if (!minDateUnix || !maxDateUnix) {
-        return;
-      }
-
-      const eventChanges = getEventChanges(events, minDateUnix, maxDateUnix);
-      const updatedMaps = updateEventCache(eventChanges, minDateUnix, maxDateUnix);
+      const numberOfDays = listRef.numColumns;
+      const daysBefore = numberOfDays * pagesPerSide;
+      const daysAfter = numberOfDays * (pagesPerSide + 1);
+      const minUnix = date - daysBefore * MILLISECONDS_IN_DAY;
+      const maxUnix = date + daysAfter * MILLISECONDS_IN_DAY;
+      const eventChanges = getEventChanges(events, minUnix, maxUnix);
+      const updatedMaps = updateEventCache(eventChanges, minUnix, maxUnix);
       if (!updatedMaps) {
         return;
       }
       eventsStore.setState({
         regularEvents: updatedMaps.regularEvents,
-        minDateUnix,
-        maxDateUnix,
+        minDateUnix: minUnix,
+        maxDateUnix: maxUnix,
         overlapType,
         minStartDifference,
       });

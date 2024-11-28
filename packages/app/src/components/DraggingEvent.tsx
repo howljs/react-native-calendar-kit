@@ -1,4 +1,4 @@
-import { clampValues, useDragContext, useResources, useTheme } from '@calendar-kit/core';
+import { useTheme } from '@calendar-kit/core';
 import type { FC } from 'react';
 import React, { useCallback } from 'react';
 import type { ViewStyle } from 'react-native';
@@ -7,6 +7,7 @@ import type { SharedValue } from 'react-native-reanimated';
 import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
 import { useBody } from '../context/BodyContext';
+import { useDragContext } from '../context/DragProvider';
 import type { SelectedEventType } from '../types';
 import DragDot from './DragDot';
 
@@ -29,7 +30,6 @@ const DraggingEventInner: FC<DraggingEventInnerProps> = ({
   BottomEdgeComponent,
   containerStyle,
 }) => {
-  const resources = useResources();
   const theme = useTheme(
     useCallback((state) => {
       return {
@@ -48,27 +48,9 @@ const DraggingEventInner: FC<DraggingEventInnerProps> = ({
     draggingColumnIndex,
     draggingStartMinutes,
     draggingDuration,
-    dragPosition,
   } = useDragContext();
   const isCreate = !selectedEvent;
   const isShowDot = (dragToCreateMode !== 'date-time' && isCreate) || !isCreate;
-
-  const totalResources = resources && resources.length > 1 ? resources.length : 1;
-
-  const eventWidth = useDerivedValue(
-    () => columnWidthAnim.value / totalResources,
-    [columnWidthAnim, totalResources]
-  );
-
-  const resourceIndex = useDerivedValue(() => {
-    const posX = dragPosition.value?.x;
-    if (totalResources === 1 || !posX) {
-      return 0;
-    }
-
-    const columnIndex = Math.floor((posX - hourWidth) / eventWidth.value);
-    return clampValues(columnIndex, 0, totalResources - 1);
-  }, [dragPosition, totalResources, hourWidth, eventWidth]);
 
   const eventHeight = useDerivedValue(() => {
     const duration = draggingDuration.value;
@@ -87,19 +69,18 @@ const DraggingEventInner: FC<DraggingEventInnerProps> = ({
     if (draggingColumnIndex.value < 0) {
       return -1;
     }
-    const startX = resourceIndex.value * eventWidth.value;
-    return startX + hourWidth + eventWidth.value * draggingColumnIndex.value - 1;
-  }, [eventWidth, hourWidth, draggingColumnIndex, resourceIndex]);
+    return hourWidth + columnWidthAnim.value * draggingColumnIndex.value - 1;
+  }, [hourWidth, draggingColumnIndex, columnWidthAnim]);
 
   const animView = useAnimatedStyle(() => {
     return {
       top: top.value,
       height: eventHeight.value,
-      width: eventWidth.value,
+      width: columnWidthAnim.value,
       left: left.value,
       opacity: eventHeight.value > 0 ? 1 : 0,
     };
-  }, [top, eventHeight, eventWidth, left]);
+  }, [top, eventHeight, columnWidthAnim, left]);
 
   const renderTopEdgeComponent = () => {
     if (!isShowDot) {
@@ -148,7 +129,7 @@ const DraggingEventInner: FC<DraggingEventInnerProps> = ({
         ]}>
         {renderEvent
           ? renderEvent(draggingEvent ?? selectedEvent, {
-              width: eventWidth,
+              width: columnWidthAnim,
               height: eventHeight,
             })
           : !!(draggingEvent?.title ?? selectedEvent?.title) && (
@@ -165,7 +146,7 @@ const DraggingEventInner: FC<DraggingEventInnerProps> = ({
 
 export interface DraggingEventProps {
   renderEvent?: (
-    event: SelectedEventType | undefined,
+    event: any,
     options: {
       width: SharedValue<number>;
       height: SharedValue<number>;

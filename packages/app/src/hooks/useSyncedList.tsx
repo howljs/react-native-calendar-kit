@@ -2,7 +2,6 @@ import {
   dateTimeToISOString,
   parseDateTime,
   useActions,
-  useCalendar,
   useNotifyDateChanged,
   useTimezone,
 } from '@calendar-kit/core';
@@ -10,12 +9,12 @@ import { useCallback, useEffect, useRef } from 'react';
 import {
   runOnJS,
   scrollTo,
-  setNativeProps,
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
 
 import { ScrollType } from '../constants';
+import { useCalendar } from '../context/CalendarContext';
 
 const useSyncedList = ({ id }: { id: ScrollType }) => {
   const {
@@ -70,19 +69,11 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       offsetX.value = x;
       if (id === ScrollType.dayBar) {
         if (isGridListRefReady.value) {
-          if (typeof setNativeProps === 'function') {
-            setNativeProps(gridListRef, { contentOffset: { x: offsetX.value, y: 0 } });
-          } else {
-            scrollTo(gridListRef, offsetX.value, 0, false);
-          }
+          scrollTo(gridListRef, offsetX.value, 0, false);
         }
       } else if (id === ScrollType.calendarGrid) {
         if (isDayBarListRefReady.value) {
-          if (typeof setNativeProps === 'function') {
-            setNativeProps(headerListRef, { contentOffset: { x: offsetX.value, y: 0 } });
-          } else {
-            scrollTo(headerListRef, offsetX.value, 0, false);
-          }
+          scrollTo(headerListRef, offsetX.value, 0, false);
         }
       }
     },

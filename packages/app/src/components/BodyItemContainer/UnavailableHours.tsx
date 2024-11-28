@@ -1,17 +1,15 @@
 import { useTheme } from '@calendar-kit/core';
-import React, { memo, useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { StyleSheet } from 'react-native';
-import type { SharedValue } from 'react-native-reanimated';
 import Animated, { useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
 
-import { useBody } from '../../context/BodyContext';
+import { useBody, useBodyItemContainer } from '../../context/BodyContext';
 import { useUnavailableHoursByDate } from '../../hooks/useUnavailableHours';
 import type { UnavailableHourProps } from '../../types';
-import { useBodyContainer } from './BodyItemContext';
 
 const UnavailableHours = () => {
-  const { item } = useBodyContainer();
-  const { start: calendarStart, renderCustomUnavailableHour } = useBody();
+  const { item } = useBodyItemContainer();
+  const { start: calendarStart } = useBody();
   const backgroundColor = useTheme(
     useCallback((state) => state.unavailableHourBackgroundColor || state.colors.surface, [])
   );
@@ -34,7 +32,6 @@ const UnavailableHours = () => {
         totalMinutes={totalMinutes}
         backgroundColor={props.backgroundColor || backgroundColor}
         enableBackgroundInteraction={props.enableBackgroundInteraction}
-        renderCustomUnavailableHour={renderCustomUnavailableHour}
         originalProps={props}
       />
     );
@@ -51,12 +48,6 @@ interface UnavailableHourItemProps {
   columnIndex: number;
   backgroundColor: string;
   enableBackgroundInteraction?: boolean;
-  renderCustomUnavailableHour?: (
-    props: UnavailableHourProps & {
-      width: SharedValue<number>;
-      height: SharedValue<number>;
-    }
-  ) => React.ReactNode;
   originalProps: UnavailableHourProps;
 }
 
@@ -66,8 +57,10 @@ const UnavailableHourItem = ({
   backgroundColor,
   columnIndex,
   enableBackgroundInteraction,
+  originalProps,
 }: UnavailableHourItemProps) => {
-  const { minuteHeight, columnWidthAnim } = useBody();
+  const { minuteHeight, columnWidthAnim, numberOfDays, hourWidth, renderCustomUnavailableHour } =
+    useBody();
 
   const height = useDerivedValue(
     () => minuteHeight.value * totalMinutes,
@@ -75,8 +68,8 @@ const UnavailableHourItem = ({
   );
   const top = useDerivedValue(() => minuteHeight.value * diffMinutes, [diffMinutes, minuteHeight]);
   const left = useDerivedValue(
-    () => columnWidthAnim.value * columnIndex,
-    [columnIndex, columnWidthAnim]
+    () => columnWidthAnim.value * columnIndex + (numberOfDays === 1 ? hourWidth : 0),
+    [columnIndex, columnWidthAnim, numberOfDays, hourWidth]
   );
   const animView = useAnimatedStyle(() => {
     return {
@@ -91,12 +84,12 @@ const UnavailableHourItem = ({
     <Animated.View
       pointerEvents={enableBackgroundInteraction ? 'none' : 'auto'}
       style={[styles.container, { backgroundColor }, animView]}>
-      {/* {renderCustomUnavailableHour &&
+      {renderCustomUnavailableHour &&
         renderCustomUnavailableHour({
           ...originalProps,
           width: columnWidthAnim,
           height,
-        })} */}
+        })}
     </Animated.View>
   );
 };

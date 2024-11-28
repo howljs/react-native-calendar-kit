@@ -1,10 +1,10 @@
+import { clampValues } from '@calendar-kit/core';
 import { useRef } from 'react';
 import type { GestureType } from 'react-native-gesture-handler';
 import { Gesture } from 'react-native-gesture-handler';
 import { scrollTo, setNativeProps, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { useCalendar } from '../context/CalendarContext';
-import { clampValues } from '../utils';
 
 // Constants for gesture behavior
 const SCALE_FACTOR = 0.5; // Controls how much the pinch affects the zoom

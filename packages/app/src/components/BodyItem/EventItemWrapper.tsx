@@ -1,29 +1,25 @@
 import { useCurrentTimeAnim, useTheme } from '@calendar-kit/core';
 import isEqual from 'lodash.isequal';
-import type { FC } from 'react';
-import React, { memo, useCallback, useMemo } from 'react';
+import type { FC, PropsWithChildren } from 'react';
+import { memo, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from 'react-native-reanimated';
 
 import { useBody } from '../../context/BodyContext';
-import type { PackedEvent, SizeAnimation } from '../../types';
+import type { PackedEvent, ThemeConfigs } from '../../types';
 import Text from '../Text';
 
-interface EventItemProps {
+interface EventItemWrapperProps {
   event: PackedEvent;
-  renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
 }
 
-const EventItem: FC<EventItemProps> = ({ event: eventInput, renderEvent }) => {
-  const theme = useTheme(
-    useCallback((state) => {
-      return {
-        eventContainerStyle: state.eventContainerStyle,
-        eventTitleStyle: state.eventTitleStyle,
-      };
-    }, [])
-  );
+const selectEventTheme = (state: ThemeConfigs) => ({
+  eventContainerStyle: state.eventContainerStyle,
+  eventTitleStyle: state.eventTitleStyle,
+});
 
+const EventItemWrapper: FC<PropsWithChildren<EventItemWrapperProps>> = ({ event: eventInput }) => {
+  const theme = useTheme(selectEventTheme);
   const {
     minuteHeight,
     columnWidthAnim,
@@ -36,9 +32,11 @@ const EventItem: FC<EventItemProps> = ({ event: eventInput, renderEvent }) => {
     onLongPressEvent,
     reduceBrightnessOfPastEvents,
     draggingId,
+    renderEvent,
   } = useBody();
+
   const currentTime = useCurrentTimeAnim();
-  const { _internal, ...event } = eventInput;
+  const { _internal, id: eventId } = eventInput;
   const {
     duration,
     startMinutes = 0,
@@ -50,7 +48,6 @@ const EventItem: FC<EventItemProps> = ({ event: eventInput, renderEvent }) => {
     startUnix,
     endUnix,
   } = _internal;
-  const eventId = eventInput.id;
 
   const opacity = useDerivedValue(() => {
     if (draggingId.value === eventId) {
@@ -59,7 +56,6 @@ const EventItem: FC<EventItemProps> = ({ event: eventInput, renderEvent }) => {
     if (!reduceBrightnessOfPastEvents) {
       return 1;
     }
-
     const isPast = currentTime.value > startUnix && currentTime.value > endUnix;
     return isPast ? 0.6 : 1;
   }, [draggingId, eventId, reduceBrightnessOfPastEvents, currentTime, startUnix, endUnix]);
@@ -151,16 +147,11 @@ const EventItem: FC<EventItemProps> = ({ event: eventInput, renderEvent }) => {
           style={[
             styles.contentContainer,
             !!xOffsetPercentage && styles.overlapEvent,
-            { backgroundColor: event.color },
+            { backgroundColor: eventInput.color },
             theme.eventContainerStyle,
           ]}>
-          {renderEvent ? (
-            renderEvent(eventInput, {
-              width: eventWidth,
-              height: eventHeight,
-            })
-          ) : (
-            <Text style={[styles.title, theme.eventTitleStyle]}>{event.title}</Text>
+          {renderEvent?.(eventInput, { width: eventWidth, height: eventHeight }) ?? (
+            <Text style={[styles.title, theme.eventTitleStyle]}>{eventInput.title}</Text>
           )}
         </View>
       </TouchableOpacity>
@@ -168,13 +159,10 @@ const EventItem: FC<EventItemProps> = ({ event: eventInput, renderEvent }) => {
   );
 };
 
-export default memo(EventItem, (prev, next) => {
-  return isEqual(prev.event, next.event) && prev.renderEvent === next.renderEvent;
-});
+export default memo(EventItemWrapper, (prev, next) => isEqual(prev.event, next.event));
 
 const styles = StyleSheet.create({
   container: { position: 'absolute', overflow: 'hidden' },
-  title: { fontSize: 12, paddingHorizontal: 2 },
   contentContainer: {
     borderRadius: 2,
     width: '100%',
@@ -182,4 +170,5 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   overlapEvent: { borderWidth: 1, borderColor: '#FFF' },
+  title: { fontSize: 12, paddingHorizontal: 2 },
 });

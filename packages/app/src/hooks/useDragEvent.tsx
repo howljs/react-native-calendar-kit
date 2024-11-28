@@ -1,13 +1,9 @@
 import {
   clampValues,
-  type DraggingMode,
   forceUpdateZone,
   parseDateTime,
   roundMinutes,
   useActions,
-  useCalendar,
-  useDragActions,
-  useDragContext,
   useTimezone,
 } from '@calendar-kit/core';
 import { useCallback, useEffect, useRef } from 'react';
@@ -16,6 +12,8 @@ import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedReaction, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { MILLISECONDS_IN_DAY } from '../constants';
+import { useCalendar } from '../context/CalendarContext';
+import { type DraggingMode, useDragActions, useDragContext } from '../context/DragProvider';
 import type { DateTimeType, PackedEvent, SelectedEventType } from '../types';
 
 const useDragEventGesture = () => {
@@ -386,14 +384,19 @@ const useDragEventGesture = () => {
         zone: event.end.timeZone,
       }).setZone(timeZone);
 
-      const eventIndex = event._internal.eventIndex ?? 0;
-      const startUnix = forceUpdateZone(startDate.startOf('day'), 'utc').toMillis();
-      const targetIndex = gridListRef.current.getIndexByItem(startUnix) + eventIndex;
-      const currentIndex = gridListRef.current.getCurrentScrollIndex();
-      const columnIndex = targetIndex - currentIndex;
-
-      let startMinutes = startDate.hour * 60 + startDate.minute;
       const duration = endDate.diff(startDate, 'minutes').minutes;
+      const startUnix = forceUpdateZone(startDate.startOf('day'), 'utc').toMillis();
+      const selectedStart = parseDateTime(event._internal.startUnix, {
+        zone: event.start.timeZone,
+      })
+        .setZone(timeZone)
+        .startOf('day');
+      const actualStartUnix = forceUpdateZone(selectedStart, 'utc').toMillis();
+      const eventIndex = Math.ceil((actualStartUnix - startUnix) / MILLISECONDS_IN_DAY);
+      const targetIndex = gridListRef.current.getIndexByItem(startUnix);
+      const currentIndex = gridListRef.current.getCurrentScrollIndex();
+      const columnIndex = targetIndex + eventIndex - currentIndex;
+      let startMinutes = startDate.hour * 60 + startDate.minute;
       if (eventIndex > 0) {
         startMinutes = calendarStart - (24 * 60 - startMinutes);
       }

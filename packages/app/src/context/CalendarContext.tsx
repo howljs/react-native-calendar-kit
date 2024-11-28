@@ -1,13 +1,12 @@
+import type { CalendarData, CalendarList, HapticService } from '@calendar-kit/core';
 import type { WeekdayNumbers } from 'luxon';
 import React from 'react';
 import type { View } from 'react-native';
 import type Animated from 'react-native-reanimated';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 
-import type { CalendarList } from '../CalendarList';
 import type { ScrollType } from '../constants';
-import type HapticService from '../service/HapticService';
-import type { CalendarData } from '../utils';
+import type { CalendarKitHandle } from '../types';
 
 export interface CalendarContextProps {
   calendarData: CalendarData;
@@ -44,16 +43,13 @@ export interface CalendarContextProps {
   columnWidth: number;
   scrollByDay: boolean;
   snapToOffsets?: number[];
-  columns: number;
   triggerDateChanged: React.MutableRefObject<number | undefined>;
   visibleDateUnixAnim: SharedValue<number>;
   visibleWeeks: SharedValue<number[]>;
-  startOffset: Readonly<SharedValue<number>>;
   scrollVisibleHeightAnim: SharedValue<number>;
   pagesPerSide: number;
   rightEdgeSpacing: number;
   overlapEventsSpacing: number;
-  hideWeekDays: WeekdayNumbers[];
   useAllDayEvent: boolean;
   hapticService: HapticService;
   allowDragToCreate: boolean;
@@ -69,7 +65,17 @@ export const CalendarContext = React.createContext<CalendarContextProps | undefi
 export const useCalendar = () => {
   const context = React.useContext(CalendarContext);
   if (context === undefined) {
-    throw new Error('useCalendar must be used within a CalendarProvider');
+    throw new Error('useCalendar must be used within a CalendarContainer');
+  }
+  return context;
+};
+
+export const CalendarActionsContext = React.createContext<CalendarKitHandle | undefined>(undefined);
+
+export const useCalendarActions = () => {
+  const context = React.useContext(CalendarActionsContext);
+  if (context === undefined) {
+    throw new Error('useCalendarActions must be used within a CalendarContainer');
   }
   return context;
 };

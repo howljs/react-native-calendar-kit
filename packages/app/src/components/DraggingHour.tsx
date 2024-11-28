@@ -1,4 +1,4 @@
-import { toHourStr, useDragContext, useLocale, useTheme } from '@calendar-kit/core';
+import { toHourStr, useLocale, useTheme } from '@calendar-kit/core';
 import type { FC } from 'react';
 import React, { memo, useMemo, useState } from 'react';
 import { StyleSheet, type ViewStyle } from 'react-native';
@@ -12,6 +12,7 @@ import Animated, {
 
 import { HOUR_SHORT_LINE_WIDTH } from '../constants';
 import { useBody } from '../context/BodyContext';
+import { useDragContext } from '../context/DragProvider';
 import type { RenderHourProps, ThemeConfigs } from '../types';
 import Text from './Text';
 

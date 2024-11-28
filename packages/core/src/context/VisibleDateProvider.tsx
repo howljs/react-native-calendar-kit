@@ -2,7 +2,7 @@ import type { FC, MutableRefObject, PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface VisibleDateProviderProps {
-  initialStart: MutableRefObject<number>;
+  initialStart?: MutableRefObject<number>;
 }
 
 const VisibleDateValueContext = createContext<number | undefined>(undefined);
@@ -13,8 +13,9 @@ const VisibleDateProvider: FC<PropsWithChildren<VisibleDateProviderProps>> = ({
   initialStart,
   children,
 }) => {
-  const [visibleDateUnix, setVisibleDateUnix] = useState(initialStart.current);
-  const [debouncedDateUnix, setDebouncedDateUnix] = useState(initialStart.current);
+  const initialStartValue = initialStart?.current;
+  const [visibleDateUnix, setVisibleDateUnix] = useState(initialStartValue);
+  const [debouncedDateUnix, setDebouncedDateUnix] = useState(initialStartValue);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {

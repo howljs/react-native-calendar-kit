@@ -2,9 +2,9 @@ import {
   AnimatedCalendarList,
   type ListRenderItemContainerInfo,
   type ListRenderItemInfo,
-  useCalendar,
+  LoadingOverlay,
+  ProgressBar,
   useLayout,
-  useResources,
   useTheme,
 } from '@calendar-kit/core';
 import React, { useCallback, useMemo } from 'react';
@@ -15,9 +15,8 @@ import DayItem from './components/HeaderItem/DayItem';
 import HeaderColumn from './components/HeaderItem/HeaderColumn';
 import HeaderContainer from './components/HeaderItem/HeaderContainer';
 import WeekNumber from './components/HeaderItem/WeekNumber';
-import LoadingOverlay from './components/Loading/Overlay';
-import ProgressBar from './components/Loading/ProgressBar';
 import { DAY_BAR_HEIGHT, ScrollType } from './constants';
+import { useCalendar } from './context/CalendarContext';
 import type { HeaderContextProps } from './context/HeaderContext';
 import { HeaderContext } from './context/HeaderContext';
 import useSyncedList from './hooks/useSyncedList';
@@ -32,11 +31,8 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     columnWidthAnim,
     hourWidth,
     headerListRef,
-    calendarData,
     calendarGridWidth,
     snapToOffsets,
-    scrollByDay,
-    columns,
     showWeekNumber,
     visibleDateUnixAnim,
     visibleDateUnix,
@@ -46,7 +42,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     manualHorizontalScroll,
     headerContainerRef,
   } = useCalendar();
-  const resources = useResources();
+
   const calendarWidth = useLayout(useCallback((state) => state.width, []));
   const headerStyles = useTheme(
     useCallback(
@@ -69,38 +65,18 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       numberOfDays,
       columnWidthAnim,
       hourWidth,
-      scrollByDay,
-      columns,
       columnWidth,
-      headerListRef,
     }),
-    [
-      dayBarHeight,
-      numberOfDays,
-      columnWidthAnim,
-      hourWidth,
-      scrollByDay,
-      columns,
-      columnWidth,
-      headerListRef,
-    ]
+    [dayBarHeight, numberOfDays, columnWidthAnim, hourWidth, columnWidth]
   );
 
-  const extraData = useMemo(
-    () => ({
-      minDate: calendarData.minDateUnix,
-      columns,
-      resources,
-    }),
-    [calendarData.minDateUnix, columns, resources]
-  );
+  const extraData = useMemo(() => ({}), []);
 
   const _renderItemContainer = ({ item, index, children }: ListRenderItemContainerInfo) => {
     return (
       <HeaderContainer item={item} index={index}>
         {children}
         <LoadingOverlay />
-        <ProgressBar />
       </HeaderContainer>
     );
   };
@@ -113,7 +89,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     );
   };
 
-  const leftSize = numberOfDays > 1 || !!resources ? hourWidth : 0;
+  const leftSize = numberOfDays > 1 ? hourWidth : 0;
 
   const _renderLeftArea = () => {
     if (LeftAreaComponent) {
@@ -152,7 +128,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 }),
               },
             ]}>
-            {(numberOfDays > 1 || !!resources) && _renderLeftArea()}
+            {numberOfDays > 1 && _renderLeftArea()}
             <View
               style={[
                 styles.absolute,
@@ -185,6 +161,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           </View>
         </HeaderContext.Provider>
       </ScrollView>
+      <ProgressBar />
     </View>
   );
 };

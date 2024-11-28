@@ -4,9 +4,6 @@ import {
   parseDateTime,
   roundMinutes,
   useActions,
-  useCalendar,
-  useDragActions,
-  useDragContext,
   useTimezone,
 } from '@calendar-kit/core';
 import { useCallback } from 'react';
@@ -15,6 +12,8 @@ import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedReaction, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { MILLISECONDS_IN_MINUTE } from '../constants';
+import { useCalendar } from '../context/CalendarContext';
+import { useDragActions, useDragContext } from '../context/DragProvider';
 
 const useDragToCreate = () => {
   const {

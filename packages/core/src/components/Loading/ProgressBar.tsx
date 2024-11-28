@@ -1,4 +1,3 @@
-import { useLoading, useTheme } from '@calendar-kit/core';
 import { useCallback, useEffect } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -8,6 +7,9 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+
+import { useLoading } from '../../context/LoadingContext';
+import { useTheme } from '../../context/ThemeProvider';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const DURATION = 1000;

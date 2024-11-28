@@ -1,33 +1,17 @@
 import {
-  ActionsProvider,
+  BaseContainer,
   calculateSlots,
-  CalendarContext,
-  type CalendarContextProps,
   CalendarList,
   clampValues,
   dateTimeToISOString,
-  DragProvider,
-  EventsProvider,
-  type EventsRef,
   findNearestDate,
   forceUpdateZone,
   HapticService,
-  HighlightDatesProvider,
-  LayoutProvider,
-  LoadingContext,
-  LocaleProvider,
-  NowIndicatorProvider,
   parseDateTime,
   prepareCalendarRange,
-  ResourcesProvider,
-  ThemeProvider,
-  TimezoneContext,
-  UnavailableHoursProvider,
-  useHideWeekDays,
   useLatestCallback,
   useLayout,
   useLazyRef,
-  VisibleDateProvider,
 } from '@calendar-kit/core';
 import type { PropsWithChildren } from 'react';
 import React, {
@@ -50,6 +34,14 @@ import {
 } from 'react-native-reanimated';
 
 import { HOUR_WIDTH, INITIAL_DATE, MAX_DATE, MIN_DATE, ScrollType } from './constants';
+import {
+  CalendarActionsContext,
+  CalendarContext,
+  type CalendarContextProps,
+} from './context/CalendarContext';
+import DragProvider from './context/DragProvider';
+import EventsProvider, { type EventsRef } from './context/EventsProvider';
+import UnavailableHoursProvider from './context/UnavailableHoursProvider';
 import type {
   CalendarKitHandle,
   CalendarProviderProps,
@@ -105,7 +97,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     onLongPressEvent,
     selectedEvent,
     pagesPerSide = 2,
-    hideWeekDays: initialHideWeekDays,
+    hideWeekDays,
     onDragSelectedEventStart,
     onDragSelectedEventEnd,
     allowDragToCreate = false,
@@ -120,7 +112,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     overlapType,
     minStartDifference,
     onLongPressBackground,
-    resources,
     animateColumnWidth = false,
     dragToCreateMode = 'duration',
     manualHorizontalScroll = false,
@@ -132,9 +123,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     throw new Error('The maximum number of days is 7');
   }
 
-  const isResourceMode = !!resources;
-  const scrollByDay =
-    isResourceMode || initialNumberOfDays === 1 || (initialScrollByDay ?? initialNumberOfDays < 7);
+  const scrollByDay = initialNumberOfDays === 1 || (initialScrollByDay ?? initialNumberOfDays < 7);
 
   const timeZone = useMemo(() => {
     const parsedTimeZone = parseDateTime(undefined, { zone: initialTimeZone });
@@ -146,19 +135,13 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   }, [initialTimeZone]);
 
   const hapticService = useRef(new HapticService()).current;
-  const hideWeekDays = useHideWeekDays(initialHideWeekDays);
 
-  const useAllDayEvent = isResourceMode ? false : (initialUseAllDayEvent ?? true);
-  const hideWeekDaysCount = hideWeekDays.length;
+  const useAllDayEvent = initialUseAllDayEvent ?? true;
+  const hideWeekDaysCount = hideWeekDays?.length ?? 0;
   const daysToShow = 7 - hideWeekDaysCount;
-  const numberOfDays = isResourceMode
-    ? 1
-    : initialNumberOfDays > daysToShow
-      ? daysToShow
-      : initialNumberOfDays;
+  const numberOfDays = initialNumberOfDays > daysToShow ? daysToShow : initialNumberOfDays;
 
   const isSingleDay = numberOfDays === 1;
-  const columns = isSingleDay ? 1 : daysToShow;
 
   const calendarWidth = useLayout(useCallback((state) => state.width, []));
 
@@ -183,14 +166,14 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   );
 
   const dateList = useMemo(() => {
-    if (isSingleDay) {
+    if (isSingleDay || scrollByDay) {
       return calendarData.availableDates;
     }
 
     return calendarData.bufferBefore
       .concat(calendarData.availableDates)
       .concat(calendarData.bufferAfter);
-  }, [calendarData, isSingleDay]);
+  }, [calendarData, isSingleDay, scrollByDay]);
 
   const slots = useMemo(() => calculateSlots(start, end, timeInterval), [start, end, timeInterval]);
   const totalSlots = slots.length;
@@ -237,7 +220,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const timelineHeight = useDerivedValue(
     () => totalSlots * timeIntervalHeight.value + 1 + extraHeight
   );
-  const startOffset = useDerivedValue(() => start * minuteHeight.value);
 
   const goToDate = useLatestCallback((props?: GoToDateOptions) => {
     const listRef = gridListRef.current;
@@ -273,7 +255,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
 
     if (props?.hourScroll) {
       const minutes = date.hour * 60 + date.minute;
-      const position = minutes * minuteHeight.value - startOffset.value;
+      const position = (minutes - start) * minuteHeight.value;
       const scrollOffset = scrollVisibleHeight.current / 2;
       const animatedHour = props?.animatedHour !== undefined ? props.animatedHour : true;
       verticalListRef.current?.scrollTo({
@@ -496,8 +478,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     eventsRef.current?.clearCachedEvents();
   });
 
-  useImperativeHandle(
-    ref,
+  const calendarActions = useMemo(
     () => ({
       goToDate,
       goToHour,
@@ -528,6 +509,8 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     ]
   );
 
+  useImperativeHandle(ref, () => calendarActions, [calendarActions]);
+
   const prevMode = useRef(isSingleDay);
   useEffect(() => {
     if (!animateColumnWidth) {
@@ -544,7 +527,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   }, [columnWidthAnim, columnWidth, isSingleDay, animateColumnWidth]);
 
   const snapToOffsets = useMemo(() => {
-    if (numberOfDays > 1 && scrollByDay && !isResourceMode) {
+    if (numberOfDays > 1 && scrollByDay) {
       const offsets = [];
       for (let item = 0; item < dateList.length; item++) {
         offsets.push(item * columnWidth);
@@ -552,7 +535,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       return offsets;
     }
     return undefined;
-  }, [columnWidth, dateList.length, isResourceMode, numberOfDays, scrollByDay]);
+  }, [columnWidth, dateList.length, numberOfDays, scrollByDay]);
 
   const value = useMemo<CalendarContextProps>(
     () => ({
@@ -589,13 +572,10 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       columnWidth,
       scrollByDay,
       snapToOffsets,
-      columns,
       triggerDateChanged,
       visibleDateUnixAnim,
-      startOffset,
       scrollVisibleHeightAnim,
       pagesPerSide,
-      hideWeekDays,
       visibleWeeks,
       useAllDayEvent,
       hapticService,
@@ -642,12 +622,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       columnWidth,
       scrollByDay,
       snapToOffsets,
-      columns,
       visibleDateUnixAnim,
-      startOffset,
       scrollVisibleHeightAnim,
       pagesPerSide,
-      hideWeekDays,
       visibleWeeks,
       useAllDayEvent,
       hapticService,
@@ -687,52 +664,40 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     onLongPressBackground,
   };
 
-  const loadingValue = useMemo(() => ({ isLoading }), [isLoading]);
-  const timezoneValue = useMemo(() => ({ timeZone }), [timeZone]);
-
   return (
-    <LayoutProvider calendarWidth={initialCalendarWidth}>
+    <BaseContainer
+      calendarWidth={initialCalendarWidth}
+      initialLocales={initialLocales}
+      timeZone={timeZone}
+      locale={locale}
+      isLoading={isLoading}
+      initialStart={visibleDateUnix}
+      highlightDates={highlightDates}
+      theme={theme}
+      {...actionsProps}>
       <CalendarContext.Provider value={value}>
-        <LocaleProvider initialLocales={initialLocales} locale={locale}>
-          <TimezoneContext.Provider value={timezoneValue}>
-            <NowIndicatorProvider>
-              <ThemeProvider theme={theme}>
-                <ActionsProvider {...actionsProps}>
-                  <LoadingContext.Provider value={loadingValue}>
-                    <VisibleDateProvider initialStart={visibleDateUnix}>
-                      <HighlightDatesProvider highlightDates={highlightDates}>
-                        <UnavailableHoursProvider unavailableHours={unavailableHours}>
-                          <ResourcesProvider resources={resources}>
-                            <EventsProvider
-                              ref={eventsRef}
-                              events={events}
-                              minRegularEventMinutes={minRegularEventMinutes}
-                              hideWeekDays={hideWeekDays}
-                              overlapType={overlapType}
-                              resources={resources}
-                              minStartDifference={minStartDifference}>
-                              <DragProvider
-                                dragStep={dragStep}
-                                defaultDuration={defaultDuration}
-                                allowDragToCreate={allowDragToCreate}
-                                allowDragToEdit={allowDragToEdit}
-                                dragToCreateMode={dragToCreateMode}
-                                selectedEvent={selectedEvent}>
-                                {children}
-                              </DragProvider>
-                            </EventsProvider>
-                          </ResourcesProvider>
-                        </UnavailableHoursProvider>
-                      </HighlightDatesProvider>
-                    </VisibleDateProvider>
-                  </LoadingContext.Provider>
-                </ActionsProvider>
-              </ThemeProvider>
-            </NowIndicatorProvider>
-          </TimezoneContext.Provider>
-        </LocaleProvider>
+        <CalendarActionsContext.Provider value={calendarActions}>
+          <UnavailableHoursProvider unavailableHours={unavailableHours}>
+            <EventsProvider
+              ref={eventsRef}
+              events={events}
+              minRegularEventMinutes={minRegularEventMinutes}
+              overlapType={overlapType}
+              minStartDifference={minStartDifference}>
+              <DragProvider
+                dragStep={dragStep}
+                defaultDuration={defaultDuration}
+                allowDragToCreate={allowDragToCreate}
+                allowDragToEdit={allowDragToEdit}
+                dragToCreateMode={dragToCreateMode}
+                selectedEvent={selectedEvent}>
+                {children}
+              </DragProvider>
+            </EventsProvider>
+          </UnavailableHoursProvider>
+        </CalendarActionsContext.Provider>
       </CalendarContext.Provider>
-    </LayoutProvider>
+    </BaseContainer>
   );
 };
 
