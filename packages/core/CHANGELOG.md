@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.0.0-alpha.8](https://github.com/howljs/react-native-calendar-kit/compare/@calendar-kit/core@3.0.0-alpha.7...@calendar-kit/core@3.0.0-alpha.8) (2024-11-28)
+
+### Features
+
+* add props ([1ee4453](https://github.com/howljs/react-native-calendar-kit/commit/1ee4453f56b965c75d1ff4d3c3286edc1e994467))
+
 # [3.0.0-alpha.7](https://github.com/howljs/react-native-calendar-kit/compare/@calendar-kit/core@3.0.0-alpha.6...@calendar-kit/core@3.0.0-alpha.7) (2024-11-25)
 
 ### Bug Fixes
