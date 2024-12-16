@@ -186,7 +186,7 @@ const TimelineBoard = ({
   };
 
   const _renderUnavailableHours = () => {
-    return <UnavailableHours visibleDates={visibleDates} />;
+    return <UnavailableHours visibleDates={visibleDates} resources={resources} />;
   };
 
   return (
