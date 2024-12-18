@@ -407,10 +407,22 @@ const Calendar = () => {
     });
   }, []);
 
+  const resources = useMemo(() => {
+    return new Array(TOTAL_RESOURCES).fill(0).map((_, index) => {
+      return {
+        id: `resource_${index + 1}`,
+        title: `Resource ${index + 1}`,
+      };
+    });
+  }, []);
+
   const unavailableHours = useMemo(
     () => [
       { start: 0, end: 6 * 60, enableBackgroundInteraction: true },
       { start: 20 * 60, end: 24 * 60, enableBackgroundInteraction: true },
+      { start: 7 * 60, end: 8 * 60, enableBackgroundInteraction: true, resourceId: resources[0].id },
+      { start: 8 * 60, end: 9 * 60, enableBackgroundInteraction: true, resourceId: resources[1].id },
+      { start: 9 * 60, end: 10 * 60, enableBackgroundInteraction: true, resourceId: resources[2].id },
     ],
     []
   );
@@ -457,15 +469,6 @@ const Calendar = () => {
   const onPressNext = () => {
     calendarRef.current?.goToNextPage();
   };
-
-  const resources = useMemo(() => {
-    return new Array(TOTAL_RESOURCES).fill(0).map((_, index) => {
-      return {
-        id: `resource_${index + 1}`,
-        title: `Resource ${index + 1}`,
-      };
-    });
-  }, []);
 
   const _renderResource = useCallback((resource: ResourceItem) => {
     return (
