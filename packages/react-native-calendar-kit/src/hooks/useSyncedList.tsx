@@ -27,6 +27,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
   const notifyDateChanged = useNotifyDateChanged();
   const { onChange, onDateChanged } = useActions();
   const isDragging = useSharedValue(false);
+  const isProgrammaticScroll = useSharedValue(false);
 
   const startDateUnix = useRef(0);
   const _updateScrolling = (isScrolling: boolean) => {
@@ -40,7 +41,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
 
   const _onMomentumEnd = () => {
     if (
-      isTriggerMomentum.current &&
+      (isTriggerMomentum.current || isProgrammaticScroll.value) &&
       startDateUnix.current !== visibleDateUnix.current
     ) {
       triggerDateChanged.current = undefined;
@@ -49,25 +50,28 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       );
       notifyDateChanged(visibleDateUnix.current);
       isTriggerMomentum.current = false;
+      isProgrammaticScroll.value = false;
     }
   };
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
-      if (!isDragging.value) {
+      if (!isDragging.value && !isProgrammaticScroll.value) {
         return;
       }
 
       const x = event.contentOffset.x;
       offsetX.value = x;
+
       if (id === ScrollType.dayBar) {
-        scrollTo(gridListRef, offsetX.value, 0, false);
+        scrollTo(gridListRef, x, 0, false);
       } else {
-        scrollTo(dayBarListRef, offsetX.value, 0, false);
+        scrollTo(dayBarListRef, x, 0, false);
       }
     },
     onBeginDrag: () => {
       isDragging.value = true;
+      isProgrammaticScroll.value = false;
       runOnJS(_updateScrolling)(true);
     },
     onMomentumBegin: () => {
@@ -76,7 +80,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       }
     },
     onMomentumEnd: () => {
-      if (isDragging.value) {
+      if (isDragging.value || isProgrammaticScroll.value) {
         runOnJS(_onMomentumEnd)();
       }
     },
@@ -90,10 +94,24 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       offset: number;
       extraScrollData: Record<string, any>;
     }) => {
-      const { index: pageIndex, column, columns, extraScrollData } = props;
+      const {
+        index: pageIndex,
+        column,
+        columns,
+        extraScrollData,
+        offset,
+      } = props;
       const { visibleColumns, visibleDates } = extraScrollData;
 
-      if (scrollType.current === id && visibleColumns && visibleDates) {
+      if (!isDragging.value && offset !== undefined) {
+        isProgrammaticScroll.value = true;
+      }
+
+      if (
+        (scrollType.current === id || isProgrammaticScroll.value) &&
+        visibleColumns &&
+        visibleDates
+      ) {
         const dayIndex = pageIndex * columns + column;
         const visibleStart = visibleDates[pageIndex * columns];
         const visibleEnd =
@@ -147,10 +165,15 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       onDateChanged,
       notifyDateChanged,
       visibleDateUnixAnim,
+      isProgrammaticScroll,
+      isDragging,
     ]
   );
 
-  return { onScroll, onVisibleColumnChanged };
+  return {
+    onScroll,
+    onVisibleColumnChanged,
+  };
 };
 
 export default useSyncedList;
