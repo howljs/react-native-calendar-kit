@@ -1,9 +1,6 @@
+import type { WeekdayNumbers } from '@howljs/calendar-kit';
 import type { Theme } from '@react-navigation/native';
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import type { FC, PropsWithChildren } from 'react';
 import React, { useCallback, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
@@ -13,6 +10,8 @@ type AppConfigs = {
   startOfWeek: 1 | 6 | 7;
   showWeekNumber: boolean;
   dragToCreateMode: 'duration' | 'date-time';
+  numberOfDays: number;
+  hideWeekDays: WeekdayNumbers[];
 };
 
 interface AppContextValue {
@@ -28,6 +27,8 @@ const AppProvider: FC<PropsWithChildren<object>> = ({ children }) => {
     startOfWeek: 1,
     showWeekNumber: true,
     dragToCreateMode: 'duration',
+    numberOfDays: 7,
+    hideWeekDays: [],
   });
 
   const colorScheme = useColorScheme();

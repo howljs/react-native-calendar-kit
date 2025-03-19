@@ -34,13 +34,16 @@
     "react-native-gesture-handler": "~2.16.1",
     "react-native-reanimated": "~3.10.1",
     "react-native-web": "~0.19.10",
-    "react-player": "^2.16.0"
+    "react-player": "^2.16.0",
+    "webpack": "^5.96.1"
   },
   "devDependencies": {
+    "@docusaurus/eslint-plugin": "3.6.1",
     "@docusaurus/module-type-aliases": "3.5.2",
     "@docusaurus/tsconfig": "3.5.2",
     "@docusaurus/types": "3.5.2",
-    "typescript": "*"
+    "@types/raf": "^3.4.3",
+    "typescript": "~5.3.3"
   },
   "browserslist": {
     "production": [

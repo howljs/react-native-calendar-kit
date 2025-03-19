@@ -1,0 +1,17 @@
+{
+  "packages": ["packages/calendar-kit"],
+  "npmClient": "yarn",
+  "useWorkspaces": true,
+  "version": "independent",
+  "command": {
+    "publish": {
+      "graphType": "all",
+      "syncWorkspaceLock": true,
+      "allowBranch": ["main", "alpha"],
+      "allowPeerDependenciesUpdate": true,
+      "conventionalCommits": true,
+      "message": "chore: publish",
+      "ignoreChanges": ["**/__fixtures__/**", "**/__tests__/**", "**/*.md", "**/example/**"]
+    }
+  }
+}

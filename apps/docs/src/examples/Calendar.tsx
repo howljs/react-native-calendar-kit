@@ -2,20 +2,16 @@ import {
   CalendarBody,
   CalendarContainer,
   CalendarHeader,
-  EventItem,
-  SelectedEventType,
   type CalendarProviderProps,
+  type EventItem,
+  type SelectedEventType,
 } from '@howljs/calendar-kit';
 import { useState } from 'react';
 import { View } from 'react-native';
 
 interface CalendarProps extends CalendarProviderProps {}
 
-const minDate = new Date(
-  new Date().getFullYear(),
-  new Date().getMonth() - 4,
-  new Date().getDate()
-);
+const minDate = new Date(new Date().getFullYear(), new Date().getMonth() - 4, new Date().getDate());
 
 const randomColor = () => {
   const letters = '0123456789ABCDEF';
@@ -49,10 +45,7 @@ const DEFAULT_EVENTS = new Array(500).fill(0).map((_, index) => {
   } as EventItem;
 });
 
-const Test = ({
-  events: initialEvents = DEFAULT_EVENTS,
-  ...props
-}: CalendarProps) => {
+const Test = ({ events: initialEvents = DEFAULT_EVENTS, ...props }: CalendarProps) => {
   const [events, setEvents] = useState<EventItem[]>(initialEvents || []);
   const [selectedEvent, setSelectedEvent] = useState<SelectedEventType>();
 
@@ -77,8 +70,7 @@ const Test = ({
           const { originalRecurringEvent, ...rest } = event;
           if (event.id) {
             const filteredEvents = events.filter(
-              (item) =>
-                item.id !== event.id && item.id !== originalRecurringEvent?.id
+              (item) => item.id !== event.id && item.id !== originalRecurringEvent?.id
             );
             if (originalRecurringEvent) {
               filteredEvents.push(originalRecurringEvent);
@@ -98,8 +90,7 @@ const Test = ({
           const { originalRecurringEvent, ...rest } = event;
           if (event.id) {
             const filteredEvents = events.filter(
-              (item) =>
-                item.id !== event.id && item.id !== originalRecurringEvent?.id
+              (item) => item.id !== event.id && item.id !== originalRecurringEvent?.id
             );
             if (originalRecurringEvent) {
               filteredEvents.push(originalRecurringEvent);

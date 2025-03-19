@@ -1,9 +1,9 @@
-import { themes as prismThemes } from 'prism-react-renderer';
-import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import type { Config } from '@docusaurus/types';
 import SearchLocal from '@easyops-cn/docusaurus-search-local';
-import webpack from 'webpack';
+import { themes as prismThemes } from 'prism-react-renderer';
 import raf from 'raf';
+import webpack from 'webpack';
 
 const config: Config = {
   title: 'Calendar Kit',
@@ -44,9 +44,7 @@ const config: Config = {
             },
           },
           sidebarPath: './sidebars.ts',
-          remarkPlugins: [
-            [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
-          ],
+          remarkPlugins: [[require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }]],
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -145,7 +143,7 @@ const config: Config = {
           };
         },
       };
-    },
+    } as any,
   ],
 };
 

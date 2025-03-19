@@ -1,9 +1,6 @@
-import { UnavailableHourProps } from '@howljs/calendar-kit';
-import React, { FC } from 'react';
-import Animated, {
-  SharedValue,
-  useAnimatedProps,
-} from 'react-native-reanimated';
+import type { UnavailableHourProps } from '@howljs/calendar-kit';
+import { type FC } from 'react';
+import Animated, { type SharedValue, useAnimatedProps } from 'react-native-reanimated';
 import { Defs, Line, Pattern, Rect, Svg } from 'react-native-svg';
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);

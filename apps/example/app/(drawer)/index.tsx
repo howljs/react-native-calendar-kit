@@ -20,25 +20,14 @@ import {
 } from '@howljs/calendar-kit';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { WeekdayNumbers } from 'luxon';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-import { SharedValue, useSharedValue } from 'react-native-reanimated';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Dimensions, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import CustomUnavailableHour from '../../components/CustomUnavailableHour';
 import Header from '../../components/Header';
 import { useAppContext } from '../../context/AppProvider';
-import CustomUnavailableHour from '@/components/CustomUnavailableHour';
 
 type SearchParams = { viewMode: string; numberOfDays: string };
 
@@ -109,11 +98,7 @@ const randomColor = () => {
   return color;
 };
 
-const minDate = new Date(
-  new Date().getFullYear(),
-  new Date().getMonth() - 4,
-  new Date().getDate()
-);
+const minDate = new Date(new Date().getFullYear(), new Date().getMonth() - 4, new Date().getDate());
 
 const allDayEvents: EventItem[] = [
   {
@@ -377,9 +362,7 @@ const Calendar = () => {
   const router = useRouter();
   const currentDate = useSharedValue(INITIAL_DATE);
   const [selectedEvent, setSelectedEvent] = useState<SelectedEventType>();
-  const [calendarWidth, setCalendarWidth] = useState(
-    Dimensions.get('window').width
-  );
+  const [calendarWidth, setCalendarWidth] = useState(Dimensions.get('window').width);
 
   const isResourcesMode = params.viewMode === 'resources';
 
@@ -420,11 +403,26 @@ const Calendar = () => {
     () => [
       { start: 0, end: 6 * 60, enableBackgroundInteraction: true },
       { start: 20 * 60, end: 24 * 60, enableBackgroundInteraction: true },
-      { start: 7 * 60, end: 8 * 60, enableBackgroundInteraction: true, resourceId: resources[0].id },
-      { start: 8 * 60, end: 9 * 60, enableBackgroundInteraction: true, resourceId: resources[1].id },
-      { start: 9 * 60, end: 10 * 60, enableBackgroundInteraction: true, resourceId: resources[2].id },
+      {
+        start: 7 * 60,
+        end: 8 * 60,
+        enableBackgroundInteraction: true,
+        resourceId: resources[0].id,
+      },
+      {
+        start: 8 * 60,
+        end: 9 * 60,
+        enableBackgroundInteraction: true,
+        resourceId: resources[1].id,
+      },
+      {
+        start: 9 * 60,
+        end: 10 * 60,
+        enableBackgroundInteraction: true,
+        resourceId: resources[2].id,
+      },
     ],
-    []
+    [resources]
   );
   const highlightDates = useMemo(
     () => ({
@@ -491,9 +489,7 @@ const Calendar = () => {
           renderResource={_renderResource}
           DateComponent={
             <View style={styles.dateContainer}>
-              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
-                {dateStr}
-              </Text>
+              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{dateStr}</Text>
             </View>
           }
         />
@@ -547,10 +543,7 @@ const Calendar = () => {
 
   const _renderDraggingEvent = useCallback((props: DraggingEventProps) => {
     return (
-      <DraggingEvent
-        {...props}
-        containerStyle={{ backgroundColor: '#1a73e8', opacity: 0.5 }}
-      />
+      <DraggingEvent {...props} containerStyle={{ backgroundColor: '#1a73e8', opacity: 0.5 }} />
     );
   }, []);
 
@@ -621,8 +614,7 @@ const Calendar = () => {
           const { originalRecurringEvent, ...rest } = event;
           if (event.id) {
             const filteredEvents = events.filter(
-              (item) =>
-                item.id !== event.id && item.id !== originalRecurringEvent?.id
+              (item) => item.id !== event.id && item.id !== originalRecurringEvent?.id
             );
             if (originalRecurringEvent) {
               filteredEvents.push(originalRecurringEvent);
@@ -644,8 +636,7 @@ const Calendar = () => {
           const { originalRecurringEvent, ...rest } = event;
           if (event.id) {
             const filteredEvents = events.filter(
-              (item) =>
-                item.id !== event.id && item.id !== originalRecurringEvent?.id
+              (item) => item.id !== event.id && item.id !== originalRecurringEvent?.id
             );
             if (originalRecurringEvent) {
               filteredEvents.push(originalRecurringEvent);
@@ -670,8 +661,7 @@ const Calendar = () => {
             title: `Event ${events.length + 1}`,
             color: '#23cfde',
             resourceId:
-              event.resourceId ||
-              `resource_${Math.floor(Math.random() * TOTAL_RESOURCES) + 1}`,
+              event.resourceId || `resource_${Math.floor(Math.random() * TOTAL_RESOURCES) + 1}`,
           };
           const newEvents = [...events, newEvent];
           setEvents(newEvents);
@@ -679,17 +669,13 @@ const Calendar = () => {
         }}>
         <CalendarHeader
           dayBarHeight={isResourcesMode ? 120 : 60}
-          renderHeaderItem={
-            isResourcesMode ? _renderResourceHeaderItem : undefined
-          }
+          renderHeaderItem={isResourcesMode ? _renderResourceHeaderItem : undefined}
         />
         <CalendarBody
           renderCustomHorizontalLine={_renderCustomHorizontalLine}
           renderCustomUnavailableHour={_renderCustomUnavailableHour}
           renderDraggingEvent={
-            configs.dragToCreateMode === 'duration'
-              ? undefined
-              : _renderDraggingEvent
+            configs.dragToCreateMode === 'duration' ? undefined : _renderDraggingEvent
           }
         />
       </CalendarContainer>
@@ -701,17 +687,6 @@ export default Calendar;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  actions: { flexDirection: 'row', gap: 10, padding: 10 },
-  btn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: '#23cfde',
-  },
-  header: {
-    backgroundColor: 'white',
-    padding: 16,
-  },
-  date: { fontSize: 16, fontWeight: 'bold' },
   resourceContainer: {
     justifyContent: 'center',
     alignItems: 'center',

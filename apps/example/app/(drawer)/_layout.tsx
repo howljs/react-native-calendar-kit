@@ -3,7 +3,6 @@ import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import { useTheme } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import Drawer from 'expo-router/drawer';
-import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
@@ -22,10 +21,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
       <DrawerItem label="4 Days" onPress={() => _onPressItem('week', 4)} />
       <DrawerItem label="Week" onPress={() => _onPressItem('week', 7)} />
       <DrawerItem label="Work week" onPress={() => _onPressItem('week', 5)} />
-      <DrawerItem
-        label="Resources"
-        onPress={() => _onPressItem('resources', 1)}
-      />
+      <DrawerItem label="Resources" onPress={() => _onPressItem('resources', 1)} />
       <View style={[styles.line, { backgroundColor: theme.colors.border }]} />
       <View style={[styles.line, { backgroundColor: theme.colors.border }]} />
       <DrawerItem
@@ -45,14 +41,10 @@ const styles = StyleSheet.create({
 });
 
 const DrawerLayout = () => {
-  const _renderDrawer = (props: DrawerContentComponentProps) => (
-    <CustomDrawerContent {...props} />
-  );
+  const _renderDrawer = (props: DrawerContentComponentProps) => <CustomDrawerContent {...props} />;
 
   return (
-    <Drawer
-      screenOptions={{ drawerType: 'front' }}
-      drawerContent={_renderDrawer}>
+    <Drawer screenOptions={{ drawerType: 'front' }} drawerContent={_renderDrawer}>
       <Drawer.Screen
         name="index"
         options={{ headerShown: false }}

@@ -1,11 +1,8 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "../../tsconfig",
+  "references": [{ "path": "../../packages/calendar-kit" }],
   "compilerOptions": {
-    "strict": true,
-    "paths": {
-      "@/*": ["./*"],
-      "@howljs/calendar-kit": ["../../packages/react-native-calendar-kit/src"]
-    }
+    "rootDir": "."
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }
