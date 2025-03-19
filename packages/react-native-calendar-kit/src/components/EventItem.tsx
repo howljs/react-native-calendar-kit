@@ -16,8 +16,8 @@ import { MILLISECONDS_IN_DAY } from '../constants';
 import { useBody } from '../context/BodyContext';
 import { useTheme } from '../context/ThemeProvider';
 import type { OnEventResponse, PackedEvent, SizeAnimation } from '../types';
-import Text from './Text';
 import { parseDateTime } from '../utils/dateUtils';
+import Text from './Text';
 
 interface EventItemProps {
   event: PackedEvent;
@@ -239,7 +239,12 @@ const EventItem: FC<EventItemProps> = ({
               height: eventHeight,
             })
           ) : (
-            <Text style={[styles.title, theme.eventTitleStyle]}>
+            <Text
+              style={[
+                styles.title,
+                theme.eventTitleStyle,
+                { color: event.titleColor },
+              ]}>
               {event.title}
             </Text>
           )}

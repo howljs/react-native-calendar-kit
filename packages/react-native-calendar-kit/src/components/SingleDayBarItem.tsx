@@ -260,7 +260,14 @@ const EventItem = ({
             height: eventHeight,
           })
         ) : (
-          <Text style={[styles.eventTitle, rest.titleStyle]}>{rest.title}</Text>
+          <Text
+            style={[
+              styles.eventTitle,
+              rest.titleStyle,
+              { color: rest.titleColor },
+            ]}>
+            {rest.title}
+          </Text>
         )}
       </TouchableOpacity>
     </Animated.View>
