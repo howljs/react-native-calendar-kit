@@ -239,7 +239,12 @@ const EventItem: FC<EventItemProps> = ({
               height: eventHeight,
             })
           ) : (
-            <Text style={[{color: event.titleColor},styles.title, theme.eventTitleStyle]}>
+            <Text
+              style={[
+                styles.title,
+                theme.eventTitleStyle,
+                { color: event.titleColor },
+              ]}>
               {event.title}
             </Text>
           )}
