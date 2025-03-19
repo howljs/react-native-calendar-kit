@@ -620,6 +620,9 @@ export interface UnavailableHourProps extends Record<string, any> {
   end: number;
   enableBackgroundInteraction?: boolean;
   backgroundColor?: string;
+
+  /** Set unavailable hours only for specific resource. */
+  resourceId?: string;
 }
 
 export interface OutOfRangeProps extends SizeAnimation {}

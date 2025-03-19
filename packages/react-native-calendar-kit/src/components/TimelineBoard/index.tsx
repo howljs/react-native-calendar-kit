@@ -54,7 +54,7 @@ const TimelineBoard = ({
 
   const _renderVerticalLines = () => {
     const lines: React.ReactNode[] = [];
-    const cols = resources ? resources.length : columns;
+    const cols = resources?.length ? resources.length : columns;
 
     for (let i = 0; i < cols; i++) {
       lines.push(
@@ -63,7 +63,7 @@ const TimelineBoard = ({
           borderColor={colors.border}
           index={i}
           columnWidth={columnWidthAnim}
-          childColumns={resources ? resources.length : 1}
+          childColumns={resources?.length ? resources.length : 1}
         />
       );
     }
@@ -186,7 +186,7 @@ const TimelineBoard = ({
   };
 
   const _renderUnavailableHours = () => {
-    return <UnavailableHours visibleDates={visibleDates} />;
+    return <UnavailableHours visibleDates={visibleDates} resources={resources} />;
   };
 
   return (
@@ -220,7 +220,7 @@ const TimelineBoard = ({
         {_renderOutOfRangeView()}
         {_renderHorizontalLines()}
       </Animated.View>
-      {(numberOfDays > 1 || resources?.length) && _renderVerticalLines()}
+      {(numberOfDays > 1 || !!resources?.length) && _renderVerticalLines()}
     </View>
   );
 };

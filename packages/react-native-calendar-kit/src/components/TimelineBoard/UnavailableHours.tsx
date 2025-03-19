@@ -1,5 +1,4 @@
-import type { FC } from 'react';
-import React, { memo, useCallback } from 'react';
+import React, { FC, memo, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
@@ -9,18 +8,23 @@ import Animated, {
 import { useBody } from '../../context/BodyContext';
 import { useTheme } from '../../context/ThemeProvider';
 import { useUnavailableHoursByDate } from '../../context/UnavailableHoursProvider';
-import type { UnavailableHourProps } from '../../types';
+import { ResourceItem, UnavailableHourProps } from '../../types';
 
 interface UnavailableHoursProps {
   visibleDates: Record<string, { diffDays: number; unix: number }>;
+  resources?: ResourceItem[];
 }
 
-const UnavailableHours: FC<UnavailableHoursProps> = ({ visibleDates }) => {
+const UnavailableHours: FC<UnavailableHoursProps> = ({
+  visibleDates,
+  resources,
+}) => {
   const _renderColumn = (currentUnix: string, index: number) => (
-    <UnavailableColumn
+    <UnavailableHoursByDate
       key={`UnavailableHours_${currentUnix}`}
       currentUnix={Number(currentUnix)}
-      index={index}
+      visibleDateIndex={index}
+      resources={resources}
     />
   );
 
@@ -33,9 +37,57 @@ const UnavailableHours: FC<UnavailableHoursProps> = ({ visibleDates }) => {
 
 export default UnavailableHours;
 
-const UnavailableColumn = memo(
-  ({ currentUnix, index }: { currentUnix: number; index: number }) => {
-    const { start: calendarStart, renderCustomUnavailableHour } = useBody();
+interface UnavailableHoursByDateProps {
+  currentUnix: number;
+  visibleDateIndex: number;
+  resources?: ResourceItem[];
+}
+
+const UnavailableHoursByDate = memo(
+  ({
+    currentUnix,
+    visibleDateIndex,
+    resources,
+  }: UnavailableHoursByDateProps) => {
+    const unavailableHours = useUnavailableHoursByDate(currentUnix);
+
+    if (!unavailableHours) {
+      return null;
+    }
+
+    return (
+      <UnavailableColumns
+        currentUnix={currentUnix}
+        visibleDateIndex={visibleDateIndex}
+        unavailableHours={unavailableHours}
+        resources={resources}
+      />
+    );
+  }
+);
+
+interface UnavailableColumnsProps extends UnavailableHoursByDateProps {
+  unavailableHours: UnavailableHourProps[];
+}
+
+interface UnavailableColumnHourProps {
+  item: UnavailableHourProps;
+  resourceIndex: number;
+  widthPercentage: number;
+}
+
+const UnavailableColumns = memo(
+  ({
+    currentUnix,
+    visibleDateIndex,
+    unavailableHours,
+    resources,
+  }: UnavailableColumnsProps) => {
+    const {
+      start: calendarStart,
+      renderCustomUnavailableHour,
+      numberOfDays,
+    } = useBody();
     const backgroundColor = useTheme(
       useCallback(
         (state) => state.unavailableHourBackgroundColor || state.colors.surface,
@@ -43,34 +95,83 @@ const UnavailableColumn = memo(
       )
     );
 
-    const unavailableHours = useUnavailableHoursByDate(currentUnix);
-    if (!unavailableHours) {
-      return null;
-    }
+    const allUnavailableHours = useMemo(() => {
+      const resourcesList = resources || [];
+      const isResourceSupported = numberOfDays === 1;
+      // If no resources or only one resource, apply all unavailable hours to the full width
+      if (resourcesList.length <= 1 || !isResourceSupported) {
+        return unavailableHours.map((item) => ({
+          item,
+          resourceIndex: 0,
+          widthPercentage: 1,
+        }));
+      }
+
+      // For multiple resources scenario
+      const result: UnavailableColumnHourProps[] = [];
+      const widthPerResource = 1 / resourcesList.length;
+
+      // Create a map for faster resource lookup
+      const resourceMap = new Map<string, number>();
+      resourcesList.forEach((resource, index) => {
+        if (resource.id) {
+          resourceMap.set(resource.id, index);
+        }
+      });
+
+      // Process all unavailable hours in a single pass
+      unavailableHours.forEach((item) => {
+        if (!item.resourceId) {
+          // Global unavailable hour - apply to all resources
+          resourcesList.forEach((_, index) => {
+            result.push({
+              item,
+              resourceIndex: index,
+              widthPercentage: widthPerResource,
+            });
+          });
+        } else {
+          // Resource-specific unavailable hour
+          const resourceIndex = resourceMap.get(item.resourceId);
+          if (resourceIndex !== undefined) {
+            result.push({
+              item,
+              resourceIndex,
+              widthPercentage: widthPerResource,
+            });
+          }
+        }
+      });
+
+      return result;
+    }, [resources, numberOfDays, unavailableHours]);
 
     const _renderSpecialRegion = (
-      props: UnavailableHourProps,
+      props: UnavailableColumnHourProps,
       regionIndex: number
     ) => {
-      const clampedStart = Math.max(props.start - calendarStart, 0);
-      const start = props.start > calendarStart ? props.start : calendarStart;
-      const totalMinutes = props.end - start;
+      const item = props.item;
+      const clampedStart = Math.max(item.start - calendarStart, 0);
+      const start = item.start > calendarStart ? item.start : calendarStart;
+      const totalMinutes = item.end - start;
 
       return (
         <UnavailableHourItem
           key={`${currentUnix}_${regionIndex}`}
-          diffDays={index}
+          diffDays={visibleDateIndex}
           diffMinutes={clampedStart}
           totalMinutes={totalMinutes}
-          backgroundColor={props.backgroundColor || backgroundColor}
-          enableBackgroundInteraction={props.enableBackgroundInteraction}
+          backgroundColor={item.backgroundColor || backgroundColor}
+          enableBackgroundInteraction={item.enableBackgroundInteraction}
           renderCustomUnavailableHour={renderCustomUnavailableHour}
-          originalProps={props}
+          originalProps={item}
+          resourceIndex={props.resourceIndex}
+          widthPercentage={props.widthPercentage}
         />
       );
     };
 
-    return unavailableHours.map(_renderSpecialRegion);
+    return allUnavailableHours.map(_renderSpecialRegion);
   }
 );
 
@@ -87,6 +188,8 @@ interface UnavailableHourItemProps {
     }
   ) => React.ReactNode;
   originalProps: UnavailableHourProps;
+  resourceIndex: number;
+  widthPercentage?: number;
 }
 
 const UnavailableHourItem = ({
@@ -97,17 +200,23 @@ const UnavailableHourItem = ({
   enableBackgroundInteraction,
   renderCustomUnavailableHour,
   originalProps,
+  resourceIndex,
+  widthPercentage = 1,
 }: UnavailableHourItemProps) => {
   const { minuteHeight, columnWidthAnim } = useBody();
 
   const height = useDerivedValue(() => minuteHeight.value * totalMinutes);
+  const childWidth = useDerivedValue(
+    () => columnWidthAnim.value * widthPercentage,
+    [widthPercentage]
+  );
 
   const animView = useAnimatedStyle(() => {
     return {
-      width: columnWidthAnim.value,
+      width: childWidth.value,
       height: height.value,
       top: minuteHeight.value * diffMinutes,
-      left: columnWidthAnim.value * diffDays,
+      left: diffDays * columnWidthAnim.value + resourceIndex * childWidth.value,
     };
   });
 
@@ -118,7 +227,7 @@ const UnavailableHourItem = ({
       {renderCustomUnavailableHour &&
         renderCustomUnavailableHour({
           ...originalProps,
-          width: columnWidthAnim,
+          width: childWidth,
           height,
         })}
     </Animated.View>
