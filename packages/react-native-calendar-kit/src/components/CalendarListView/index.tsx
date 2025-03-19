@@ -141,6 +141,7 @@ const CalendarListView = forwardRef<
         scrollRefExternal: animatedRef,
         overScrollMode: 'never',
         onScrollExternal: onScroll,
+        disableIntervalMomentum: !!_snapToOffsets,
         onMomentumScrollBegin: () => {},
         style: inverted ? styles.invertedTransform : {},
       }}
