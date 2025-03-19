@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Platform, type GestureResponderEvent } from 'react-native';
+import { type GestureResponderEvent } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import {
   runOnJS,
@@ -481,9 +481,7 @@ const DragEventProvider: FC<
 
       runOnUI(() => {
         scrollTargetX.value = nextOffset;
-        if (Platform.OS === 'web') {
-          scrollTo(dayBarListRef, nextOffset, 0, true);
-        }
+        scrollTo(dayBarListRef, nextOffset, 0, true);
         scrollTo(gridListRef, nextOffset, 0, true);
         dragStartUnix.value = targetUnix;
         roundedDragStartUnix.value = targetUnix;
