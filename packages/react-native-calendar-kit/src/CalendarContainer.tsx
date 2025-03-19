@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { PixelRatio, Platform } from 'react-native';
+import { PixelRatio } from 'react-native';
 import type Animated from 'react-native-reanimated';
 import {
   runOnUI,
@@ -334,9 +334,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
           props?.animatedDate !== undefined ? props.animatedDate : true;
 
         runOnUI(() => {
-          if (Platform.OS === 'web') {
-            scrollTo(dayBarListRef, offset, 0, true);
-          }
+          scrollTo(dayBarListRef, offset, 0, animatedDate);
           scrollTo(gridListRef, offset, 0, animatedDate);
         })();
       }
@@ -403,9 +401,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       triggerDateChanged.current = nextDateUnix;
       scrollType.current = ScrollType.calendarGrid;
       runOnUI(() => {
-        if (Platform.OS === 'web') {
-          scrollTo(dayBarListRef, nextOffset, 0, animated);
-        }
+        scrollTo(dayBarListRef, nextOffset, 0, animated);
         scrollTo(gridListRef, nextOffset, 0, animated);
       })();
     }
@@ -446,9 +442,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       triggerDateChanged.current = nextDateUnix;
       scrollType.current = ScrollType.calendarGrid;
       runOnUI(() => {
-        if (Platform.OS === 'web') {
-          scrollTo(dayBarListRef, nextOffset, 0, animated);
-        }
+        scrollTo(dayBarListRef, nextOffset, 0, animated);
         scrollTo(gridListRef, nextOffset, 0, animated);
       })();
     }

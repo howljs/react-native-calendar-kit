@@ -77,6 +77,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
     },
     onMomentumEnd: () => {
       if (isDragging.value) {
+        isDragging.value = false;
         runOnJS(_onMomentumEnd)();
       }
     },
