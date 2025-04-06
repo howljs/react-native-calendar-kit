@@ -42,6 +42,7 @@ The `useBody` hook returns an object with the following properties:
 - `end` (number): End time of the calendar (in minutes from midnight).
 - `timeInterval` (number): Time interval between slots (in minutes).
 - `showNowIndicator` (boolean): Whether to show the "now" indicator.
+- `showTimeColumnRightLine` (boolean): Whether to show the vertical right bar next to hours.
 - `columnWidth` (number): Width of each day column.
 - `calendarLayout` (object): Contains `width` and `height` of the calendar layout.
 - `isRTL` (boolean): Whether the calendar is in right-to-left mode.
