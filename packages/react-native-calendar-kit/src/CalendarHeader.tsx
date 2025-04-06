@@ -74,7 +74,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       (state) => ({
         headerBackgroundColor:
           state.headerBackgroundColor || state.colors.background,
-        borderColor: state.colors.border,
+        borderColor: state.headerBorderColor ?? state.colors.border,
         headerContainer: state.headerContainer,
       }),
       []

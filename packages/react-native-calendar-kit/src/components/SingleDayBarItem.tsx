@@ -54,7 +54,7 @@ const SingleDayBarItem = ({
   const dayBarStyles = useTheme(
     useCallback(
       (state) => ({
-        borderColor: state.colors.border,
+        borderColor: state.singleDayBorderColor ?? state.colors.border,
         singleDayContainer: state.singleDayContainer,
         singleDayEventsContainer: state.singleDayEventsContainer,
         countContainer: state.countContainer,

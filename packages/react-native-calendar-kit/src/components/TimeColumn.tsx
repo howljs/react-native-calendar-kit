@@ -10,7 +10,7 @@ import type { ThemeConfigs } from '../types';
 import Text from './Text';
 
 const selectTimeColumnTheme = (state: ThemeConfigs) => ({
-  cellBorderColor: state.colors.border,
+  cellBorderColor: state.hourBorderColor ?? state.colors.border,
   hourTextColor: state.colors.onBackground,
   hourTextStyle: state.hourTextStyle,
   hourBackgroundColor: state.hourBackgroundColor || state.colors.background,
@@ -27,6 +27,7 @@ const TimeColumn = () => {
     hourWidth,
     minuteHeight,
     start,
+    showTimeColumnRightLine
   } = useBody();
   const { cellBorderColor, hourTextColor, hourTextStyle, hourBackgroundColor } =
     useTheme(selectTimeColumnTheme);
@@ -91,7 +92,7 @@ const TimeColumn = () => {
         ]}>
         {hours.map(_renderHour)}
       </Animated.View>
-      <View style={[styles.rightLine, { backgroundColor: cellBorderColor }]} />
+      {showTimeColumnRightLine && <View style={[styles.rightLine, { backgroundColor: cellBorderColor }]} />}
     </View>
   );
 };

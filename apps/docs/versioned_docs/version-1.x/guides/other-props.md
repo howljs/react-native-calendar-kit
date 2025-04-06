@@ -84,6 +84,12 @@ Show a line at current time. Default is `true`
 
 <span style={{color: "grey"}}>boolean</span>
 
+### showTimeColumnRightLine
+
+Show a vertical line next to hours. Default is `true`
+
+<span style={{color: "grey"}}>boolean</span>
+
 ### scrollToNow
 
 Auto scroll to current time. Default is `true`

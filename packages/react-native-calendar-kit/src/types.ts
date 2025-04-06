@@ -40,11 +40,14 @@ export interface ThemeConfigs {
   // Hour column
   hourBackgroundColor?: string;
   hourTextStyle?: TextStyle;
+  hourBorderColor?: string;
 
   // Day bar
   headerBackgroundColor?: string;
   headerContainer?: ViewStyle;
+  headerBorderColor?: string;
   dayBarContainer?: ViewStyle;
+  dayBarBorderColor?: string;
 
   dayContainer?: ViewStyle;
   dayName?: TextStyle;
@@ -61,6 +64,7 @@ export interface ThemeConfigs {
 
   singleDayContainer?: ViewStyle;
   singleDayEventsContainer?: ViewStyle;
+  singleDayBorderColor?: string;
 
   // Week number
   weekNumber?: TextStyle;
@@ -74,6 +78,8 @@ export interface ThemeConfigs {
 
   /** Default background color: `colors.surface` */
   unavailableHourBackgroundColor?: string;
+
+  unavailableHourContainerStyle?: ViewStyle;
 
   /** Default container style of the event */
   eventContainerStyle?: ViewStyle;
@@ -725,6 +731,9 @@ export interface CalendarBodyProps {
 
   /** Show now indicator */
   showNowIndicator?: boolean;
+
+  /** Show right bar of the TimeColumn component */
+  showTimeColumnRightLine?: boolean;
 
   /** Custom Out of Range item
    *

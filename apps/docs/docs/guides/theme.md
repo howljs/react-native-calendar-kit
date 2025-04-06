@@ -61,12 +61,15 @@ The theme object can include the following properties:
 
 - `hourBackgroundColor`: Background color for the hour column
 - `hourTextStyle`: Text style for hours in the hour column
+- `hourBorderColor`: Specific color for the border of hour column
 
 ### Day Bar
 
 - `headerBackgroundColor`: Background color for the header
 - `headerContainer`: Style for the header container
+- `headerBorderColor`: Specific color for the border of header
 - `dayBarContainer`: Style for the day bar container
+- `dayBarBorderColor`: Specific color for the border of day bar
 
 ### Day Item
 
@@ -89,6 +92,7 @@ The theme object can include the following properties:
 
 - `singleDayContainer`: Style for the single day view container
 - `singleDayEventsContainer`: Style for the events container in single day view
+- `singleDayBorderColor`: Specific color for the border of single day
 
 ### Week Number
 
@@ -103,6 +107,7 @@ The theme object can include the following properties:
 
 - `outOfRangeBackgroundColor`: Background color for out-of-range dates
 - `unavailableHourBackgroundColor`: Background color for unavailable hours
+- `unavailableHourContainerStyle`: Style for the container of unavailable hours
 
 ### Events
 
