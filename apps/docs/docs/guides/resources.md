@@ -17,24 +17,24 @@ import {
   CalendarContainer,
   CalendarHeader,
   CalendarBody,
-} from "@howljs/calendar-kit";
+} from '@howljs/calendar-kit';
 
 const resources = [
-    { id: 'room1', name: 'Meeting Room 1' },
-    { id: 'room2', name: 'Meeting Room 2' },
-    { id: 'room3', name: 'Conference Room' },
+  { id: 'room1', name: 'Meeting Room 1' },
+  { id: 'room2', name: 'Meeting Room 2' },
+  { id: 'room3', name: 'Conference Room' },
 ];
 
 function MyCalendar() {
-    return (
+  return (
     <CalendarContainer
-        resources={resources}
-        // ... other props
+      resources={resources}
+      // ... other props
     >
-        <CalendarHeader />
-        <CalendarBody />
+      <CalendarHeader />
+      <CalendarBody />
     </CalendarContainer>
-    );
+  );
 }
 ```
 
@@ -44,24 +44,23 @@ When adding events to your calendar, you need to specify the `resourceId` for ea
 
 ```tsx
 const events = [
-      {
-        id: '1',
-        title: 'Team Meeting',
-        start: { dateTime: '2024-03-15T10:00:00Z' },
-        end: { dateTime: '2024-03-15T11:00:00Z' },
-        resourceId: 'room1',
-      },
-      {
-        id: '2',
-        title: 'Client Presentation',
-        start: { dateTime: '2024-03-15T14:00:00Z' },
-        end: { dateTime: '2024-03-15T15:30:00Z' },
-        resourceId: 'room2',
-      },
-      // ... more events
-    ];
+  {
+    id: '1',
+    title: 'Team Meeting',
+    start: { dateTime: '2024-03-15T10:00:00Z' },
+    end: { dateTime: '2024-03-15T11:00:00Z' },
+    resourceId: 'room1',
+  },
+  {
+    id: '2',
+    title: 'Client Presentation',
+    start: { dateTime: '2024-03-15T14:00:00Z' },
+    end: { dateTime: '2024-03-15T15:30:00Z' },
+    resourceId: 'room2',
+  },
+  // ... more events
+];
 ```
-
 
 ## Customizing Resources Header
 
@@ -69,14 +68,17 @@ You can customize the appearance of the resources header by providing a `renderH
 
 ```tsx
 function MyCalendar() {
-const _renderResource = useCallback((resource: ResourceItem) => {
-    return (
-      <View style={styles.resourceContainer}>
-        <Ionicons name="person-circle-outline" size={24} color="black" />
-        <Text>{resource.title}</Text>
-      </View>
-    );
-  }, []);
+  const _renderResource = useCallback(
+    (resource: ResourceItem, index: number) => {
+      return (
+        <View style={styles.resourceContainer}>
+          <Ionicons name="person-circle-outline" size={24} color="black" />
+          <Text>{resource.title}</Text>
+        </View>
+      );
+    },
+    []
+  );
 
   const _renderResourceHeaderItem = useCallback(
     (item: HeaderItemProps) => {
@@ -107,12 +109,13 @@ const _renderResource = useCallback((resource: ResourceItem) => {
       events={events}
       // ... other props
     >
-      <CalendarHeader renderHeaderItem={_renderResourceHeaderItem}/>
-      <CalendarBody  />
+      <CalendarHeader renderHeaderItem={_renderResourceHeaderItem} />
+      <CalendarBody />
     </CalendarContainer>
   );
 }
 ```
+
 Check example code: https://github.com/howljs/react-native-calendar-kit/blob/main/apps/example/app/(drawer)/index.tsx
 
 ## Handling Resource-specific Actions
@@ -121,19 +124,19 @@ When handling events in a Resources Calendar, you may need to consider the assoc
 
 ```tsx
 function MyCalendar() {
-    const handleCreateEvent = (event) => {
+  const handleCreateEvent = (event) => {
     // event.resourceId will contain the id of the resource where the event was created
     console.log('New event for resource:', event.resourceId);
     // Add your logic to create the event
-    };
+  };
 
-    return (
-        <CalendarKit
-            resources={resources}
-            onPressBackground={handleCreateEvent}
-            // ... other props
-        />
-    );
+  return (
+    <CalendarKit
+      resources={resources}
+      onPressBackground={handleCreateEvent}
+      // ... other props
+    />
+  );
 }
 ```
 
