@@ -11,7 +11,7 @@ interface ResourceHeaderItemProps {
   DateComponent?: React.ReactElement | null;
   renderResource?: (
     resource: ResourceItem,
-    index: number
+    index?: number
   ) => React.ReactElement | null;
   isShowSeparator?: boolean;
   dateFormat?: string;
