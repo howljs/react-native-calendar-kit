@@ -104,10 +104,10 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   }));
 
   const { pinchGesture, pinchGestureRef } = usePinchToZoom();
-  const dragEventGesture = useDragEventGesture();
+  const dragEventGesture = useDragEventGesture().activateAfterLongPress(250);
   const dragToCreateGesture = useDragToCreateGesture({
     mode: dragToCreateMode,
-  });
+  }).activateAfterLongPress(250);
 
   const _onLayout = (event: LayoutChangeEvent) => {
     scrollVisibleHeight.current = event.nativeEvent.layout.height;
