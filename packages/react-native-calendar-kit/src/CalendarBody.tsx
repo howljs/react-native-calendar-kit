@@ -104,10 +104,10 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   }));
 
   const { pinchGesture, pinchGestureRef } = usePinchToZoom();
-  const dragEventGesture = useDragEventGesture().activateAfterLongPress(250);
+  const dragEventGesture = useDragEventGesture();
   const dragToCreateGesture = useDragToCreateGesture({
     mode: dragToCreateMode,
-  }).activateAfterLongPress(250);
+  });
 
   const _onLayout = (event: LayoutChangeEvent) => {
     scrollVisibleHeight.current = event.nativeEvent.layout.height;
@@ -266,11 +266,14 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     ]
   );
 
-  const composedGesture = Gesture.Race(
-    pinchGesture,
-    dragEventGesture,
-    dragToCreateGesture
-  );
+  const composedGesture =
+    Platform.OS === 'android'
+      ? Gesture.Race(
+          pinchGesture,
+          dragEventGesture.activateAfterLongPress(200),
+          dragToCreateGesture.activateAfterLongPress(200)
+        )
+      : Gesture.Race(pinchGesture, dragEventGesture, dragToCreateGesture);
 
   const leftSize = numberOfDays > 1 || !!resources ? hourWidth : 0;
 
