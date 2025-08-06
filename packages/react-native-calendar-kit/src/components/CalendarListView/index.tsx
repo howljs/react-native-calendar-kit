@@ -41,6 +41,7 @@ interface CalendarListViewProps {
     offset: number;
   }) => void;
   columnsPerPage: number;
+  resourcesPerPage?: number;
   extraScrollData?: Record<string, any>;
   onLoad?: () => void;
 }
@@ -73,6 +74,7 @@ const CalendarListView = forwardRef<
     inverted,
     onVisibleColumnChanged,
     columnsPerPage,
+    resourcesPerPage,
     extraScrollData,
     onLoad,
   } = props;
@@ -102,11 +104,13 @@ const CalendarListView = forwardRef<
       return undefined;
     }
 
+    const columnsToSnap = resourcesPerPage ?? columnsPerPage;
+
     return Array.from(
-      { length: columnsPerPage },
+      { length: columnsToSnap },
       (_, col) => col * snapToInterval
     );
-  }, [columnsPerPage, snapToInterval, width]);
+  }, [resourcesPerPage, columnsPerPage, snapToInterval, width]);
 
   const _snapToOffsets = useMemo(() => {
     if (!baseOffsets) {

@@ -61,6 +61,7 @@ export interface CalendarContextProps {
   allowDragToCreate: boolean;
   allowDragToEdit: boolean;
   dragToCreateMode: 'duration' | 'date-time';
+  scrollByResource: boolean;
 }
 
 export const CalendarContext = React.createContext<

@@ -126,6 +126,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     minStartDifference,
     onLongPressBackground,
     resources,
+    maxResourcesColumnsPerPage,
     animateColumnWidth = false,
     dragToCreateMode = 'duration',
   },
@@ -139,6 +140,10 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   }
 
   const isResourceMode = !!resources;
+  const scrollByResource =
+    isResourceMode &&
+    !!maxResourcesColumnsPerPage &&
+    resources.length > maxResourcesColumnsPerPage;
   const scrollByDay =
     isResourceMode ||
     initialNumberOfDays === 1 ||
@@ -187,17 +192,36 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const columns = isSingleDay ? 1 : daysToShow;
 
   const defaultLayout = useLayout();
-  const calendarLayout = useMemo(() => {
-    return {
-      width: calendarWidth ?? defaultLayout.width,
-      height: defaultLayout.height,
-    };
-  }, [calendarWidth, defaultLayout.height, defaultLayout.width]);
 
   const hourWidth = useMemo(
     () => PixelRatio.roundToNearestPixel(initialHourWidth),
     [initialHourWidth]
   );
+
+  const calendarLayout = useMemo(() => {
+    if (scrollByResource) {
+      return {
+        width:
+          (defaultLayout.width - hourWidth) *
+            (resources.length / maxResourcesColumnsPerPage) +
+          hourWidth,
+        height: defaultLayout.height,
+      };
+    }
+
+    return {
+      width: calendarWidth ?? defaultLayout.width,
+      height: defaultLayout.height,
+    };
+  }, [
+    hourWidth,
+    calendarWidth,
+    defaultLayout.height,
+    defaultLayout.width,
+    scrollByResource,
+    resources,
+    maxResourcesColumnsPerPage,
+  ]);
 
   useEffect(() => {
     hapticService.setEnabled(useHaptic);
@@ -603,10 +627,22 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     }
   }, [columnWidthAnim, columnWidth, isSingleDay, animateColumnWidth]);
 
-  const snapToInterval =
-    numberOfDays > 1 && scrollByDay && !isResourceMode
+  const snapToInterval = useMemo(() => {
+    if (scrollByResource) {
+      return columnWidth / resources.length;
+    }
+
+    return numberOfDays > 1 && scrollByDay && !isResourceMode
       ? columnWidth
       : undefined;
+  }, [
+    isResourceMode,
+    scrollByResource,
+    resources?.length,
+    numberOfDays,
+    scrollByDay,
+    columnWidth,
+  ]);
 
   const value = useMemo<CalendarContextProps>(
     () => ({
@@ -662,6 +698,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       allowDragToCreate,
       allowDragToEdit,
       dragToCreateMode,
+      scrollByResource,
     }),
     [
       calendarLayout,
@@ -711,6 +748,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       allowDragToCreate,
       allowDragToEdit,
       dragToCreateMode,
+      scrollByResource,
     ]
   );
 

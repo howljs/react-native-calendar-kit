@@ -75,6 +75,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     visibleDateUnix,
     gridListRef,
     calendarData,
+    scrollByResource,
     calendarGridWidth,
     initialOffset,
     isRTL,
@@ -274,6 +275,10 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
 
   const leftSize = numberOfDays > 1 || !!resources ? hourWidth : 0;
 
+  const resourcesPerPageToSnap = scrollByResource
+    ? resources?.length
+    : undefined;
+
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
@@ -330,6 +335,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                     initialOffset={initialOffset}
                     onScroll={onScroll}
                     columnsPerPage={columns}
+                    resourcesPerPage={resourcesPerPageToSnap}
                     onVisibleColumnChanged={onVisibleColumnChanged}
                     renderAheadItem={pagesPerSide}
                     extraScrollData={extraScrollData}
