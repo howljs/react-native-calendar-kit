@@ -40,7 +40,12 @@ import Header from '../../components/Header';
 import { useAppContext } from '../../context/AppProvider';
 import CustomUnavailableHour from '@/components/CustomUnavailableHour';
 
-type SearchParams = { viewMode: string; numberOfDays: string };
+type SearchParams = {
+  viewMode: string;
+  numberOfDays: string;
+  resourcesAmount?: string;
+  maxResourcesColumnsPerPage?: string;
+};
 
 const MIN_DATE = new Date(
   new Date().getFullYear() - 2,
@@ -335,9 +340,7 @@ const allDayEvents: EventItem[] = [
   },
 ];
 
-const TOTAL_RESOURCES = 3;
-
-const generateEvents = () => {
+const generateEvents = (resourcesAmount: number) => {
   return new Array(500)
     .fill(0)
     .map((_, index) => {
@@ -361,27 +364,36 @@ const generateEvents = () => {
         },
         title: `Event ${index + 1}`,
         color: randomColor(),
-        resourceId: `resource_${Math.floor(Math.random() * TOTAL_RESOURCES) + 1}`,
+        resourceId: `resource_${Math.floor(Math.random() * resourcesAmount) + 1}`,
       } as EventItem;
     })
     .concat(allDayEvents);
 };
 
 const Calendar = () => {
-  const [events, setEvents] = useState<EventItem[]>(() => generateEvents());
+  const params = useLocalSearchParams<SearchParams>();
+
+  const isResourcesMode = params.viewMode === 'resources';
+  const maxResourcesColumnsPerPage = params.maxResourcesColumnsPerPage
+    ? Number(params.maxResourcesColumnsPerPage)
+    : undefined;
+  const resourcesAmount = params.resourcesAmount
+    ? Number(params.resourcesAmount)
+    : 3;
+
+  const [events, setEvents] = useState<EventItem[]>(() =>
+    generateEvents(resourcesAmount)
+  );
   const { bottom: safeBottom } = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const calendarRef = useRef<CalendarKitHandle>(null);
   const { configs } = useAppContext();
-  const params = useLocalSearchParams<SearchParams>();
   const router = useRouter();
   const currentDate = useSharedValue(INITIAL_DATE);
   const [selectedEvent, setSelectedEvent] = useState<SelectedEventType>();
   const [calendarWidth, setCalendarWidth] = useState(
     Dimensions.get('window').width
   );
-
-  const isResourcesMode = params.viewMode === 'resources';
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
@@ -408,21 +420,36 @@ const Calendar = () => {
   }, []);
 
   const resources = useMemo(() => {
-    return new Array(TOTAL_RESOURCES).fill(0).map((_, index) => {
+    return new Array(resourcesAmount).fill(0).map((_, index) => {
       return {
         id: `resource_${index + 1}`,
         title: `Resource ${index + 1}`,
       };
     });
-  }, []);
+  }, [resourcesAmount]);
 
   const unavailableHours = useMemo(
     () => [
       { start: 0, end: 6 * 60, enableBackgroundInteraction: true },
       { start: 20 * 60, end: 24 * 60, enableBackgroundInteraction: true },
-      { start: 7 * 60, end: 8 * 60, enableBackgroundInteraction: true, resourceId: resources[0].id },
-      { start: 8 * 60, end: 9 * 60, enableBackgroundInteraction: true, resourceId: resources[1].id },
-      { start: 9 * 60, end: 10 * 60, enableBackgroundInteraction: true, resourceId: resources[2].id },
+      {
+        start: 7 * 60,
+        end: 8 * 60,
+        enableBackgroundInteraction: true,
+        resourceId: resources[0].id,
+      },
+      {
+        start: 8 * 60,
+        end: 9 * 60,
+        enableBackgroundInteraction: true,
+        resourceId: resources[1].id,
+      },
+      {
+        start: 9 * 60,
+        end: 10 * 60,
+        enableBackgroundInteraction: true,
+        resourceId: resources[2].id,
+      },
     ],
     []
   );
@@ -662,6 +689,9 @@ const Calendar = () => {
           });
         }}
         resources={isResourcesMode ? resources : undefined}
+        maxResourcesColumnsPerPage={
+          isResourcesMode ? maxResourcesColumnsPerPage : undefined
+        }
         onDragCreateEventEnd={(event) => {
           console.log('onDragCreateEventEnd', event);
           const newEvent = {
@@ -671,7 +701,7 @@ const Calendar = () => {
             color: '#23cfde',
             resourceId:
               event.resourceId ||
-              `resource_${Math.floor(Math.random() * TOTAL_RESOURCES) + 1}`,
+              `resource_${Math.floor(Math.random() * resourcesAmount) + 1}`,
           };
           const newEvents = [...events, newEvent];
           setEvents(newEvents);
