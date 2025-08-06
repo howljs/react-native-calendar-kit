@@ -523,6 +523,11 @@ export interface CalendarProviderProps extends ActionsProviderProps {
   resources?: ResourceItem[];
 
   /**
+   * Maximum number of resources columns per scrollable horizontal page (calendar view port)
+   * NOTE: This causes each resource column to snap. By default resources are snapped by day, not by each resource column */
+  maxResourcesColumnsPerPage?: number;
+
+  /**
    * Column width will be animated when the number of days changes.
    *
    * Default is `false`
