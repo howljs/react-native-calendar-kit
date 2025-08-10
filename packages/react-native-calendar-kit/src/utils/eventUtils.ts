@@ -803,9 +803,13 @@ export const populateAllDayEvents = (
       for (
         let dayUnix = eventStart;
         dayUnix <= eventEnd;
-        dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
+        dayUnix = parseDateTime(dayUnix, { zone: options.timeZone })
+          .plus({ days: 1 })
+          .toMillis()
       ) {
-        const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
+        const dayDateTime = parseDateTime(dayUnix, { zone: options.timeZone });
+        const dayStartUnix = dayDateTime.toMillis();
+
         if (
           Object.prototype.hasOwnProperty.call(dateToIndexMap, dayStartUnix)
         ) {
