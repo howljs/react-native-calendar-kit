@@ -28,7 +28,7 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
   isShowWeekDay = true,
 }) => {
   const { weekDayShort } = useLocale();
-  const borderColor = useTheme(useCallback((state) => state.colors.border, []));
+  const borderColor = useTheme(useCallback((state) => state.headerBorderColor ?? state.colors.border, []));
 
   const _renderDate = () => {
     const date = parseDateTime(startUnix);
