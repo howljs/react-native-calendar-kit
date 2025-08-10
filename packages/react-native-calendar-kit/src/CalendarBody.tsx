@@ -266,11 +266,14 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     ]
   );
 
-  const composedGesture = Gesture.Race(
-    pinchGesture,
-    dragEventGesture,
-    dragToCreateGesture
-  );
+  const composedGesture =
+    Platform.OS === 'android'
+      ? Gesture.Race(
+          pinchGesture,
+          dragEventGesture.activateAfterLongPress(200),
+          dragToCreateGesture.activateAfterLongPress(200)
+        )
+      : Gesture.Race(pinchGesture, dragEventGesture, dragToCreateGesture);
 
   const leftSize = numberOfDays > 1 || !!resources ? hourWidth : 0;
 
