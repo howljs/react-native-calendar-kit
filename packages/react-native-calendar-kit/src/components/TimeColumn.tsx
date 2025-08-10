@@ -136,7 +136,7 @@ const HourWrapper: React.FC<PropsWithChildren<HourWrapperProps>> = ({
 };
 
 const styles = StyleSheet.create({
-  container: { zIndex: 998 },
+  container: { zIndex: 998, elevation: -1 },
   absolute: { position: 'absolute' },
   rightLine: {
     position: 'absolute',
