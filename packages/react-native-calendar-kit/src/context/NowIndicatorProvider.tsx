@@ -46,9 +46,11 @@ const NowIndicatorProvider = ({ children }: NowIndicatorProviderProps) => {
 
   const [currentDateUnix, setCurrentDateUnix] = useState(nowRef.current.date);
   const currentTime = useSharedValue(nowRef.current.time);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const appState = useRef<AppStateStatus>(AppState.currentState);
-  const appStateListener = useRef<NativeEventSubscription>();
+  const appStateListener = useRef<NativeEventSubscription | undefined>(
+    undefined
+  );
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) {

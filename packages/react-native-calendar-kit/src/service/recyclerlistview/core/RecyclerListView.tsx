@@ -89,8 +89,8 @@ export default class RecyclerListView<
   private _scrollComponent: ScrollComponent | null = null;
   private _isFirstRender: boolean = true;
 
-  constructor(props: P, context?: any) {
-    super(props, context);
+  constructor(props: P) {
+    super(props);
     this._virtualRenderer = new VirtualRenderer(
       this._renderStackWhenReady,
       (offset) => {
@@ -245,7 +245,9 @@ export default class RecyclerListView<
   public renderCompat(): JSX.Element {
     return (
       <ScrollComponent
-        ref={(scrollComponent) => (this._scrollComponent = scrollComponent)}
+        ref={(scrollComponent) =>
+          (this._scrollComponent = scrollComponent) as any
+        }
         {...this.props}
         {...this.props.scrollViewProps}
         onScroll={this._onScroll}

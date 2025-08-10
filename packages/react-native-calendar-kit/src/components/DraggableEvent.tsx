@@ -57,14 +57,7 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
       };
     }, [])
   );
-  const {
-    minuteHeight,
-    columnWidthAnim,
-    start,
-    numberOfDays,
-    verticalListRef,
-    gridListRef,
-  } = useBody();
+  const { minuteHeight, columnWidthAnim, start, numberOfDays } = useBody();
   const {
     dragStartUnix,
     dragSelectedStartUnix,
@@ -126,7 +119,6 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
   }, [resourceIndex]);
 
   const gesture = Gesture.Tap()
-    .blocksExternalGesture(verticalListRef, gridListRef)
     .runOnJS(true)
     .onTouchesDown(() => {
       triggerDragSelectedEvent({
@@ -140,7 +132,6 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
     });
 
   const topEdgeGesture = Gesture.Tap()
-    .blocksExternalGesture(verticalListRef, gridListRef)
     .runOnJS(true)
     .onTouchesDown(() => {
       triggerDragSelectedEvent({
@@ -154,7 +145,6 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
     });
 
   const bottomEdgeGesture = Gesture.Tap()
-    .blocksExternalGesture(verticalListRef, gridListRef)
     .runOnJS(true)
     .onTouchesDown(() => {
       triggerDragSelectedEvent({

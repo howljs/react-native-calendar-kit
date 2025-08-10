@@ -201,8 +201,8 @@ const DragEventProvider: FC<
   const isDraggingSelectedEvent = useSharedValue(false);
   const isDraggingCreateAnim = useSharedValue(false);
 
-  const autoHScrollTimer = useRef<NodeJS.Timeout>();
-  const autoVScrollTimer = useRef<NodeJS.Timeout>();
+  const autoHScrollTimer = useRef<NodeJS.Timeout | undefined>(undefined);
+  const autoVScrollTimer = useRef<NodeJS.Timeout | undefined>(undefined);
   const scrollTargetX = useSharedValue(0);
   const offsetYAnim = useSharedValue(0);
 
