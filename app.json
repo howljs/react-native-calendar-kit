@@ -1,0 +1,8 @@
+{
+  "android": {
+    "package": "com.howljs.howljscalendarkitmonorepo"
+  },
+  "ios": {
+    "bundleIdentifier": "com.howljs.howljscalendarkitmonorepo"
+  }
+}
