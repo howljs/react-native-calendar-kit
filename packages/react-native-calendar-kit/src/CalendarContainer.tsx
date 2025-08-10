@@ -17,7 +17,7 @@ import {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import type { CalendarListViewHandle } from './components/CalendarListView';
+import { CalendarListRef } from './service/CalendarList';
 import {
   HOUR_WIDTH,
   INITIAL_DATE,
@@ -230,14 +230,14 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       : calendarLayout.width
     : columnWidth * columns;
 
-  const calendarListRef = useRef<CalendarListViewHandle>(null);
+  const calendarListRef = useRef<CalendarListRef | null>(null);
   const verticalListRef = useAnimatedRef<Animated.ScrollView>();
   const dayBarListRef = useAnimatedRef<Animated.ScrollView>();
   const gridListRef = useAnimatedRef<Animated.ScrollView>();
   const scrollType = useRef<ScrollType>(ScrollType.calendarGrid);
   const isTriggerMomentum = useRef(false);
   const scrollVisibleHeight = useRef(0);
-  const triggerDateChanged = useRef<number>();
+  const triggerDateChanged = useRef<number | undefined>(undefined);
 
   // Current visible date
   const visibleDateUnix = useLazyRef(() => {
