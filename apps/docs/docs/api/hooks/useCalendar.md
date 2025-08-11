@@ -12,8 +12,8 @@ The `useCalendar` hook provides access to the main calendar context within the R
 import { useCalendar } from '@howljs/calendar-kit';
 
 function MyComponent() {
-    const calendarContext = useCalendar();
-    // Use calendarContext here
+  const calendarContext = useCalendar();
+  // Use calendarContext here
 }
 ```
 
@@ -47,6 +47,7 @@ The `useCalendar` hook returns an object with numerous properties and functions.
 - `calendarGridWidth` (number): Width of the calendar grid.
 - `columnWidth` (number): Width of each column.
 - `scrollByDay` (boolean): Whether to scroll by day.
+- `scrollByResource` (boolean): Whether to scroll by resource (always false for non-resources mode).
 - `initialOffset` (number): Initial scroll offset.
 - `isRTL` (boolean): Whether the calendar is in right-to-left mode.
 - `snapToInterval` (number | undefined): Interval for snapping while scrolling.
@@ -72,15 +73,15 @@ import { View, Text } from 'react-native';
 import { useCalendar } from '@howljs/calendar-kit';
 
 function CalendarInfo() {
-    const { numberOfDays, firstDay, allowPinchToZoom } = useCalendar();
+  const { numberOfDays, firstDay, allowPinchToZoom } = useCalendar();
 
-    return (
+  return (
     <View>
-        <Text>Number of days: {numberOfDays}</Text>
-        <Text>First day of week: {firstDay}</Text>
-        <Text>Pinch to zoom: {allowPinchToZoom ? 'Enabled' : 'Disabled'}</Text>
+      <Text>Number of days: {numberOfDays}</Text>
+      <Text>First day of week: {firstDay}</Text>
+      <Text>Pinch to zoom: {allowPinchToZoom ? 'Enabled' : 'Disabled'}</Text>
     </View>
-    );
+  );
 }
 
 export default CalendarInfo;
