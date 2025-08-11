@@ -3,15 +3,15 @@ import type { FC, PropsWithChildren } from 'react';
 import React from 'react';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 import type Animated from 'react-native-reanimated';
-import type { CalendarListViewHandle } from '../components/CalendarListView';
 import type { ScrollType } from '../constants';
 import type HapticService from '../service/HapticService';
 import type { DataByMode } from '../utils/utils';
+import { CalendarListRef } from '../service/CalendarList';
 
 export interface CalendarContextProps {
   calendarData: DataByMode;
   calendarLayout: { width: number; height: number };
-  visibleDateUnix: React.MutableRefObject<number>;
+  visibleDateUnix: React.RefObject<number>;
   hourWidth: number;
   numberOfDays: number;
   verticalListRef: AnimatedRef<Animated.ScrollView>;
@@ -19,7 +19,7 @@ export interface CalendarContextProps {
   gridListRef: AnimatedRef<Animated.ScrollView>;
   columnWidthAnim: SharedValue<number>;
   firstDay: WeekdayNumbers;
-  scrollType: React.MutableRefObject<ScrollType | null>;
+  scrollType: React.RefObject<ScrollType | null>;
   offsetY: SharedValue<number>;
   minuteHeight: Readonly<SharedValue<number>>;
   maxTimelineHeight: number;
@@ -35,9 +35,9 @@ export interface CalendarContextProps {
   start: number;
   end: number;
   timeInterval: number;
-  scrollVisibleHeight: React.MutableRefObject<number>;
+  scrollVisibleHeight: React.RefObject<number>;
   offsetX: SharedValue<number>;
-  isTriggerMomentum: React.MutableRefObject<boolean>;
+  isTriggerMomentum: React.RefObject<boolean>;
   showWeekNumber: boolean;
   calendarGridWidth: number;
   columnWidth: number;
@@ -46,10 +46,10 @@ export interface CalendarContextProps {
   isRTL: boolean;
   snapToInterval?: number;
   columns: number;
-  triggerDateChanged: React.MutableRefObject<number | undefined>;
+  triggerDateChanged: React.RefObject<number | undefined>;
   visibleDateUnixAnim: SharedValue<number>;
   visibleWeeks: SharedValue<number[]>;
-  calendarListRef: React.RefObject<CalendarListViewHandle>;
+  calendarListRef: React.RefObject<CalendarListRef | null>;
   startOffset: Readonly<SharedValue<number>>;
   scrollVisibleHeightAnim: SharedValue<number>;
   pagesPerSide: number;

@@ -46,7 +46,7 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
   const dayBarStyles = useTheme(
     useCallback(
       (state) => ({
-        borderColor: state.colors.border,
+        borderColor: state.dayBarBorderColor ?? state.colors.border,
         dayBarContainer: state.dayBarContainer,
         allDayEventsContainer: state.allDayEventsContainer,
         headerBottomContainer: state.headerBottomContainer,

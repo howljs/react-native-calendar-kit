@@ -56,10 +56,10 @@ const UnavailableHoursProvider: FC<
 
       const data: Record<string, UnavailableHourProps[]> = {};
       // Iterate over the date range
-      let startDateTime = parseDateTime(date).minus({
+      let startDateTime = parseDateTime(date, {zone: timeZone}).minus({
         days: offset * pagesPerSide,
       });
-      const endDateTime = parseDateTime(date).plus({
+      const endDateTime = parseDateTime(date, {zone: timeZone}).plus({
         days: offset * (pagesPerSide + 1),
       });
 

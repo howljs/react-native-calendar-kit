@@ -9,7 +9,10 @@ interface ResourceHeaderItemProps {
   startUnix: number;
   resources?: ResourceItem[];
   DateComponent?: React.ReactElement | null;
-  renderResource?: (resource: ResourceItem) => React.ReactElement | null;
+  renderResource?: (
+    resource: ResourceItem,
+    index: number
+  ) => React.ReactElement | null;
   isShowSeparator?: boolean;
   dateFormat?: string;
   isShowWeekDay?: boolean;
@@ -25,7 +28,7 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
   isShowWeekDay = true,
 }) => {
   const { weekDayShort } = useLocale();
-  const borderColor = useTheme(useCallback((state) => state.colors.border, []));
+  const borderColor = useTheme(useCallback((state) => state.headerBorderColor ?? state.colors.border, []));
 
   const _renderDate = () => {
     const date = parseDateTime(startUnix);
@@ -40,7 +43,7 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
     );
   };
 
-  const _renderResource = (resource: ResourceItem) => {
+  const _renderResource = (resource: ResourceItem, index: number) => {
     return (
       <View key={resource.id} style={styles.resource}>
         {isShowSeparator && (
@@ -55,7 +58,7 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
           />
         )}
         {renderResource ? (
-          renderResource(resource)
+          renderResource(resource, index)
         ) : (
           <View style={[styles.resourceContent, { borderColor }]}>
             <Text>{resource.title}</Text>

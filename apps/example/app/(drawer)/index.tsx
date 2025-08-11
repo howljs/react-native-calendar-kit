@@ -477,6 +477,7 @@ const Calendar = () => {
     //   }
     //   setSelectedEvent(newEvent);
     // }
+    console.log('BACKGROUND');
     if (props.date) {
       console.log(new Date(props.date).toISOString());
     }
@@ -620,6 +621,9 @@ const Calendar = () => {
         events={events}
         onPressEvent={(event) => {
           console.log(event);
+        }}
+        onLoad={() => {
+          console.log('onLoad');
         }}
         dragToCreateMode={configs.dragToCreateMode}
         scrollToNow

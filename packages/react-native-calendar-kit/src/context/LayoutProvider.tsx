@@ -21,7 +21,7 @@ const LayoutContext = createContext<Size>(DEFAULT_SIZE);
 const LayoutProvider: React.FC<PropsWithChildren<object>> = ({ children }) => {
   const [layout, setLayout] = useState(DEFAULT_SIZE);
 
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const onLayout = useCallback((event: LayoutChangeEvent) => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);

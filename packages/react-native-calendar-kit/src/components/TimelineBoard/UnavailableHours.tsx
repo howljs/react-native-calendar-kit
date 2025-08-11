@@ -1,5 +1,5 @@
 import React, { FC, memo, useCallback, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
   useAnimatedStyle,
@@ -88,9 +88,14 @@ const UnavailableColumns = memo(
       renderCustomUnavailableHour,
       numberOfDays,
     } = useBody();
-    const backgroundColor = useTheme(
+    const { backgroundColor, containerStyle } = useTheme(
       useCallback(
-        (state) => state.unavailableHourBackgroundColor || state.colors.surface,
+        (state) => {
+          return {
+            backgroundColor: state.unavailableHourBackgroundColor || state.colors.surface,
+            containerStyle: state.unavailableHourContainerStyle || {}
+          };
+        },
         []
       )
     );
@@ -162,6 +167,7 @@ const UnavailableColumns = memo(
           diffMinutes={clampedStart}
           totalMinutes={totalMinutes}
           backgroundColor={item.backgroundColor || backgroundColor}
+          containerStyle={containerStyle}
           enableBackgroundInteraction={item.enableBackgroundInteraction}
           renderCustomUnavailableHour={renderCustomUnavailableHour}
           originalProps={item}
@@ -180,6 +186,7 @@ interface UnavailableHourItemProps {
   diffDays: number;
   diffMinutes: number;
   backgroundColor: string;
+  containerStyle: ViewStyle;
   enableBackgroundInteraction?: boolean;
   renderCustomUnavailableHour?: (
     props: UnavailableHourProps & {
@@ -197,6 +204,7 @@ const UnavailableHourItem = ({
   diffDays,
   diffMinutes,
   backgroundColor,
+  containerStyle,
   enableBackgroundInteraction,
   renderCustomUnavailableHour,
   originalProps,
@@ -223,7 +231,7 @@ const UnavailableHourItem = ({
   return (
     <Animated.View
       pointerEvents={enableBackgroundInteraction ? 'none' : 'auto'}
-      style={[styles.container, { backgroundColor }, animView]}>
+      style={[containerStyle, styles.container, { backgroundColor }, animView]}>
       {renderCustomUnavailableHour &&
         renderCustomUnavailableHour({
           ...originalProps,
