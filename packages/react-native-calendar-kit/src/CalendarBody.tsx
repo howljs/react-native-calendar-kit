@@ -92,6 +92,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     allowDragToEdit,
     firstDay,
     dragToCreateMode,
+    allowHorizontalSwipe,
   } = useCalendar();
   const locale = useLocale();
   const { onRefresh, onLoad } = useActions();
@@ -326,7 +327,9 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                     ref={calendarListRef}
                     animatedRef={gridListRef}
                     count={calendarData.count}
-                    scrollEnabled={Platform.OS !== 'web'}
+                    scrollEnabled={
+                      allowHorizontalSwipe && Platform.OS !== 'web'
+                    }
                     width={calendarGridWidth}
                     height={maxTimelineHeight + EXTRA_HEIGHT * 2}
                     renderItem={_renderTimeSlots}

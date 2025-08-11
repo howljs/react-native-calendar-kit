@@ -540,6 +540,9 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    * - Default: `duration`
    */
   dragToCreateMode?: 'duration' | 'date-time';
+
+  /** Allow horizontal swipe */
+  allowHorizontalSwipe?: boolean;
 }
 
 export interface ResourceItem extends Record<string, any> {
