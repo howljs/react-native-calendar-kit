@@ -492,20 +492,69 @@ export const sortEvents = (
   });
 };
 
+const calcColumnSpan = (
+  event: EventItemInternal,
+  columnIndex: number,
+  columns: EventItemInternal[][]
+) => {
+  let colSpan = 1;
+  for (let i = columnIndex + 1; i < columns.length; i++) {
+    const column = columns[i];
+    const foundCollision = column.find((ev) => hasCollision(event, ev));
+    if (foundCollision) {
+      return colSpan;
+    }
+    colSpan++;
+  }
+  return colSpan;
+};
+
+const packOverlappingEventGroup = (
+  columns: EventItemInternal[][],
+  calculatedEvents: PackedEvent[],
+  populateOptions: {
+    resourceIndex?: number;
+  }
+) => {
+  const { resourceIndex } = populateOptions;
+
+  columns.forEach((column, columnIndex) => {
+    column.forEach((event) => {
+      const columnSpan = calcColumnSpan(event, columnIndex, columns);
+      calculatedEvents.push({
+        ...event,
+        _internal: {
+          ...event._internal,
+          resourceIndex,
+          index: columnIndex,
+          columnSpan,
+          total: columns.length,
+        },
+      });
+    });
+  });
+};
+
 const handleNoOverlap = (
   events: EventItemInternal[],
   resourceIndex?: number
 ) => {
-  const eventColumns: EventItemInternal[][] = [];
+  const options = { resourceIndex };
+  let lastEnd: number | null = null;
+  let eventColumns: EventItemInternal[][] = [];
   const packedEvents: PackedEvent[] = [];
+
   const sortedEvents = sortEvents(events) as NoOverlapEvent[];
   for (const event of sortedEvents) {
+    if (lastEnd !== null && event._internal.startUnix >= lastEnd) {
+      packOverlappingEventGroup(eventColumns, packedEvents, options);
+      eventColumns = [];
+      lastEnd = null;
+    }
     let placed = false;
-    for (let i = 0; i < eventColumns.length; i++) {
-      const column = eventColumns[i];
+    for (const column of eventColumns) {
       if (!hasCollision(column[column.length - 1], event)) {
         column.push(event);
-        event._internal.index = i;
         placed = true;
         break;
       }
@@ -513,41 +562,17 @@ const handleNoOverlap = (
 
     if (!placed) {
       eventColumns.push([event]);
-      event._internal.index = eventColumns.length - 1;
+    }
+
+    if (lastEnd === null || event._internal.endUnix > lastEnd) {
+      lastEnd = event._internal.endUnix;
     }
   }
 
-  const maxColumns = eventColumns.length;
-
-  for (const event of sortedEvents) {
-    const colIndex = event._internal.index;
-    if (colIndex === undefined) {
-      continue;
-    }
-    let colSpan = 1;
-
-    for (let i = colIndex + 1; i < maxColumns; i++) {
-      const column = eventColumns[i];
-      if (!column) {
-        continue;
-      }
-      const hasOverlap = column.some((e) => hasCollision(event, e));
-      if (hasOverlap) {
-        break;
-      }
-      colSpan++;
-    }
-
-    packedEvents.push({
-      ...event,
-      _internal: {
-        ...event._internal,
-        total: maxColumns,
-        columnSpan: colSpan,
-        resourceIndex,
-      },
-    });
+  if (eventColumns.length > 0) {
+    packOverlappingEventGroup(eventColumns, packedEvents, options);
   }
+
   return packedEvents;
 };
 
