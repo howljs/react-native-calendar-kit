@@ -66,6 +66,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     rightEdgeSpacing,
     overlapEventsSpacing,
     firstDay,
+    allowHorizontalSwipe,
   } = useCalendar();
   const resources = useResources();
 
@@ -343,7 +344,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 columnsPerPage={columns}
                 onVisibleColumnChanged={onVisibleColumnChanged}
                 extraScrollData={extraScrollData}
-                scrollEnabled={Platform.OS !== 'web'}
+                scrollEnabled={allowHorizontalSwipe && Platform.OS !== 'web'}
               />
             </View>
           </Animated.View>

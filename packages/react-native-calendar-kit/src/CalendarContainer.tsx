@@ -128,6 +128,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     resources,
     animateColumnWidth = false,
     dragToCreateMode = 'duration',
+    allowHorizontalSwipe = true,
   },
   ref
 ) => {
@@ -662,6 +663,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       allowDragToCreate,
       allowDragToEdit,
       dragToCreateMode,
+      allowHorizontalSwipe,
     }),
     [
       calendarLayout,
@@ -711,6 +713,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       allowDragToCreate,
       allowDragToEdit,
       dragToCreateMode,
+      allowHorizontalSwipe,
     ]
   );
 
