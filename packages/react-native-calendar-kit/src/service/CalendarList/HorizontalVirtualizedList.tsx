@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import { View } from './View';
 
 interface HorizontalVirtualizedListProps {
   count: number;
@@ -42,8 +42,7 @@ export const HorizontalVirtualizedList = React.memo(
                 left: relativePosition,
                 width: itemSize,
                 height: '100%',
-              }}
-            >
+              }}>
               {renderItem({ item: i, index: i })}
             </View>
           );
@@ -61,7 +60,6 @@ export const HorizontalVirtualizedList = React.memo(
       itemSize,
     ]);
 
-    // Calculate container transform to handle large offsets
     const firstVisiblePosition =
       visibleRange.start > 0 ? getItemPosition(visibleRange.start) : 0;
 
@@ -71,10 +69,8 @@ export const HorizontalVirtualizedList = React.memo(
           position: 'relative',
           width: totalSize,
           height: '100%',
-          // Use transform to handle large offsets instead of large absolute positions
           transform: [{ translateX: firstVisiblePosition }],
-        }}
-      >
+        }}>
         {renderItems}
       </View>
     );

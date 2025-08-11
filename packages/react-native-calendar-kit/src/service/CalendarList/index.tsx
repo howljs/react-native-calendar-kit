@@ -13,15 +13,16 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 
-import { HorizontalVirtualizedList } from './HorizontalVirtualizedList';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, {
   AnimatedRef,
+  runOnJS,
+  useAnimatedReaction,
   useAnimatedRef,
   useScrollViewOffset,
-  useAnimatedReaction,
-  runOnJS,
+  useSharedValue,
 } from 'react-native-reanimated';
+import { HorizontalVirtualizedList } from './HorizontalVirtualizedList';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -97,12 +98,10 @@ export const CalendarList = React.forwardRef<
   ) => {
     const scrollViewRef = useRef<ScrollView>(null);
     const [viewportWidth, setViewportWidth] = useState(0);
-    const [scrollOffset, setScrollOffset] = useState(0);
+    const [scrollOffset, setScrollOffset] = useState(initialOffset ?? 0);
     const isLoaded = useRef(false);
 
-    const totalSize = useMemo(() => {
-      return count * itemSize;
-    }, [count, itemSize]);
+    const totalSize = count * itemSize;
 
     const visibleRange = useMemo(() => {
       if (viewportWidth === 0 || count === 0) {
@@ -125,7 +124,8 @@ export const CalendarList = React.forwardRef<
     );
 
     const animScrollRef = useAnimatedRef<Animated.ScrollView>();
-    const scrollOffsetAnim = useScrollViewOffset(animScrollRef);
+    const internalOffset = useSharedValue(initialOffset ?? 0);
+    const scrollOffsetAnim = useScrollViewOffset(animScrollRef, internalOffset);
 
     const handleColumnChanged = useCallback(
       (offset: number) => {
@@ -257,6 +257,7 @@ export const CalendarList = React.forwardRef<
         contentContainerStyle={[contentContainerStyle, { width: totalSize }]}
         onScroll={onScroll}
         onLayout={handleLayout}
+        contentOffset={{ x: initialOffset ?? 0, y: 0 }}
         scrollEventThrottle={scrollEventThrottle}
         scrollEnabled={scrollEnabled}
         showsHorizontalScrollIndicator={false}
