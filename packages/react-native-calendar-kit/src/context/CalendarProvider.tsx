@@ -62,6 +62,9 @@ export interface CalendarContextProps {
   allowDragToEdit: boolean;
   dragToCreateMode: 'duration' | 'date-time';
   allowHorizontalSwipe: boolean;
+  enableResourceScroll: boolean;
+  resourcePerPage: number;
+  resourcePagingEnabled: boolean;
 }
 
 export const CalendarContext = React.createContext<

@@ -3,17 +3,16 @@ import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import { DrawerActions, useTheme } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import type { FC } from 'react';
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import type { SharedValue } from 'react-native-reanimated';
-import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface HeaderProps {
-  currentDate: SharedValue<string>;
+  currentDate: string;
   onPressToday?: () => void;
   onPressPrevious?: () => void;
   onPressNext?: () => void;
+  isResourcesMode?: boolean;
 }
 
 const Header: FC<HeaderProps> = ({
@@ -21,27 +20,21 @@ const Header: FC<HeaderProps> = ({
   onPressToday,
   onPressPrevious,
   onPressNext,
+  isResourcesMode,
 }) => {
   const theme = useTheme();
   const { top: safeTop } = useSafeAreaInsets();
-  const [title, setTitle] = useState('');
+
   const navigation = useNavigation<DrawerNavigationProp<any>>();
 
-  const updateTitle = (date: string) => {
-    const formatted = new Date(date).toLocaleDateString('en-US', {
+  const title = useMemo(() => {
+    const formatted = new Date(currentDate).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
+      day: isResourcesMode ? 'numeric' : undefined,
     });
-    setTitle(formatted);
-  };
-
-  useAnimatedReaction(
-    () => currentDate.value,
-    (value) => {
-      runOnJS(updateTitle)(value);
-    },
-    []
-  );
+    return formatted;
+  }, [isResourcesMode, currentDate]);
 
   const _onPressMenu = () => {
     navigation.dispatch(DrawerActions.openDrawer());

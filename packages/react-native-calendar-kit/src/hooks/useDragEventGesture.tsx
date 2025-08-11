@@ -12,6 +12,7 @@ const useDragEventGesture = () => {
     visibleDateUnixAnim,
     calendarData,
     columns,
+    enableResourceScroll,
   } = useCalendar();
   const {
     isDraggingAnim,
@@ -175,11 +176,13 @@ const useDragEventGesture = () => {
         updateDragDurationForTop(translationY, initialStart, initialDuration);
       } else {
         updateDragStartPosition(translationY, initialStart);
-        updateDragPositionHorizontal(
-          translationX,
-          initialDayUnix,
-          initialX.value
-        );
+        if (!enableResourceScroll) {
+          updateDragPositionHorizontal(
+            translationX,
+            initialDayUnix,
+            initialX.value
+          );
+        }
       }
     })
     .onEnd(() => {

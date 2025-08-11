@@ -10,6 +10,7 @@ import Animated, {
 import CalendarListView from './components/CalendarListView';
 import ExpandButton from './components/ExpandButton';
 import MultiDayBarItem from './components/MultiDayBarItem';
+import ResourceListView from './components/Resource/ResourceListView';
 import ResourceHeaderItem from './components/ResourceHeaderItem';
 import SingleDayBarItem from './components/SingleDayBarItem';
 import WeekNumber from './components/WeekNumber';
@@ -28,7 +29,7 @@ import { HeaderContext } from './context/DayBarContext';
 import { useEventCountsByWeek, useResources } from './context/EventsProvider';
 import { useTheme } from './context/ThemeProvider';
 import useSyncedList from './hooks/useSyncedList';
-import type { CalendarHeaderProps } from './types';
+import type { CalendarHeaderProps, ResourceItem } from './types';
 import { clampValues } from './utils/utils';
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
@@ -67,6 +68,9 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     overlapEventsSpacing,
     firstDay,
     allowHorizontalSwipe,
+    enableResourceScroll,
+    resourcePerPage,
+    resourcePagingEnabled,
   } = useCalendar();
   const resources = useResources();
 
@@ -169,6 +173,8 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       rightEdgeSpacing,
       overlapEventsSpacing,
       firstDay,
+      resourcePerPage,
+      enableResourceScroll,
     }),
     [
       dayBarHeight,
@@ -192,6 +198,8 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       rightEdgeSpacing,
       overlapEventsSpacing,
       firstDay,
+      resourcePerPage,
+      enableResourceScroll,
     ]
   );
 
@@ -298,6 +306,26 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     );
   };
 
+  const _renderResourceHeaderItem = useCallback(
+    (item: { items: ResourceItem[]; index: number }) => {
+      if (renderHeaderItem) {
+        return renderHeaderItem({
+          startUnix: visibleDateUnixAnim.value,
+          index: 0,
+          extra: { resources: item.items },
+        });
+      }
+
+      return (
+        <ResourceHeaderItem
+          resources={item.items}
+          startUnix={visibleDateUnixAnim.value}
+        />
+      );
+    },
+    [visibleDateUnixAnim, renderHeaderItem]
+  );
+
   return (
     <View
       style={[
@@ -330,22 +358,36 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                   width: calendarLayout.width - leftSize,
                 },
               ]}>
-              <CalendarListView
-                animatedRef={dayBarListRef}
-                count={calendarData.count}
-                width={calendarGridWidth}
-                height={useAllDayEvent ? calendarLayout.height : dayBarHeight}
-                renderItem={_renderHeaderItem}
-                extraData={extraData}
-                inverted={isRTL}
-                snapToInterval={snapToInterval}
-                initialOffset={initialOffset}
-                onScroll={onScroll}
-                columnsPerPage={columns}
-                onVisibleColumnChanged={onVisibleColumnChanged}
-                extraScrollData={extraScrollData}
-                scrollEnabled={allowHorizontalSwipe && Platform.OS !== 'web'}
-              />
+              {enableResourceScroll ? (
+                <ResourceListView
+                  ref={dayBarListRef}
+                  resources={resources}
+                  width={calendarGridWidth}
+                  height={dayBarHeight}
+                  resourcePerPage={resourcePerPage}
+                  onScroll={onScroll}
+                  renderItem={_renderResourceHeaderItem}
+                  pagingEnabled={resourcePagingEnabled}
+                  scrollEnabled={allowHorizontalSwipe && Platform.OS !== 'web'}
+                />
+              ) : (
+                <CalendarListView
+                  animatedRef={dayBarListRef}
+                  count={calendarData.count}
+                  width={calendarGridWidth}
+                  height={useAllDayEvent ? calendarLayout.height : dayBarHeight}
+                  renderItem={_renderHeaderItem}
+                  extraData={extraData}
+                  inverted={isRTL}
+                  snapToInterval={snapToInterval}
+                  initialOffset={initialOffset}
+                  onScroll={onScroll}
+                  columnsPerPage={columns}
+                  onVisibleColumnChanged={onVisibleColumnChanged}
+                  extraScrollData={extraScrollData}
+                  scrollEnabled={allowHorizontalSwipe && Platform.OS !== 'web'}
+                />
+              )}
             </View>
           </Animated.View>
         </HeaderContext.Provider>

@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { GestureResponderEvent, StyleSheet, View } from 'react-native';
 import { useActions } from '../context/ActionsProvider';
 import { useBody } from '../context/BodyContext';
@@ -9,25 +9,42 @@ import {
 } from '../context/DragEventProvider';
 import { useRegularEvents } from '../context/EventsProvider';
 import { useTimezone } from '../context/TimeZoneProvider';
-import type { PackedEvent } from '../types';
+import type { PackedEvent, ResourceItem } from '../types';
 import { forceUpdateZone, parseDateTime } from '../utils/dateUtils';
 import EventItem from './EventItem';
 
 const Events: FC<{
   startUnix: number;
   visibleDates: Record<string, { diffDays: number; unix: number }>;
-  totalResources?: number;
-}> = ({ startUnix, visibleDates, totalResources }) => {
-  const { renderEvent, numberOfDays, columnWidth } = useBody();
+  resources?: ResourceItem[];
+}> = ({ startUnix, visibleDates, resources }) => {
+  const totalResources = resources?.length;
+  const { renderEvent, numberOfDays, columnWidth, enableResourceScroll } =
+    useBody();
   const { onPressEvent, onLongPressEvent } = useActions();
   const { draggingId, selectedEventId } = useDragEvent();
   const { timeZone } = useTimezone();
   const { triggerDragEvent } = useDragEventActions();
-  const { data: events } = useRegularEvents(
+
+  const resourcesIds = useMemo(() => {
+    return resources?.map((resource) => resource.id);
+  }, [resources]);
+
+  const { data: eventsByDate } = useRegularEvents(
     startUnix,
     numberOfDays,
     visibleDates
   );
+
+  const events = useMemo(() => {
+    if (!enableResourceScroll) {
+      return eventsByDate;
+    }
+
+    return eventsByDate.filter(
+      (event) => event.resourceId && resourcesIds?.includes(event.resourceId)
+    );
+  }, [enableResourceScroll, eventsByDate, resourcesIds]);
 
   const _triggerDragEvent = useCallback(
     (event: PackedEvent, resEvent: GestureResponderEvent) => {

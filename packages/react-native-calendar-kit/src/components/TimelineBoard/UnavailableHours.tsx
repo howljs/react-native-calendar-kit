@@ -41,13 +41,15 @@ interface UnavailableHoursByDateProps {
   currentUnix: number;
   visibleDateIndex: number;
   resources?: ResourceItem[];
+  widthPercentage?: number;
 }
 
-const UnavailableHoursByDate = memo(
+export const UnavailableHoursByDate = memo(
   ({
     currentUnix,
     visibleDateIndex,
     resources,
+    widthPercentage,
   }: UnavailableHoursByDateProps) => {
     const unavailableHours = useUnavailableHoursByDate(currentUnix);
 
@@ -61,6 +63,7 @@ const UnavailableHoursByDate = memo(
         visibleDateIndex={visibleDateIndex}
         unavailableHours={unavailableHours}
         resources={resources}
+        widthPercentage={widthPercentage}
       />
     );
   }
@@ -82,6 +85,7 @@ const UnavailableColumns = memo(
     visibleDateIndex,
     unavailableHours,
     resources,
+    widthPercentage,
   }: UnavailableColumnsProps) => {
     const {
       start: calendarStart,
@@ -89,15 +93,13 @@ const UnavailableColumns = memo(
       numberOfDays,
     } = useBody();
     const { backgroundColor, containerStyle } = useTheme(
-      useCallback(
-        (state) => {
-          return {
-            backgroundColor: state.unavailableHourBackgroundColor || state.colors.surface,
-            containerStyle: state.unavailableHourContainerStyle || {}
-          };
-        },
-        []
-      )
+      useCallback((state) => {
+        return {
+          backgroundColor:
+            state.unavailableHourBackgroundColor || state.colors.surface,
+          containerStyle: state.unavailableHourContainerStyle || {},
+        };
+      }, [])
     );
 
     const allUnavailableHours = useMemo(() => {
@@ -108,13 +110,13 @@ const UnavailableColumns = memo(
         return unavailableHours.map((item) => ({
           item,
           resourceIndex: 0,
-          widthPercentage: 1,
+          widthPercentage: widthPercentage || 1,
         }));
       }
 
       // For multiple resources scenario
       const result: UnavailableColumnHourProps[] = [];
-      const widthPerResource = 1 / resourcesList.length;
+      const widthPerResource = widthPercentage || 1 / resourcesList.length;
 
       // Create a map for faster resource lookup
       const resourceMap = new Map<string, number>();
@@ -149,7 +151,7 @@ const UnavailableColumns = memo(
       });
 
       return result;
-    }, [resources, numberOfDays, unavailableHours]);
+    }, [resources, numberOfDays, widthPercentage, unavailableHours]);
 
     const _renderSpecialRegion = (
       props: UnavailableColumnHourProps,

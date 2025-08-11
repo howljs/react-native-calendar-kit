@@ -1,5 +1,4 @@
 import React, { forwardRef, useCallback, useMemo } from 'react';
-import { ScrollView } from 'react-native';
 import type Animated from 'react-native-reanimated';
 import type { AnimatedRef } from 'react-native-reanimated';
 import { CalendarList, CalendarListRef } from '../../service/CalendarList';
@@ -38,7 +37,6 @@ interface CalendarListViewProps {
 export type CalendarListViewHandle = {
   scrollToIndex: (index: number, animated?: boolean) => void;
   scrollToOffset: (offset: number, animated?: boolean) => void;
-  getScrollableNode: () => ScrollView | null;
   getMaxOffset: (visibleColumns?: number) => number;
   isScrollable: (offset: number, visibleColumns?: number) => boolean;
 };
@@ -94,7 +92,6 @@ const CalendarListView = forwardRef<CalendarListRef, CalendarListViewProps>(
       }
       return offsets;
     }, [baseOffsets, count, width]);
-
 
     const keyExtractor = useCallback((item: number) => item.toString(), []);
 

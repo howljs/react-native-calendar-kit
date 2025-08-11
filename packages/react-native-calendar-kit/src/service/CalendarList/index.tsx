@@ -59,7 +59,6 @@ interface CalendarListProps {
 export interface CalendarListRef {
   scrollToIndex: (index: number, animated?: boolean) => void;
   scrollToOffset: (offset: number, animated?: boolean) => void;
-  getScrollableNode: () => ScrollView | null;
   getMaxOffset: (visibleColumns?: number) => number;
   isScrollable: (offset: number, visibleColumns?: number) => boolean;
 }
@@ -182,7 +181,6 @@ export const CalendarList = React.forwardRef<
             animated,
           });
         },
-        getScrollableNode: () => scrollViewRef.current,
         getMaxOffset: (visibleColumns?: number) => {
           if (!visibleColumns || !columnsPerPage) {
             return totalSize - itemSize;

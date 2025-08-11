@@ -58,6 +58,8 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     columns,
     numberOfDays,
     dragToCreateMode,
+    enableResourceScroll,
+    resourcePerPage,
   } = useBody();
   const {
     dragDuration,
@@ -105,8 +107,10 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     return clampValues(currentIndex - startIndex, 0, columns - 1);
   };
   const eventWidth = useDerivedValue(
-    () => columnWidthAnim.value / totalResources,
-    [totalResources]
+    () =>
+      columnWidthAnim.value /
+      (enableResourceScroll ? resourcePerPage : totalResources),
+    [totalResources, enableResourceScroll, resourcePerPage]
   );
 
   const resourceIndex = useDerivedValue(() => {
@@ -114,9 +118,8 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
       return 0;
     }
 
-    const dragPosition = Math.floor(dragX.value - hourWidth);
-    const columnIndex = Math.floor(dragPosition / eventWidth.value);
-
+    const xWithoutHourWidth = dragX.value - hourWidth;
+    const columnIndex = Math.floor(xWithoutHourWidth / eventWidth.value);
     return clampValues(columnIndex, 0, totalResources - 1);
   }, [totalResources, hourWidth]);
 
@@ -138,11 +141,12 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
 
   const animView = useAnimatedStyle(() => {
     const startX = resourceIndex.value * eventWidth.value;
+    const dIndex = enableResourceScroll ? 0 : internalDayIndex.value;
     return {
       top: (dragStartMinutes.value - start) * minuteHeight.value,
       height: dragDuration.value * minuteHeight.value,
       width: eventWidth.value,
-      left: startX + hourWidth + eventWidth.value * internalDayIndex.value - 1,
+      left: startX + hourWidth + eventWidth.value * dIndex - 1,
     };
   }, [totalResources, hourWidth]);
 
