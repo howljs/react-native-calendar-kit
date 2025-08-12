@@ -137,7 +137,104 @@ function MyCalendar() {
 }
 ```
 
+## Horizontal Scrolling for Resources
+
+The calendar now supports horizontal scrolling when displaying multiple resources, allowing you to navigate through a large number of resources efficiently.
+
+### Basic Configuration
+
+To enable horizontal scrolling for resources, use the following props:
+
+```tsx
+<CalendarContainer
+  resources={resources}
+  enableResourceScroll={true}
+  resourcePerPage={3}
+  resourcePagingEnabled={false}
+  // ... other props
+>
+  <CalendarHeader />
+  <CalendarBody />
+</CalendarContainer>
+```
+
+### Props
+
+- **`enableResourceScroll`** (boolean): Enables horizontal scrolling through resources
+- **`resourcePerPage`** (number): Number of resources to display per page (default: 3)
+- **`resourcePagingEnabled`** (boolean): When true, scrolling snaps to pages instead of individual resources
+
+### Navigation Controls
+
+You can add navigation controls using the `ResourceNavigation` component or custom buttons:
+
+```tsx
+import { useCalendar, useMethods } from '@howljs/calendar-kit';
+
+function CustomResourceNavigation() {
+  const { hourWidth } = useCalendar();
+  const methods = useMethods();
+  
+  return (
+    <View style={{ paddingLeft: hourWidth, flexDirection: 'row', justifyContent: 'space-between' }}>
+      <Pressable onPress={() => methods.goToPrevResource(true)}>
+        <Text>Previous</Text>
+      </Pressable>
+      <Pressable onPress={() => methods.goToNextResource(true)}>
+        <Text>Next</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+// Usage in CalendarContainer
+<CalendarContainer
+  enableResourceScroll={true}
+  resourcePerPage={3}
+  resources={resources}
+>
+  <CustomResourceNavigation />
+  <CalendarHeader />
+  <CalendarBody />
+</CalendarContainer>
+```
+
+### Programmatic Navigation
+
+Use the calendar methods to navigate to specific resources:
+
+```tsx
+const calendarRef = useRef<CalendarKitHandle>(null);
+
+// Navigate to a specific resource
+const goToRoom = (resourceId: string) => {
+  calendarRef.current?.goToResource({ resourceId, animated: true });
+};
+
+// Navigate to next/previous resources
+const goNext = () => {
+  calendarRef.current?.goToNextResource(true); // animated = true
+};
+
+const goPrev = () => {
+  calendarRef.current?.goToPrevResource(true); // animated = true
+};
+```
+
+### Scroll Types
+
+When using navigation methods, you can specify the scroll behavior:
+
+```tsx
+// Scroll by individual resource
+methods.goToNextResource(true, 'resource');
+
+// Scroll by page (respects resourcePerPage)
+methods.goToNextResource(true, 'page');
+```
+
 ## Limitations and Considerations
 
 1. When using resources, the calendar will automatically switch to a single-day view.
 2. All-day events are not supported in resources view.
+3. Some methods like `getDateByOffset` are not supported when `enableResourceScroll` is true.

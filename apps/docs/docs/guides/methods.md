@@ -184,3 +184,88 @@ Example:
 ```tsx
 const visibleStart = calendarRef.current?.getVisibleStart();
 ```
+
+### getCurrentOffsetY
+
+Gets the current Y offset of the calendar scroll view.
+
+Returns: A number representing the current Y offset.
+
+Example:
+
+```tsx
+const offsetY = calendarRef.current?.getCurrentOffsetY();
+```
+
+## Resource Navigation Methods
+
+The following methods are available when using resources calendar with `enableResourceScroll={true}`:
+
+### goToResource
+
+Navigates to a specific resource by its ID.
+
+Parameters:
+- `options`: An object with the following properties:
+  - `resourceId`: The ID of the resource to navigate to (string)
+  - `animated` (optional): Whether to animate the transition (boolean, default: true)
+
+Example:
+
+```tsx
+calendarRef.current?.goToResource({ 
+  resourceId: 'room1', 
+  animated: true 
+});
+```
+
+### goToNextResource
+
+Navigates to the next resource or page of resources.
+
+Parameters:
+- `animated` (optional): Whether to animate the transition (boolean, default: true)
+- `scrollType` (optional): Type of scroll behavior:
+  - `'resource'`: Scroll by individual resource
+  - `'page'`: Scroll by page (respects `resourcePerPage` setting)
+
+Example:
+
+```tsx
+// Scroll to next individual resource
+calendarRef.current?.goToNextResource(true, 'resource');
+
+// Scroll to next page of resources
+calendarRef.current?.goToNextResource(true, 'page');
+```
+
+### goToPrevResource
+
+Navigates to the previous resource or page of resources.
+
+Parameters:
+- `animated` (optional): Whether to animate the transition (boolean, default: true)
+- `scrollType` (optional): Type of scroll behavior:
+  - `'resource'`: Scroll by individual resource
+  - `'page'`: Scroll by page (respects `resourcePerPage` setting)
+
+Example:
+
+```tsx
+// Scroll to previous individual resource
+calendarRef.current?.goToPrevResource(true, 'resource');
+
+// Scroll to previous page of resources
+calendarRef.current?.goToPrevResource(true, 'page');
+```
+
+## Method Limitations
+
+### Resource Mode Limitations
+
+When using `enableResourceScroll={true}`, the following methods have limited functionality:
+
+- **`getDateByOffset`**: Not supported in resource scroll mode
+- **`getEventByOffset`**: May have different behavior in resource mode
+
+Always check if your calendar is in resource mode before using these methods.
