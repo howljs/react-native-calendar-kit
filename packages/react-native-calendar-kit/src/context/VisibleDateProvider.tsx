@@ -1,8 +1,15 @@
-import type { FC, PropsWithChildren } from 'react';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import type { ForwardRefRenderFunction, PropsWithChildren } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useContext,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from 'react';
 
 interface VisibleDateProviderProps {
-  initialStart: React.MutableRefObject<number>;
+  initialStart: React.RefObject<number>;
 }
 
 const VisibleDateValueContext = React.createContext<number | undefined>(
@@ -13,10 +20,14 @@ const VisibleDateActionsContext = React.createContext<
   ((date: number) => void) | undefined
 >(undefined);
 
-const VisibleDateProvider: FC<PropsWithChildren<VisibleDateProviderProps>> = ({
-  initialStart,
-  children,
-}) => {
+export interface VisibleDateProviderRef {
+  updateVisibleDate: (date: number) => void;
+}
+
+const VisibleDateProvider: ForwardRefRenderFunction<
+  VisibleDateProviderRef,
+  PropsWithChildren<VisibleDateProviderProps>
+> = ({ initialStart, children }, ref) => {
   const [visibleDateUnix, setVisibleDateUnix] = useState(initialStart.current);
   const [debouncedDateUnix, setDebouncedDateUnix] = React.useState(
     initialStart.current
@@ -33,6 +44,10 @@ const VisibleDateProvider: FC<PropsWithChildren<VisibleDateProviderProps>> = ({
     setVisibleDateUnix(date);
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    updateVisibleDate,
+  }));
+
   return (
     <VisibleDateActionsContext.Provider value={updateVisibleDate}>
       <VisibleDateValueContext.Provider value={debouncedDateUnix}>
@@ -42,7 +57,7 @@ const VisibleDateProvider: FC<PropsWithChildren<VisibleDateProviderProps>> = ({
   );
 };
 
-export default VisibleDateProvider;
+export default forwardRef(VisibleDateProvider);
 
 export const useDateChangedListener = () => {
   const context = useContext(VisibleDateValueContext);

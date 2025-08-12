@@ -19,6 +19,7 @@ const useDragToCreateGesture = ({
     calendarData,
     visibleDateUnixAnim,
     columns,
+    enableResourceScroll,
   } = useCalendar();
   const {
     allowDragToCreate,
@@ -176,11 +177,13 @@ const useDragToCreateGesture = ({
         roundedDragDuration.value = newRoundedDragDuration;
       } else {
         updateDragStartPosition(translationY, initialStart);
-        updateDragPositionHorizontal(
-          translationX,
-          initialDragState.value.dragStartUnix,
-          initialStartX.value
-        );
+        if (!enableResourceScroll) {
+          updateDragPositionHorizontal(
+            translationX,
+            initialDragState.value.dragStartUnix,
+            initialStartX.value
+          );
+        }
       }
     })
     .onEnd(() => {

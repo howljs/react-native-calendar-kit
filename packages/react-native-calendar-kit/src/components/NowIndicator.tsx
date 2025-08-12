@@ -9,13 +9,23 @@ import Animated, {
 import { useBody } from '../context/BodyContext';
 import { useNowIndicator } from '../context/NowIndicatorProvider';
 import { useTheme } from '../context/ThemeProvider';
+import { useDateChangedListener } from '../context/VisibleDateProvider';
 
 interface NowIndicatorProps {
   dayIndex: number;
   currentTime: SharedValue<number>;
+  showDot?: boolean;
+  width?: number;
+  startLeft?: number;
 }
 
-const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
+const NowIndicatorInner = ({
+  dayIndex,
+  currentTime,
+  showDot = true,
+  width,
+  startLeft = 0,
+}: NowIndicatorProps) => {
   const {
     minuteHeight,
     start,
@@ -29,8 +39,8 @@ const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
   );
 
   const left = useDerivedValue(() => {
-    return dayIndex * columnWidthAnim.value;
-  }, [dayIndex]);
+    return dayIndex * columnWidthAnim.value + startLeft;
+  }, [dayIndex, startLeft]);
 
   const opacity = useDerivedValue(() => {
     return currentTime.value >= start && currentTime.value <= end ? 1 : 0;
@@ -38,12 +48,12 @@ const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
 
   const animView = useAnimatedStyle(() => {
     return {
-      width: columnWidthAnim.value,
+      width: width ?? columnWidthAnim.value,
       left: left.value,
       top: currentTime.value * minuteHeight.value - startOffset.value,
       opacity: opacity.value,
     };
-  });
+  }, [width]);
 
   return (
     <Animated.View
@@ -52,7 +62,11 @@ const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
       {NowIndicatorComponent || (
         <View style={styles.lineContainer}>
           <View style={[styles.line, { backgroundColor: nowIndicatorColor }]} />
-          <View style={[styles.dot, { backgroundColor: nowIndicatorColor }]} />
+          {showDot && (
+            <View
+              style={[styles.dot, { backgroundColor: nowIndicatorColor }]}
+            />
+          )}
         </View>
       )}
     </Animated.View>
@@ -60,9 +74,9 @@ const NowIndicatorInner = ({ dayIndex, currentTime }: NowIndicatorProps) => {
 };
 
 const NowIndicator: FC<{
-  startUnix: number;
   visibleDates: Record<string, { diffDays: number; unix: number }>;
-}> = ({ visibleDates }) => {
+  showDot?: boolean;
+}> = ({ visibleDates, showDot = true }) => {
   const { showNowIndicator } = useBody();
   const { currentDateUnix, currentTime } = useNowIndicator();
 
@@ -77,6 +91,26 @@ const NowIndicator: FC<{
     <NowIndicatorInner
       currentTime={currentTime}
       dayIndex={visibleDate.diffDays - 1}
+      showDot={showDot}
+    />
+  );
+};
+
+export const NowIndicatorResource = () => {
+  const { showNowIndicator, hourWidth } = useBody();
+  const { currentDateUnix, currentTime } = useNowIndicator();
+  const startUnix = useDateChangedListener();
+
+  const isShowNowIndicator = showNowIndicator && startUnix === currentDateUnix;
+
+  if (!isShowNowIndicator) {
+    return null;
+  }
+  return (
+    <NowIndicatorInner
+      currentTime={currentTime}
+      dayIndex={0}
+      startLeft={hourWidth}
     />
   );
 };

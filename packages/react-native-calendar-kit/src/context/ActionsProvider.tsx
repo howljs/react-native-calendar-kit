@@ -1,14 +1,19 @@
 import React, { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 import useLatestCallback from '../hooks/useLatestCallback';
-import type { ActionsProviderProps } from '../types';
+import type { ActionsProviderProps, CalendarKitHandle } from '../types';
 
 const ActionContext = React.createContext<ActionsProviderProps | undefined>(
   undefined
 );
 
+const MethodsContext = React.createContext<CalendarKitHandle | undefined>(
+  undefined
+);
+
 const ActionsProvider: React.FC<PropsWithChildren<ActionsProviderProps>> = ({
   children,
+  methods,
   ...props
 }) => {
   const onDateChanged = useLatestCallback(props.onDateChanged);
@@ -71,7 +76,9 @@ const ActionsProvider: React.FC<PropsWithChildren<ActionsProviderProps>> = ({
   );
 
   return (
-    <ActionContext.Provider value={value}>{children}</ActionContext.Provider>
+    <MethodsContext.Provider value={methods}>
+      <ActionContext.Provider value={value}>{children}</ActionContext.Provider>
+    </MethodsContext.Provider>
   );
 };
 
@@ -82,6 +89,16 @@ export const useActions = () => {
 
   if (context === undefined) {
     throw new Error('ActionsContext is not available');
+  }
+
+  return context;
+};
+
+export const useMethods = () => {
+  const context = React.useContext(MethodsContext);
+
+  if (context === undefined) {
+    throw new Error('MethodsContext is not available');
   }
 
   return context;

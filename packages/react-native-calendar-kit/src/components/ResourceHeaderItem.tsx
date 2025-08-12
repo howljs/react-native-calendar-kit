@@ -4,10 +4,14 @@ import { useLocale } from '../context/LocaleProvider';
 import { useTheme } from '../context/ThemeProvider';
 import { ResourceItem } from '../types';
 import { parseDateTime } from '../utils/dateUtils';
+import { useHeader } from '../context/DayBarContext';
 
 interface ResourceHeaderItemProps {
   startUnix: number;
   resources?: ResourceItem[];
+  /**
+   * If DateComponent is null, the date will not be shown
+   */
   DateComponent?: React.ReactElement | null;
   renderResource?: (
     resource: ResourceItem,
@@ -28,7 +32,10 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
   isShowWeekDay = true,
 }) => {
   const { weekDayShort } = useLocale();
-  const borderColor = useTheme(useCallback((state) => state.headerBorderColor ?? state.colors.border, []));
+  const { enableResourceScroll, resourcePerPage, columnWidth } = useHeader();
+  const borderColor = useTheme(
+    useCallback((state) => state.headerBorderColor ?? state.colors.border, [])
+  );
 
   const _renderDate = () => {
     const date = parseDateTime(startUnix);
@@ -45,7 +52,17 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
 
   const _renderResource = (resource: ResourceItem, index: number) => {
     return (
-      <View key={resource.id} style={styles.resource}>
+      <View
+        key={resource.id}
+        style={[
+          {
+            flex: enableResourceScroll ? undefined : 1,
+            height: enableResourceScroll ? '100%' : undefined,
+            width: enableResourceScroll
+              ? columnWidth / resourcePerPage
+              : undefined,
+          },
+        ]}>
         {isShowSeparator && (
           <View
             style={{
@@ -70,7 +87,9 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
 
   return (
     <View style={styles.container}>
-      {DateComponent ?? _renderDate()}
+      {DateComponent === null || enableResourceScroll
+        ? null
+        : (DateComponent ?? _renderDate())}
       <View style={styles.resourceContainer}>
         {resources?.map(_renderResource)}
       </View>
@@ -83,7 +102,6 @@ export default ResourceHeaderItem;
 const styles = StyleSheet.create({
   container: { flex: 1 },
   resourceContainer: { flex: 1, flexDirection: 'row' },
-  resource: { flex: 1 },
   resourceContent: {
     flex: 1,
     alignItems: 'center',

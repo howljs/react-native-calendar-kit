@@ -135,6 +135,18 @@ export interface CalendarKitHandle {
   getVisibleStart: () => string;
 
   getCurrentOffsetY: () => number;
+
+  goToResource: (props: { resourceId: string; animated?: boolean }) => void;
+
+  goToNextResource: (
+    animated?: boolean,
+    scrollType?: 'resource' | 'page'
+  ) => void;
+
+  goToPrevResource: (
+    animated?: boolean,
+    scrollType?: 'resource' | 'page'
+  ) => void;
 }
 
 /**
@@ -228,33 +240,7 @@ export interface ActionsProviderProps {
   /** Callback when the calendar is loaded */
   onLoad?: () => void;
 
-  /**
-   * Use all day event
-   *
-   * Default: `true`
-   */
-  useAllDayEvent?: boolean;
-
-  /**
-   * Spacing at the right edge of events.
-   *
-   * Default is `1`
-   */
-  rightEdgeSpacing?: number;
-
-  /**
-   * Spacing between overlapping events.
-   *
-   * Default is 1
-   */
-  overlapEventsSpacing?: number;
-
-  /**
-   * Minimum minutes to calculate height of regular event
-   *
-   * Default is `1`
-   */
-  minRegularEventMinutes?: number;
+  methods?: CalendarKitHandle;
 }
 
 export interface CalendarProviderProps extends ActionsProviderProps {
@@ -543,6 +529,42 @@ export interface CalendarProviderProps extends ActionsProviderProps {
 
   /** Allow horizontal swipe */
   allowHorizontalSwipe?: boolean;
+  /**
+   * Use all day event
+   *
+   * Default: `true`
+   */
+  useAllDayEvent?: boolean;
+
+  /**
+   * Spacing at the right edge of events.
+   *
+   * Default is `1`
+   */
+  rightEdgeSpacing?: number;
+
+  /**
+   * Spacing between overlapping events.
+   *
+   * Default is 1
+   */
+  overlapEventsSpacing?: number;
+
+  /**
+   * Minimum minutes to calculate height of regular event
+   *
+   * Default is `1`
+   */
+  minRegularEventMinutes?: number;
+
+  /** Enable resource scroll */
+  enableResourceScroll?: boolean;
+
+  /** Resource per page */
+  resourcePerPage?: number;
+
+  /** Resource paging enabled */
+  resourcePagingEnabled?: boolean;
 }
 
 export interface ResourceItem extends Record<string, any> {

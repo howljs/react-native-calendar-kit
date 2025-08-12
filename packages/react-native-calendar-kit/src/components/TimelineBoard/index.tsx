@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
@@ -52,7 +52,7 @@ const TimelineBoard = ({
   const { onPressBackground, onLongPressBackground } = useActions();
   const { triggerDragCreateEvent } = useDragEventActions();
 
-  const _renderVerticalLines = () => {
+  const _renderVerticalLines = useMemo(() => {
     const lines: React.ReactNode[] = [];
     const cols = resources?.length ? resources.length : columns;
 
@@ -68,9 +68,9 @@ const TimelineBoard = ({
       );
     }
     return lines;
-  };
+  }, [resources, columns, colors.border, columnWidthAnim]);
 
-  const _renderHorizontalLines = () => {
+  const _renderHorizontalLines = useMemo(() => {
     const rows: React.ReactNode[] = [];
     for (let i = 0; i < totalSlots; i++) {
       rows.push(
@@ -104,7 +104,12 @@ const TimelineBoard = ({
       />
     );
     return rows;
-  };
+  }, [
+    totalSlots,
+    colors.border,
+    timeIntervalHeight,
+    renderCustomHorizontalLine,
+  ]);
 
   const onPress = (event: GestureResponderEvent) => {
     const columnIndex = Math.floor(
@@ -154,7 +159,7 @@ const TimelineBoard = ({
       }
       onLongPressBackground?.(newProps, event);
       if (triggerDragCreateEvent) {
-        triggerDragCreateEvent?.(dateString, event);
+        triggerDragCreateEvent?.(newProps, event);
       }
     }
   };
@@ -186,7 +191,9 @@ const TimelineBoard = ({
   };
 
   const _renderUnavailableHours = () => {
-    return <UnavailableHours visibleDates={visibleDates} resources={resources} />;
+    return (
+      <UnavailableHours visibleDates={visibleDates} resources={resources} />
+    );
   };
 
   return (
@@ -218,9 +225,9 @@ const TimelineBoard = ({
         />
         {_renderUnavailableHours()}
         {_renderOutOfRangeView()}
-        {_renderHorizontalLines()}
+        {_renderHorizontalLines}
       </Animated.View>
-      {(numberOfDays > 1 || !!resources?.length) && _renderVerticalLines()}
+      {(numberOfDays > 1 || !!resources?.length) && _renderVerticalLines}
     </View>
   );
 };

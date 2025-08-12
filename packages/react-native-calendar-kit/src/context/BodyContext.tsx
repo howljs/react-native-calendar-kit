@@ -61,6 +61,8 @@ export interface BodyContextProps {
   dragToCreateMode?: 'duration' | 'date-time';
   verticalListRef: AnimatedRef<Animated.ScrollView>;
   gridListRef: AnimatedRef<Animated.ScrollView>;
+  resourcePerPage: number;
+  enableResourceScroll: boolean;
 }
 
 export const BodyContext = React.createContext<BodyContextProps | undefined>(

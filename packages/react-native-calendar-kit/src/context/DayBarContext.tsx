@@ -24,6 +24,8 @@ export interface HeaderContextProps {
   collapsedItems: number;
   rightEdgeSpacing: number;
   overlapEventsSpacing: number;
+  resourcePerPage: number;
+  enableResourceScroll: boolean;
 }
 
 export const HeaderContext = React.createContext<

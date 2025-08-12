@@ -62,12 +62,14 @@ const DraggingHourInner: FC<DraggingHourProps> = ({ renderHour }) => {
 
   const startAnimStyle = useAnimatedStyle(() => ({
     top: (roundedDragStartMinutes.value - start) * minuteHeight.value,
+    opacity: roundedDragStartMinutes.value === -1 ? 0 : 1,
   }));
 
   const endAnimStyle = useAnimatedStyle(() => ({
     top:
       (roundedDragStartMinutes.value + roundedDragDuration.value - start) *
       minuteHeight.value,
+    opacity: roundedDragStartMinutes.value === -1 ? 0 : 1,
   }));
 
   const lineWidth = numberOfDays > 1 ? 0 : 1;

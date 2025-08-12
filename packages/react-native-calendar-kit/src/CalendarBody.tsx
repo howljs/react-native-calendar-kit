@@ -12,9 +12,13 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import BodyItem from './components/BodyItem';
+import BodyResourceItem from './components/BodyResourceItem';
 import CalendarListView from './components/CalendarListView';
 import DragEventPlaceholder from './components/DraggingEvent';
 import DraggingHour from './components/DraggingHour';
+import { NowIndicatorResource } from './components/NowIndicator';
+import ResourceListView from './components/Resource/ResourceListView';
+import ResourceOverlay from './components/Resource/ResourceOverlay';
 import TimeColumn from './components/TimeColumn';
 import { EXTRA_HEIGHT, ScrollType } from './constants';
 import { useActions } from './context/ActionsProvider';
@@ -27,7 +31,7 @@ import useDragEventGesture from './hooks/useDragEventGesture';
 import useDragToCreateGesture from './hooks/useDragToCreateGesture';
 import usePinchToZoom from './hooks/usePinchToZoom';
 import useSyncedList from './hooks/useSyncedList';
-import type { CalendarBodyProps } from './types';
+import type { CalendarBodyProps, ResourceItem } from './types';
 import {
   dateTimeToISOString,
   parseDateTime,
@@ -93,6 +97,9 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     firstDay,
     dragToCreateMode,
     allowHorizontalSwipe,
+    enableResourceScroll,
+    resourcePerPage,
+    resourcePagingEnabled,
   } = useCalendar();
   const locale = useLocale();
   const { onRefresh, onLoad } = useActions();
@@ -181,6 +188,13 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     });
   }, [hourFormat, locale.meridiem, slots]);
 
+  const _renderResourceItem = useCallback(
+    (item: { items: ResourceItem[]; index: number }) => {
+      return <BodyResourceItem resources={item.items} />;
+    },
+    []
+  );
+
   const value = useMemo<BodyContextProps>(
     () => ({
       renderHour,
@@ -224,6 +238,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       dragToCreateMode,
       verticalListRef,
       gridListRef,
+      resourcePerPage,
+      enableResourceScroll,
     }),
     [
       renderHour,
@@ -267,6 +283,8 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       dragToCreateMode,
       verticalListRef,
       gridListRef,
+      resourcePerPage,
+      enableResourceScroll,
     ]
   );
 
@@ -280,6 +298,18 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       : Gesture.Race(pinchGesture, dragEventGesture, dragToCreateGesture);
 
   const leftSize = numberOfDays > 1 || !!resources ? hourWidth : 0;
+
+  const _renderResourceOverlay = useCallback(
+    (props: { totalSize: number; resources: ResourceItem[] }) => {
+      return (
+        <ResourceOverlay
+          {...props}
+          renderDraggableEvent={renderDraggableEvent}
+        />
+      );
+    },
+    [renderDraggableEvent]
+  );
 
   return (
     <View style={styles.container}>
@@ -323,27 +353,44 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                       width: calendarLayout.width - leftSize,
                     },
                   ]}>
-                  <CalendarListView
-                    ref={calendarListRef}
-                    animatedRef={gridListRef}
-                    count={calendarData.count}
-                    scrollEnabled={
-                      allowHorizontalSwipe && Platform.OS !== 'web'
-                    }
-                    width={calendarGridWidth}
-                    height={maxTimelineHeight + EXTRA_HEIGHT * 2}
-                    renderItem={_renderTimeSlots}
-                    extraData={extraData}
-                    inverted={isRTL}
-                    snapToInterval={snapToInterval}
-                    initialOffset={initialOffset}
-                    onScroll={onScroll}
-                    columnsPerPage={columns}
-                    onVisibleColumnChanged={onVisibleColumnChanged}
-                    renderAheadItem={pagesPerSide}
-                    extraScrollData={extraScrollData}
-                    onLoad={onLoad}
-                  />
+                  {enableResourceScroll ? (
+                    <ResourceListView
+                      ref={gridListRef}
+                      resources={resources}
+                      width={calendarGridWidth}
+                      height={maxTimelineHeight + EXTRA_HEIGHT * 2}
+                      resourcePerPage={resourcePerPage}
+                      onScroll={onScroll}
+                      renderItem={_renderResourceItem}
+                      pagingEnabled={resourcePagingEnabled}
+                      renderOverlay={_renderResourceOverlay}
+                      scrollEnabled={
+                        allowHorizontalSwipe && Platform.OS !== 'web'
+                      }
+                    />
+                  ) : (
+                    <CalendarListView
+                      ref={calendarListRef}
+                      animatedRef={gridListRef}
+                      count={calendarData.count}
+                      scrollEnabled={
+                        allowHorizontalSwipe && Platform.OS !== 'web'
+                      }
+                      width={calendarGridWidth}
+                      height={maxTimelineHeight + EXTRA_HEIGHT * 2}
+                      renderItem={_renderTimeSlots}
+                      extraData={extraData}
+                      inverted={isRTL}
+                      snapToInterval={snapToInterval}
+                      initialOffset={initialOffset}
+                      onScroll={onScroll}
+                      columnsPerPage={columns}
+                      onVisibleColumnChanged={onVisibleColumnChanged}
+                      renderAheadItem={pagesPerSide}
+                      extraScrollData={extraScrollData}
+                      onLoad={onLoad}
+                    />
+                  )}
                 </View>
                 <View
                   pointerEvents="box-none"
@@ -352,6 +399,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                     { top: EXTRA_HEIGHT + spaceFromTop },
                     styles.dragContainer,
                   ]}>
+                  {enableResourceScroll && <NowIndicatorResource />}
                   <DragEventPlaceholder
                     renderDraggingEvent={renderDraggingEvent}
                     resources={resources}

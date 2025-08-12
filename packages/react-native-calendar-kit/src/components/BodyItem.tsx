@@ -87,9 +87,9 @@ const BodyItem = ({
         <Events
           startUnix={startUnix}
           visibleDates={visibleDates}
-          totalResources={resources?.length}
+          resources={resources}
         />
-        <NowIndicator startUnix={startUnix} visibleDates={visibleDates} />
+        <NowIndicator visibleDates={visibleDates} />
         <DraggableEvent
           startUnix={startUnix}
           visibleDates={visibleDates}

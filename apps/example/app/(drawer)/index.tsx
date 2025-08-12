@@ -1,3 +1,5 @@
+import CustomUnavailableHour from '@/components/CustomUnavailableHour';
+import ResourceNavigation from '@/components/ResourceNavigation';
 import { Ionicons } from '@expo/vector-icons';
 import type {
   CalendarKitHandle,
@@ -15,7 +17,6 @@ import {
   CalendarContainer,
   CalendarHeader,
   DraggingEvent,
-  parseDateTime,
   ResourceHeaderItem,
 } from '@howljs/calendar-kit';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -34,11 +35,16 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-import { SharedValue, useSharedValue } from 'react-native-reanimated';
+import {
+  configureReanimatedLogger,
+  SharedValue,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../../components/Header';
 import { useAppContext } from '../../context/AppProvider';
-import CustomUnavailableHour from '@/components/CustomUnavailableHour';
+
+configureReanimatedLogger({ strict: false });
 
 type SearchParams = { viewMode: string; numberOfDays: string };
 
@@ -335,7 +341,7 @@ const allDayEvents: EventItem[] = [
   },
 ];
 
-const TOTAL_RESOURCES = 3;
+const TOTAL_RESOURCES = 50;
 
 const generateEvents = () => {
   return new Array(500)
@@ -375,7 +381,8 @@ const Calendar = () => {
   const { configs } = useAppContext();
   const params = useLocalSearchParams<SearchParams>();
   const router = useRouter();
-  const currentDate = useSharedValue(INITIAL_DATE);
+  const [currentDate, setCurrentDate] = useState(INITIAL_DATE);
+
   const [selectedEvent, setSelectedEvent] = useState<SelectedEventType>();
   const [calendarWidth, setCalendarWidth] = useState(
     Dimensions.get('window').width
@@ -391,7 +398,7 @@ const Calendar = () => {
   }, []);
 
   const _onChange = (date: string) => {
-    currentDate.value = date;
+    setCurrentDate(date);
   };
 
   const _onPressDayNumber = (date: string) => {
@@ -497,21 +504,12 @@ const Calendar = () => {
 
   const _renderResourceHeaderItem = useCallback(
     (item: HeaderItemProps) => {
-      const start = parseDateTime(item.startUnix);
-      const dateStr = start.toFormat('yyyy-MM-dd');
-
       return (
         <ResourceHeaderItem
           startUnix={item.startUnix}
           resources={item.extra.resources}
           renderResource={_renderResource}
-          DateComponent={
-            <View style={styles.dateContainer}>
-              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
-                {dateStr}
-              </Text>
-            </View>
-          }
+          DateComponent={null}
         />
       );
     },
@@ -577,6 +575,7 @@ const Calendar = () => {
         onPressToday={_onPressToday}
         onPressPrevious={onPressPrevious}
         onPressNext={onPressNext}
+        isResourcesMode={isResourcesMode}
       />
       <CalendarContainer
         ref={calendarRef}
@@ -680,7 +679,6 @@ const Calendar = () => {
             }, 100);
           });
         }}
-        resources={isResourcesMode ? resources : undefined}
         onDragCreateEventEnd={(event) => {
           console.log('onDragCreateEventEnd', event);
           const newEvent = {
@@ -695,9 +693,17 @@ const Calendar = () => {
           const newEvents = [...events, newEvent];
           setEvents(newEvents);
           setSelectedEvent(newEvent);
-        }}>
+        }}
+        /**
+         * Resource
+         */
+        resources={isResourcesMode ? resources : undefined}
+        resourcePerPage={3}
+        enableResourceScroll
+        resourcePagingEnabled={true}>
+        {isResourcesMode && <ResourceNavigation />}
         <CalendarHeader
-          dayBarHeight={isResourcesMode ? 120 : 60}
+          dayBarHeight={isResourcesMode ? 80 : 60}
           renderHeaderItem={
             isResourcesMode ? _renderResourceHeaderItem : undefined
           }
@@ -736,11 +742,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     gap: 8,
-  },
-  dateContainer: {
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    paddingVertical: 8,
   },
 });

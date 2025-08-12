@@ -60,6 +60,8 @@ const EventItem: FC<EventItemProps> = ({
     rightEdgeSpacing,
     overlapEventsSpacing,
     columnWidth,
+    resourcePerPage,
+    enableResourceScroll,
   } = useBody();
   const { _internal, ...event } = eventInput;
   const {
@@ -126,8 +128,11 @@ const EventItem: FC<EventItemProps> = ({
     visibleDates,
   ]);
 
-  const childColumns =
-    totalResources && totalResources > 0 ? totalResources : 1;
+  const childColumns = enableResourceScroll
+    ? resourcePerPage
+    : totalResources && totalResources > 0
+      ? totalResources
+      : 1;
 
   const eventHeight = useDerivedValue(
     () => data.totalDuration * minuteHeight.value - 1,
@@ -171,7 +176,11 @@ const EventItem: FC<EventItemProps> = ({
 
   const eventPosX = useDerivedValue(() => {
     const colWidth = columnWidthAnim.value / childColumns;
-    const startOffset = resourceIndex ? resourceIndex * colWidth : 0;
+    const startOffset = resourceIndex
+      ? (enableResourceScroll
+          ? resourceIndex % resourcePerPage
+          : resourceIndex) * colWidth
+      : 0;
     let left = data.diffDays * colWidth + startOffset;
     if (xOffsetPercentage) {
       const availableWidth =

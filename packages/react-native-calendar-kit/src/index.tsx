@@ -10,7 +10,7 @@ export { default as MultiDayBarItem } from './components/MultiDayBarItem';
 export { default as SingleDayBarItem } from './components/SingleDayBarItem';
 export { default as DayItem } from './components/DayItem';
 
-export { useActions } from './context/ActionsProvider';
+export { useActions, useMethods } from './context/ActionsProvider';
 export { useBody } from './context/BodyContext';
 export { useCalendar } from './context/CalendarProvider';
 

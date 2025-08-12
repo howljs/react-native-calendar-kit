@@ -1,25 +1,22 @@
 import type { FC } from 'react';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import type { ViewStyle } from 'react-native';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
-  runOnJS,
-  useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
 } from 'react-native-reanimated';
-import { MILLISECONDS_IN_MINUTE } from '../constants';
-import { useBody } from '../context/BodyContext';
+import { useBody } from '../../context/BodyContext';
 import {
   useDragEvent,
   useDragEventActions,
-} from '../context/DragEventProvider';
-import { useTheme } from '../context/ThemeProvider';
-import type { ResourceItem, SelectedEventType } from '../types';
-import { parseDateTime } from '../utils/dateUtils';
-import DragDot from './DragDot';
+} from '../../context/DragEventProvider';
+import { useTheme } from '../../context/ThemeProvider';
+import { useDateChangedListener } from '../../context/VisibleDateProvider';
+import type { ResourceItem, SelectedEventType } from '../../types';
+import DragDot from '../DragDot';
 
 export interface DraggableEventProps {
   index: number;
@@ -39,9 +36,6 @@ export interface DraggableEventProps {
 }
 
 export const DraggableEvent: FC<DraggableEventProps> = ({
-  startUnix,
-  visibleDates,
-  index,
   renderEvent,
   resources,
   TopEdgeComponent,
@@ -57,22 +51,25 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
       };
     }, [])
   );
-  const { minuteHeight, columnWidthAnim, start, numberOfDays } = useBody();
+  const {
+    minuteHeight,
+    columnWidthAnim,
+    start,
+    numberOfDays,
+    resourcePerPage,
+  } = useBody();
   const {
     dragStartUnix,
-    dragSelectedStartUnix,
     dragSelectedDuration,
     dragSelectedStartMinutes,
     selectedEvent,
     isDraggingAnim,
   } = useDragEvent();
   const { triggerDragSelectedEvent } = useDragEventActions();
-  const totalResources =
-    resources && resources.length > 1 ? resources.length : 1;
 
   const eventWidth = useDerivedValue(
-    () => columnWidthAnim.value / totalResources,
-    [totalResources]
+    () => columnWidthAnim.value / resourcePerPage,
+    [resourcePerPage]
   );
 
   const resourceIndex = useMemo(() => {
@@ -84,22 +81,10 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
       (resource) => resource.id === selectedEvent?.resourceId
     );
   }, [resources, selectedEvent?.resourceId]);
-  const left = useDerivedValue(() => {
-    const diffDays = visibleDates[startUnix]?.diffDays ?? 1;
-    return (diffDays - 1) * columnWidthAnim.value;
-  }, [visibleDates, startUnix]);
 
   const top = useDerivedValue(() => {
-    if (index > 0) {
-      const dragSelectedStart =
-        dragSelectedStartUnix.value +
-        dragSelectedStartMinutes.value * MILLISECONDS_IN_MINUTE;
-      const diffMinutes =
-        (startUnix - dragSelectedStart) / MILLISECONDS_IN_MINUTE;
-      return (0 - diffMinutes - start) * minuteHeight.value;
-    }
     return (dragSelectedStartMinutes.value - start) * minuteHeight.value;
-  }, [startUnix, start, index]);
+  }, [start]);
 
   const eventHeight = useDerivedValue(
     () => dragSelectedDuration.value * minuteHeight.value
@@ -107,25 +92,27 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
 
   const isDragging = useDerivedValue(() => dragStartUnix.value !== -1);
 
+  const left = useDerivedValue(() => {
+    return resourceIndex * eventWidth.value;
+  }, [resourceIndex]);
+
   const animView = useAnimatedStyle(() => {
-    const startX = resourceIndex !== -1 ? resourceIndex * eventWidth.value : 0;
     return {
       top: top.value,
       height: eventHeight.value,
       width: eventWidth.value,
-      left: startX + left.value,
-      opacity:
-        isDragging.value || dragSelectedStartMinutes.value === -1 ? 0 : 1,
+      left: left.value,
+      opacity: isDragging.value || top.value === -1 ? 0 : 1,
     };
-  }, [resourceIndex]);
+  });
 
   const gesture = Gesture.Tap()
     .runOnJS(true)
     .onTouchesDown(() => {
       triggerDragSelectedEvent({
-        startIndex: index,
+        startIndex: 0,
         type: 'center',
-        resourceIndex,
+        resourceId: selectedEvent?.resourceId,
       });
     })
     .onTouchesUp(() => {
@@ -136,9 +123,9 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
     .runOnJS(true)
     .onTouchesDown(() => {
       triggerDragSelectedEvent({
-        startIndex: index,
+        startIndex: 0,
         type: 'top',
-        resourceIndex,
+        resourceId: selectedEvent?.resourceId,
       });
     })
     .onTouchesUp(() => {
@@ -149,9 +136,9 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
     .runOnJS(true)
     .onTouchesDown(() => {
       triggerDragSelectedEvent({
-        startIndex: index,
+        startIndex: 0,
         type: 'bottom',
-        resourceIndex,
+        resourceId: selectedEvent?.resourceId,
       });
     })
     .onTouchesUp(() => {
@@ -242,9 +229,7 @@ const styles = StyleSheet.create({
   dotRightSingle: { right: 0 },
 });
 
-interface DraggableEventWrapperProps {
-  startUnix: number;
-  visibleDates: Record<string, { diffDays: number; unix: number }>;
+interface DraggableEventResourceProps {
   renderEvent?: (
     event: SelectedEventType,
     options: {
@@ -256,114 +241,41 @@ interface DraggableEventWrapperProps {
     event: DraggableEventProps
   ) => React.ReactElement | null;
   resources?: ResourceItem[];
+  totalSize: number;
 }
 
-const DraggableEventWrapper: FC<DraggableEventWrapperProps> = ({
-  startUnix,
-  visibleDates,
-  renderEvent,
+export const DraggableEventResource = ({
   renderDraggableEvent,
   resources,
-}) => {
-  const [draggableDates, setDraggableDates] = useState<number[]>([]);
-  const {
-    dragSelectedStartUnix,
-    dragSelectedDuration,
-    dragSelectedStartMinutes,
-  } = useDragEvent();
+  renderEvent,
+}: DraggableEventResourceProps) => {
+  const startUnix = useDateChangedListener();
+  const { selectedEvent } = useDragEvent();
 
-  const endUnix = useMemo(() => {
-    const lastDate = Object.values(visibleDates).pop();
-    if (!lastDate) {
-      return 0;
-    }
-    return parseDateTime(lastDate.unix).plus({ days: 1 }).toMillis();
-  }, [visibleDates]);
+  if (!selectedEvent) {
+    return null;
+  }
 
-  const _handleDragSelectedEvent = (
-    unix: number,
-    minutes: number,
-    duration: number
-  ) => {
-    const dragStartUnix = unix + minutes * MILLISECONDS_IN_MINUTE;
-    const dragEndUnix = dragStartUnix + duration * MILLISECONDS_IN_MINUTE;
-    const isValidStart = dragStartUnix >= startUnix && dragStartUnix < endUnix;
-    const isValidEnd = dragEndUnix > startUnix && dragEndUnix < endUnix;
-    if (!isValidStart && !isValidEnd) {
-      setDraggableDates([]);
-      return;
-    }
-
-    const startDate = parseDateTime(dragStartUnix).startOf('day');
-    const endDate = parseDateTime(dragEndUnix).startOf('day');
-    const diffDays = endDate.diff(startDate, 'day').days;
-    if (diffDays === 0) {
-      setDraggableDates([unix]);
-      return;
-    }
-
-    const dates = [];
-    for (let i = 0; i <= diffDays; i++) {
-      dates.push(parseDateTime(unix).plus({ days: i }).toMillis());
-    }
-    setDraggableDates(dates);
-  };
-
-  useAnimatedReaction(
-    () => {
-      return {
-        dragSelectedStartUnix: dragSelectedStartUnix.value,
-        dragSelectedStartMinutes: dragSelectedStartMinutes.value,
-        dragSelectedDuration: dragSelectedDuration.value,
-      };
-    },
-    (result) => {
-      if (
-        result.dragSelectedStartUnix >= 0 &&
-        result.dragSelectedStartMinutes >= 0 &&
-        result.dragSelectedDuration >= 0
-      ) {
-        runOnJS(_handleDragSelectedEvent)(
-          result.dragSelectedStartUnix,
-          result.dragSelectedStartMinutes,
-          result.dragSelectedDuration
-        );
-      } else {
-        runOnJS(setDraggableDates)([]);
-      }
-    },
-    [startUnix, endUnix]
-  );
-
-  return draggableDates.map((date, index) => {
-    if (!visibleDates[date]) {
-      return null;
-    }
-
-    if (renderDraggableEvent) {
-      return (
-        <React.Fragment key={`${date}-${index}`}>
-          {renderDraggableEvent({
-            startUnix: date,
-            visibleDates,
-            index,
-            renderEvent,
-          })}
-        </React.Fragment>
-      );
-    }
-
+  if (renderDraggableEvent) {
     return (
-      <DraggableEvent
-        key={`${date}-${index}`}
-        startUnix={date}
-        visibleDates={visibleDates}
-        index={index}
-        renderEvent={renderEvent}
-        resources={resources}
-      />
+      <React.Fragment>
+        {renderDraggableEvent({
+          startUnix,
+          visibleDates: { [startUnix]: { diffDays: 1, unix: startUnix } },
+          index: 0,
+          renderEvent,
+        })}
+      </React.Fragment>
     );
-  });
-};
+  }
 
-export default DraggableEventWrapper;
+  return (
+    <DraggableEvent
+      startUnix={startUnix}
+      visibleDates={{ [startUnix]: { diffDays: 1, unix: startUnix } }}
+      index={0}
+      renderEvent={renderEvent}
+      resources={resources}
+    />
+  );
+};
