@@ -17,10 +17,10 @@ import {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { CalendarListRef } from './service/CalendarList';
 import {
   HOUR_WIDTH,
   INITIAL_DATE,
+  IS_WEB,
   MAX_DATE,
   MIN_DATE,
   ScrollType,
@@ -44,6 +44,8 @@ import VisibleDateProvider, {
 } from './context/VisibleDateProvider';
 import useLatestCallback from './hooks/useLatestCallback';
 import useLazyRef from './hooks/useLazyRef';
+import { useLinkedScrollGroup } from './hooks/useLinkedScrollGroup';
+import { CalendarListRef } from './service/CalendarList';
 import HapticService from './service/HapticService';
 import type {
   CalendarKitHandle,
@@ -130,7 +132,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     resources,
     animateColumnWidth = false,
     dragToCreateMode = 'duration',
-    allowHorizontalSwipe = true,
+    allowHorizontalSwipe = !IS_WEB,
     enableResourceScroll = false,
     resourcePerPage = 3,
     resourcePagingEnabled = false,
@@ -240,7 +242,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const verticalListRef = useAnimatedRef<Animated.ScrollView>();
   const dayBarListRef = useAnimatedRef<Animated.ScrollView>();
   const gridListRef = useAnimatedRef<Animated.ScrollView>();
-  const scrollType = useRef<ScrollType>(ScrollType.calendarGrid);
   const isTriggerMomentum = useRef(false);
   const scrollVisibleHeight = useRef(0);
   const triggerDateChanged = useRef<number | undefined>(undefined);
@@ -298,6 +299,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const offsetX = useSharedValue(
     isResourceMode && enableResourceScroll ? 0 : initialOffset
   );
+  const linkedScrollGroup = useLinkedScrollGroup(offsetX);
   const scrollVisibleHeightAnim = useSharedValue(0);
   const timeIntervalHeight = useSharedValue(initialTimeIntervalHeight);
   const eventsRef = useRef<EventsRef>(null);
@@ -348,7 +350,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         );
         if (isScrollable) {
           triggerDateChanged.current = nearestUnix;
-          scrollType.current = ScrollType.calendarGrid;
+          linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
           const animatedDate =
             props?.animatedDate !== undefined ? props.animatedDate : true;
 
@@ -431,7 +433,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       }
 
       triggerDateChanged.current = nextDateUnix;
-      scrollType.current = ScrollType.calendarGrid;
+      linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
 
       runOnUI(() => {
         scrollTo(dayBarListRef, nextOffset, 0, animated);
@@ -484,7 +486,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       }
 
       triggerDateChanged.current = nextDateUnix;
-      scrollType.current = ScrollType.calendarGrid;
+      linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
       runOnUI(() => {
         scrollTo(dayBarListRef, nextOffset, 0, animated);
         scrollTo(gridListRef, nextOffset, 0, animated);
@@ -656,7 +658,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       if (nextOffset > maxOffset) {
         nextOffset = maxOffset;
       }
-      scrollType.current = ScrollType.calendarGrid;
+      linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
       const scrollAnimated = animated !== false;
       runOnUI(() => {
         offsetX.value = nextOffset;
@@ -683,7 +685,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         return;
       }
 
-      scrollType.current = ScrollType.calendarGrid;
+      linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
       const scrollAnimated = animated !== false;
       runOnUI(() => {
         offsetX.value = nextOffset;
@@ -770,7 +772,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       gridListRef,
       columnWidthAnim,
       firstDay,
-      scrollType,
       offsetY,
       minuteHeight,
       maxTimelineHeight,
@@ -816,6 +817,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       enableResourceScroll: isResourceMode && enableResourceScroll,
       resourcePerPage,
       resourcePagingEnabled,
+      linkedScrollGroup,
     }),
     [
       calendarLayout,
@@ -870,6 +872,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       isResourceMode,
       resourcePerPage,
       resourcePagingEnabled,
+      linkedScrollGroup,
     ]
   );
 

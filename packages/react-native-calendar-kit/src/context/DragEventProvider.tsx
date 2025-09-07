@@ -144,7 +144,6 @@ const DragEventProvider: FC<
     numberOfDays,
     triggerDateChanged,
     calendarData,
-    scrollType,
     scrollByDay,
     timelineHeight,
     verticalListRef,
@@ -156,6 +155,7 @@ const DragEventProvider: FC<
     enableResourceScroll,
     resourcePerPage,
     resourcePagingEnabled,
+    linkedScrollGroup,
   } = useCalendar();
   const {
     onDragSelectedEventStart,
@@ -473,7 +473,7 @@ const DragEventProvider: FC<
         return;
       }
 
-      scrollType.current = ScrollType.calendarGrid;
+      linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
       triggerDateChanged.current = nextDateUnix;
 
       let targetUnix = nextDateUnix;
@@ -552,7 +552,7 @@ const DragEventProvider: FC<
         return;
       }
 
-      scrollType.current = ScrollType.calendarGrid;
+      linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
       runOnUI(() => {
         scrollTargetX.value = nextOffset;
         scrollTo(dayBarListRef, nextOffset, 0, true);

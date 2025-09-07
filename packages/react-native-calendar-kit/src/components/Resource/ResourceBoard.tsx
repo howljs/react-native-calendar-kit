@@ -27,7 +27,6 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
 
   const {
     spaceFromTop,
-    timeIntervalHeight,
     totalSlots,
     columnWidthAnim,
     minuteHeight,
@@ -35,13 +34,15 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
     visibleDateUnixAnim,
     start,
     resourcePerPage,
+    spaceFromBottom,
+    timelineHeight,
   } = useBody();
   const { timeZone } = useTimezone();
   const { onPressBackground, onLongPressBackground } = useActions();
   const { triggerDragCreateEvent } = useDragEventActions();
 
   const contentView = useAnimatedStyle(() => ({
-    height: timeIntervalHeight.value * totalSlots,
+    height: timelineHeight.value - spaceFromTop - spaceFromBottom,
   }));
 
   const onPress = (event: GestureResponderEvent) => {
@@ -109,7 +110,7 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
           key={i}
           borderColor={colors.border}
           index={i}
-          height={timeIntervalHeight}
+          totalSlots={totalSlots}
           renderCustomHorizontalLine={renderCustomHorizontalLine}
         />
       );
@@ -119,7 +120,7 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
           key={`${i}.5`}
           borderColor={colors.border}
           index={i + 0.5}
-          height={timeIntervalHeight}
+          totalSlots={totalSlots}
           renderCustomHorizontalLine={renderCustomHorizontalLine}
         />
       );
@@ -130,17 +131,12 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
         key={totalSlots}
         borderColor={colors.border}
         index={totalSlots}
-        height={timeIntervalHeight}
+        totalSlots={totalSlots}
         renderCustomHorizontalLine={renderCustomHorizontalLine}
       />
     );
     return rows;
-  }, [
-    totalSlots,
-    colors.border,
-    timeIntervalHeight,
-    renderCustomHorizontalLine,
-  ]);
+  }, [totalSlots, colors.border, renderCustomHorizontalLine]);
 
   return (
     <View style={styles.container}>
@@ -178,6 +174,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  calendarGrid: { flex: 1 },
+  calendarGrid: { width: '100%' },
   touchable: { flex: 1 },
 });

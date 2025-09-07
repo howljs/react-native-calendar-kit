@@ -1,8 +1,6 @@
-import type { PropsWithChildren } from 'react';
-import React, { memo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import type { SharedValue } from 'react-native-reanimated';
 import { EXTRA_HEIGHT, HOUR_SHORT_LINE_WIDTH } from '../constants';
 import { useBody } from '../context/BodyContext';
 import { useTheme } from '../context/ThemeProvider';
@@ -25,46 +23,66 @@ const TimeColumn = () => {
     timelineHeight,
     renderHour,
     hourWidth,
-    minuteHeight,
-    start,
-    showTimeColumnRightLine
+    showTimeColumnRightLine,
   } = useBody();
   const { cellBorderColor, hourTextColor, hourTextStyle, hourBackgroundColor } =
     useTheme(selectTimeColumnTheme);
 
   const fontSize = hourTextStyle?.fontSize ?? 10;
-  const style = StyleSheet.flatten([
-    styles.hourText,
-    { top: -fontSize / 2, color: hourTextColor },
-    hourTextStyle,
-  ]);
+  const style = useMemo(
+    () =>
+      StyleSheet.flatten([
+        styles.hourText,
+        { top: -fontSize / 2, color: hourTextColor },
+        hourTextStyle,
+      ]),
+    [fontSize, hourTextColor, hourTextStyle]
+  );
+  const totalSlots = hours.length;
 
-  const _renderHour = (hour: { slot: number; time: string }, index: number) => {
-    let children: React.ReactNode;
-    if (renderHour) {
-      children = renderHour({ hourStr: hour.time, minutes: hour.slot, style });
-    } else {
-      children = <Text style={style}>{hour.time}</Text>;
-    }
+  const _renderHour = useCallback(
+    (hour: { slot: number; time: string }, index: number) => {
+      let children: React.ReactNode;
+      if (renderHour) {
+        children = renderHour({
+          hourStr: hour.time,
+          minutes: hour.slot,
+          style,
+        });
+      } else {
+        children = <Text style={style}>{hour.time}</Text>;
+      }
 
-    return (
-      <HourWrapper
-        key={index !== undefined ? hour.slot : undefined}
-        minutes={hour.slot}
-        height={minuteHeight}
-        cellBorderColor={cellBorderColor}
-        start={start}>
+      return (
         <View
+          key={hour.slot}
           style={[
             styles.absolute,
-            styles.hour,
-            { right: HOUR_SHORT_LINE_WIDTH + 8 },
+            { top: `${(index / totalSlots) * 100}%`, width: '100%' },
           ]}>
-          {children}
+          <View
+            style={[
+              styles.absolute,
+              styles.hour,
+              { right: HOUR_SHORT_LINE_WIDTH + 8 },
+            ]}>
+            {children}
+          </View>
+          <View
+            style={[
+              styles.absolute,
+              styles.shortLine,
+              {
+                backgroundColor: cellBorderColor,
+                width: HOUR_SHORT_LINE_WIDTH,
+              },
+            ]}
+          />
         </View>
-      </HourWrapper>
-    );
-  };
+      );
+    },
+    [cellBorderColor, renderHour, style, totalSlots]
+  );
 
   const animView = useAnimatedStyle(() => ({
     height: timelineHeight.value - spaceFromTop - spaceFromBottom,
@@ -84,56 +102,21 @@ const TimeColumn = () => {
       <Animated.View
         style={[
           styles.absolute,
-          {
-            width: hourWidth,
-            top: EXTRA_HEIGHT + spaceFromTop,
-          },
+          { width: hourWidth, top: EXTRA_HEIGHT + spaceFromTop },
           animView,
         ]}>
         {hours.map(_renderHour)}
       </Animated.View>
-      {showTimeColumnRightLine && <View style={[styles.rightLine, { backgroundColor: cellBorderColor }]} />}
+      {showTimeColumnRightLine && (
+        <View
+          style={[styles.rightLine, { backgroundColor: cellBorderColor }]}
+        />
+      )}
     </View>
   );
 };
 
 export default memo(TimeColumn);
-
-interface HourWrapperProps {
-  height: SharedValue<number>;
-  minutes: number;
-  cellBorderColor: string;
-  start: number;
-}
-
-const HourWrapper: React.FC<PropsWithChildren<HourWrapperProps>> = ({
-  height,
-  minutes,
-  cellBorderColor,
-  children,
-  start,
-}) => {
-  const animStyle = useAnimatedStyle(() => ({
-    top: (minutes - start) * height.value,
-    width: '100%',
-  }));
-
-  return (
-    <Animated.View style={[styles.absolute, animStyle]}>
-      {children}
-      <View
-        style={[
-          styles.absolute,
-          styles.shortLine,
-          {
-            backgroundColor: cellBorderColor,
-            width: HOUR_SHORT_LINE_WIDTH,
-          },
-        ]}
-      />
-    </Animated.View>
-  );
-};
 
 const styles = StyleSheet.create({
   container: { zIndex: 998, elevation: -1 },
