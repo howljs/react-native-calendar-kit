@@ -44,8 +44,10 @@ const TimelineBoard = ({
     numberOfDays,
     calendarData,
     columns,
-    timeIntervalHeight,
+    timelineHeight,
     renderCustomHorizontalLine,
+    spaceFromBottom,
+    calendarLayout,
   } = useBody();
   const { timeZone } = useTimezone();
   const colors = useTheme((state) => state.colors);
@@ -78,7 +80,7 @@ const TimelineBoard = ({
           key={i}
           borderColor={colors.border}
           index={i}
-          height={timeIntervalHeight}
+          totalSlots={totalSlots}
           renderCustomHorizontalLine={renderCustomHorizontalLine}
         />
       );
@@ -88,7 +90,7 @@ const TimelineBoard = ({
           key={`${i}.5`}
           borderColor={colors.border}
           index={i + 0.5}
-          height={timeIntervalHeight}
+          totalSlots={totalSlots}
           renderCustomHorizontalLine={renderCustomHorizontalLine}
         />
       );
@@ -99,17 +101,12 @@ const TimelineBoard = ({
         key={totalSlots}
         borderColor={colors.border}
         index={totalSlots}
-        height={timeIntervalHeight}
+        totalSlots={totalSlots}
         renderCustomHorizontalLine={renderCustomHorizontalLine}
       />
     );
     return rows;
-  }, [
-    totalSlots,
-    colors.border,
-    timeIntervalHeight,
-    renderCustomHorizontalLine,
-  ]);
+  }, [totalSlots, colors.border, renderCustomHorizontalLine]);
 
   const onPress = (event: GestureResponderEvent) => {
     const columnIndex = Math.floor(
@@ -165,7 +162,7 @@ const TimelineBoard = ({
   };
 
   const contentView = useAnimatedStyle(() => ({
-    height: timeIntervalHeight.value * totalSlots,
+    height: timelineHeight.value - spaceFromTop - spaceFromBottom,
   }));
 
   const _renderOutOfRangeView = () => {
@@ -205,8 +202,11 @@ const TimelineBoard = ({
       )}
       <Animated.View
         style={[
-          styles.calendarGrid,
-          { marginTop: EXTRA_HEIGHT + spaceFromTop },
+          {
+            marginTop: EXTRA_HEIGHT + spaceFromTop,
+            width:
+              numberOfDays === 1 ? calendarLayout.width - hourWidth : '100%',
+          },
           contentView,
         ]}>
         <Touchable
@@ -236,7 +236,7 @@ export default React.memo(TimelineBoard);
 
 const styles = StyleSheet.create({
   container: { flex: 1, flexDirection: 'row' },
-  calendarGrid: { flex: 1 },
+  calendarGrid: { width: '100%' },
   separator: {
     backgroundColor: '#2D2D2D',
     borderRightWidth: 1,

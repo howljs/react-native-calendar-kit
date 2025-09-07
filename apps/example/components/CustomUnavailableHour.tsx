@@ -1,28 +1,23 @@
-import { UnavailableHourProps } from '@howljs/calendar-kit';
-import React, { FC } from 'react';
-import Animated, {
-  SharedValue,
-  useAnimatedProps,
-} from 'react-native-reanimated';
+import React, { FC, useMemo } from 'react';
+import { SharedValue } from 'react-native-reanimated';
+
 import { Defs, Line, Pattern, Rect, Svg } from 'react-native-svg';
 
-const AnimatedRect = Animated.createAnimatedComponent(Rect);
-
-const CustomUnavailableHour: FC<
-  UnavailableHourProps & {
-    width: SharedValue<number>;
-    height: SharedValue<number>;
-  }
-> = (props) => {
+const CustomUnavailableHour: FC<{
+  height: SharedValue<number>;
+  width: SharedValue<number>;
+}> = ({ width, height }) => {
   const patternSize = 5;
 
-  const rectProps = useAnimatedProps(() => ({
-    height: props.height.value,
-    width: props.width.value,
-  }));
+  const originalWidth = useMemo(() => width.get(), []);
+  const originalHeight = useMemo(() => height.get(), []);
 
   return (
-    <Svg>
+    <Svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${originalWidth} ${originalHeight}`}
+      preserveAspectRatio="none">
       <Defs>
         <Pattern
           id="stripe-pattern"
@@ -41,12 +36,12 @@ const CustomUnavailableHour: FC<
           />
         </Pattern>
       </Defs>
-      <AnimatedRect
+      <Rect
         x="0"
         y="0"
         width="100%"
+        height="100%"
         fill="url(#stripe-pattern)"
-        animatedProps={rectProps}
       />
     </Svg>
   );

@@ -1,12 +1,10 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import type { SharedValue } from 'react-native-reanimated';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { StyleSheet, View } from 'react-native';
 
 interface HorizontalLineProps {
   borderColor: string;
   index: number;
-  height: SharedValue<number>;
+  totalSlots: number;
   renderCustomHorizontalLine?: (props: {
     index: number;
     borderColor: string;
@@ -16,23 +14,19 @@ interface HorizontalLineProps {
 const HorizontalLine = ({
   index,
   borderColor,
-  height,
+  totalSlots,
   renderCustomHorizontalLine,
 }: HorizontalLineProps) => {
-  const animStyle = useAnimatedStyle(() => ({
-    top: index * height.value,
-  }));
-
   return (
-    <Animated.View
+    <View
       pointerEvents="box-none"
       style={[
         styles.horizontalLine,
         !renderCustomHorizontalLine ? { backgroundColor: borderColor } : {},
-        animStyle,
+        { top: `${(index / totalSlots) * 100}%` },
       ]}>
       {renderCustomHorizontalLine?.({ index, borderColor })}
-    </Animated.View>
+    </View>
   );
 };
 export default HorizontalLine;
