@@ -1,69 +1,40 @@
 import { useCallback, useRef } from 'react';
-import {
-  runOnJS,
-  runOnUI,
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated';
+import { runOnUI } from 'react-native-reanimated';
 import { MILLISECONDS_IN_DAY, ScrollType } from '../constants';
 import { useActions } from '../context/ActionsProvider';
 import { useCalendar } from '../context/CalendarProvider';
-import { useNotifyDateChanged } from '../context/VisibleDateProvider';
+import {
+  useDateChangedListener,
+  useNotifyDateChanged,
+} from '../context/VisibleDateProvider';
 import { dateTimeToISOString, parseDateTime } from '../utils/dateUtils';
 
 const useSyncedList = ({ id }: { id: ScrollType }) => {
   const {
     visibleDateUnix,
-    isTriggerMomentum,
     triggerDateChanged,
     visibleDateUnixAnim,
     visibleWeeks,
     linkedScrollGroup,
   } = useCalendar();
+  const currentUnix = useDateChangedListener();
   const notifyDateChanged = useNotifyDateChanged();
   const { onChange, onDateChanged } = useActions();
-  const isDragging = useSharedValue(false);
+  const isDragging = useRef(false);
+  const isPendingDateChanged = useRef<boolean>(false);
 
-  const startDateUnix = useRef(0);
-  const _updateScrolling = () => {
-    startDateUnix.current = visibleDateUnix.current;
-  };
+  const onScrollBeginDrag = useCallback(() => {
+    isDragging.current = true;
+  }, []);
 
-  const _updateMomentum = (isTrigger: boolean) => {
-    isTriggerMomentum.current = isTrigger;
-  };
-
-  const _onMomentumEnd = () => {
-    if (
-      isTriggerMomentum.current &&
-      startDateUnix.current !== visibleDateUnix.current
-    ) {
-      triggerDateChanged.current = undefined;
-      onDateChanged?.(
-        dateTimeToISOString(parseDateTime(visibleDateUnix.current))
-      );
-      notifyDateChanged(visibleDateUnix.current);
-      isTriggerMomentum.current = false;
+  const onMomentumScrollBegin = useCallback(() => {
+    if (isDragging.current) {
+      isPendingDateChanged.current = true;
+      isDragging.current = false;
     }
-  };
+  }, []);
 
-  const onScroll = useAnimatedScrollHandler({
-    onBeginDrag: () => {
-      isDragging.value = true;
-      runOnJS(_updateScrolling)();
-    },
-    onMomentumBegin: () => {
-      if (isDragging.value) {
-        runOnJS(_updateMomentum)(true);
-      }
-    },
-    onMomentumEnd: () => {
-      if (isDragging.value) {
-        isDragging.value = false;
-        runOnJS(_onMomentumEnd)();
-      }
-    },
-  });
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const onVisibleColumnChanged = useCallback(
     (props: {
@@ -81,6 +52,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       if (activeId === id.toString() && visibleColumns && visibleDates) {
         const dayIndex = pageIndex * columns + column;
         const visibleStart = visibleDates[pageIndex * columns];
+
         const visibleEnd =
           visibleDates[pageIndex * columns + column + visibleColumns];
 
@@ -98,6 +70,10 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
           }
         }
 
+        if (debounceTimer.current) {
+          clearTimeout(debounceTimer.current);
+        }
+
         const currentDate = visibleDates[dayIndex];
         if (!currentDate) {
           triggerDateChanged.current = undefined;
@@ -107,19 +83,30 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
         if (visibleDateUnix.current !== currentDate) {
           const dateIsoStr = dateTimeToISOString(parseDateTime(currentDate));
           onChange?.(dateIsoStr);
-          if (
-            triggerDateChanged.current &&
-            triggerDateChanged.current === currentDate
-          ) {
-            triggerDateChanged.current = undefined;
-            onDateChanged?.(dateIsoStr);
-            notifyDateChanged(currentDate);
-          }
           visibleDateUnix.current = currentDate;
           runOnUI(() => {
             visibleDateUnixAnim.value = currentDate;
           })();
         }
+
+        debounceTimer.current = setTimeout(() => {
+          const isSamePrevUnix = currentUnix === currentDate;
+          if (isSamePrevUnix) {
+            return;
+          }
+
+          if (
+            (triggerDateChanged.current &&
+              triggerDateChanged.current === currentDate) ||
+            isPendingDateChanged.current
+          ) {
+            const dateIsoStr = dateTimeToISOString(parseDateTime(currentDate));
+            triggerDateChanged.current = undefined;
+            onDateChanged?.(dateIsoStr);
+            notifyDateChanged(currentDate);
+          }
+          isPendingDateChanged.current = false;
+        }, 150);
       }
     },
     [
@@ -129,13 +116,18 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       visibleWeeks,
       triggerDateChanged,
       onChange,
+      visibleDateUnixAnim,
+      currentUnix,
       onDateChanged,
       notifyDateChanged,
-      visibleDateUnixAnim,
     ]
   );
 
-  return { onScroll, onVisibleColumnChanged };
+  return {
+    onScrollBeginDrag,
+    onMomentumScrollBegin,
+    onVisibleColumnChanged,
+  };
 };
 
 export default useSyncedList;

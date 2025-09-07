@@ -24,6 +24,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { HorizontalVirtualizedList } from './HorizontalVirtualizedList';
+import useLatestCallback from '../../hooks/useLatestCallback';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -166,6 +167,7 @@ export const CalendarList = React.forwardRef<
 
     const extraScrollDataRef = useRef(extraScrollData);
     extraScrollDataRef.current = extraScrollData;
+    const onVisibleColumnChangedCb = useLatestCallback(onVisibleColumnChanged);
 
     const handleColumnChanged = useCallback(
       (offset: number) => {
@@ -176,7 +178,7 @@ export const CalendarList = React.forwardRef<
         const startOffset = startIndex * itemSize;
         const column = Math.round((offset - startOffset) / columnWidth);
 
-        onVisibleColumnChanged?.({
+        onVisibleColumnChangedCb?.({
           index: startIndex,
           column,
           columns: columnsPerPage,
@@ -184,7 +186,7 @@ export const CalendarList = React.forwardRef<
           offset,
         });
       },
-      [itemSize, columnsPerPage, onVisibleColumnChanged]
+      [itemSize, columnsPerPage, onVisibleColumnChangedCb]
     );
 
     useAnimatedReaction(
