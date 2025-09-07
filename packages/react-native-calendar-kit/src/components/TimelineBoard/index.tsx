@@ -40,7 +40,7 @@ const TimelineBoard = ({
     spaceFromTop,
     hourWidth,
     start,
-    columnWidthAnim,
+    columnWidth,
     numberOfDays,
     calendarData,
     columns,
@@ -64,13 +64,13 @@ const TimelineBoard = ({
           key={i}
           borderColor={colors.border}
           index={i}
-          columnWidth={columnWidthAnim}
+          columnWidth={columnWidth}
           childColumns={resources?.length ? resources.length : 1}
         />
       );
     }
     return lines;
-  }, [resources, columns, colors.border, columnWidthAnim]);
+  }, [resources, columns, colors.border, columnWidth]);
 
   const _renderHorizontalLines = useMemo(() => {
     const rows: React.ReactNode[] = [];
@@ -109,9 +109,7 @@ const TimelineBoard = ({
   }, [totalSlots, colors.border, renderCustomHorizontalLine]);
 
   const onPress = (event: GestureResponderEvent) => {
-    const columnIndex = Math.floor(
-      event.nativeEvent.locationX / columnWidthAnim.value
-    );
+    const columnIndex = Math.floor(event.nativeEvent.locationX / columnWidth);
     const dayIndex = pageIndex + columnIndex;
     const dayUnix = calendarData.visibleDatesArray[dayIndex];
     const minutes = event.nativeEvent.locationY / minuteHeight.value + start;
@@ -124,7 +122,7 @@ const TimelineBoard = ({
         dateTime: dateTimeToISOString(dateObj),
       };
       if (resources) {
-        const colWidth = columnWidthAnim.value / resources.length;
+        const colWidth = columnWidth / resources.length;
         const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
         newProps.resourceId = resources[resourceIdx]?.id;
       }
@@ -133,9 +131,7 @@ const TimelineBoard = ({
   };
 
   const onLongPress = (event: GestureResponderEvent) => {
-    const columnIndex = Math.floor(
-      event.nativeEvent.locationX / columnWidthAnim.value
-    );
+    const columnIndex = Math.floor(event.nativeEvent.locationX / columnWidth);
     const dayIndex = pageIndex + columnIndex;
     const dayUnix = calendarData.visibleDatesArray[dayIndex];
     const minutes = event.nativeEvent.locationY / minuteHeight.value + start;
@@ -150,7 +146,7 @@ const TimelineBoard = ({
         dateTime: dateString,
       };
       if (resources) {
-        const colWidth = columnWidthAnim.value / resources.length;
+        const colWidth = columnWidth / resources.length;
         const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
         newProps.resourceId = resources[resourceIdx]?.id;
       }

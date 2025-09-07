@@ -35,7 +35,6 @@ The `useBody` hook returns an object with the following properties:
 - `hours` (`Array<{ slot: number; time: string }>`): Array of hour objects.
 - `hourFormat` (string): Format for displaying hours.
 - `totalSlots` (number): Total number of time slots.
-- `columnWidthAnim` (`SharedValue<number>`): Animated value for column width.
 - `numberOfDays` (number): Number of days displayed.
 - `hourWidth` (number): Width of the hour column.
 - `start` (number): Start time of the calendar (in minutes from midnight).

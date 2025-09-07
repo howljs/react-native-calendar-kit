@@ -1,9 +1,6 @@
-import React from 'react';
-import { StyleSheet } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-} from 'react-native-reanimated';
+import React, { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useDerivedValue } from 'react-native-reanimated';
 import { useBody } from '../../context/BodyContext';
 import { useTheme } from '../../context/ThemeProvider';
 
@@ -15,7 +12,7 @@ const OutOfRangeView = ({
   position: 'left' | 'right';
 }) => {
   const {
-    columnWidthAnim,
+    columnWidth,
     renderCustomOutOfRange,
     timeIntervalHeight,
     totalSlots,
@@ -24,33 +21,35 @@ const OutOfRangeView = ({
     (state) => state.outOfRangeBackgroundColor || state.colors.surface
   );
   const disableHeight = useDerivedValue(
-    () => timeIntervalHeight.value * totalSlots
+    () => timeIntervalHeight.value * totalSlots,
+    [totalSlots]
   );
-  const disableWidth = useDerivedValue(() => diffDays * columnWidthAnim.value);
+  const disableWidth = useDerivedValue(
+    () => diffDays * columnWidth,
+    [columnWidth, diffDays]
+  );
 
-  const disableAnim = useAnimatedStyle(() => {
-    return {
-      width: disableWidth.value,
-      height: disableHeight.value,
-    };
-  });
-
-  const positionStyle = position === 'left' ? { left: 0 } : { right: 0 };
+  const positionStyle = useMemo(
+    () => (position === 'left' ? { left: 0 } : { right: 0 }),
+    [position]
+  );
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.outOfRange,
         positionStyle,
-        { backgroundColor: disableBackgroundColor },
-        disableAnim,
+        {
+          backgroundColor: disableBackgroundColor,
+          width: diffDays * columnWidth,
+        },
       ]}>
       {renderCustomOutOfRange &&
         renderCustomOutOfRange({
           width: disableWidth,
           height: disableHeight,
         })}
-    </Animated.View>
+    </View>
   );
 };
 

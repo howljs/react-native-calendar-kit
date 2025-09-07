@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import type { GestureResponderEvent, TextStyle, ViewStyle } from 'react-native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
@@ -58,7 +57,6 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
   );
 
   const {
-    columnWidthAnim,
     dayBarHeight,
     calendarData,
     columns,
@@ -114,35 +112,34 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
     height: allDayEventsHeight.value,
   }));
 
-  const animStyle = useAnimatedStyle(() => ({
-    width: columnWidthAnim.value,
-  }));
-
   const _renderDayItem = (date: string) => {
     return (
-      <Animated.View
+      <View
         key={`column_${visibleDates[date].unix}`}
         pointerEvents="box-none"
-        style={animStyle}>
+        style={{ width: columnWidth }}>
         {renderDayItem ? (
           renderDayItem({ dateUnix: visibleDates[date].unix })
         ) : (
           <DayItem dateUnix={visibleDates[date].unix} />
         )}
-      </Animated.View>
+      </View>
     );
   };
 
-  const _renderEvent = (event: PackedAllDayEvent) => {
-    return (
-      <EventItem
-        key={event.localId}
-        event={event}
-        onPressEvent={onPressEvent}
-        renderEvent={renderEvent}
-      />
-    );
-  };
+  const _renderEvent = useCallback(
+    (event: PackedAllDayEvent) => {
+      return (
+        <EventItem
+          key={event.localId}
+          event={event}
+          onPressEvent={onPressEvent}
+          renderEvent={renderEvent}
+        />
+      );
+    },
+    [onPressEvent, renderEvent]
+  );
 
   const _renderBottomColumn = (date: string) => {
     const count = eventCounts[date];
@@ -150,7 +147,7 @@ const MultiDayBarItem: React.FC<MultiDayBarItemProps> = ({
       <BottomColumn
         key={`bottom_${date}`}
         count={count}
-        columnWidth={columnWidthAnim}
+        columnWidth={columnWidth}
         borderColor={dayBarStyles.borderColor}
         countContainerStyle={dayBarStyles.countContainer}
         countTextStyle={dayBarStyles.countText}
@@ -207,7 +204,7 @@ const BottomColumn = ({
   countContainerStyle,
   countTextStyle,
 }: {
-  columnWidth: SharedValue<number>;
+  columnWidth: number;
   borderColor: string;
   count?: number;
   countContainerStyle?: ViewStyle;
@@ -215,9 +212,6 @@ const BottomColumn = ({
 }) => {
   const { collapsedItems, isExpanded, headerBottomHeight } = useHeader();
   const isShowCount = count && count > collapsedItems;
-  const animStyle = useAnimatedStyle(() => ({
-    width: columnWidth.value,
-  }));
 
   const countStyle = useAnimatedStyle(() => ({
     display: isExpanded.value ? 'none' : 'flex',
@@ -225,7 +219,7 @@ const BottomColumn = ({
   }));
 
   return (
-    <Animated.View style={animStyle}>
+    <View style={{ width: columnWidth }}>
       <View style={[styles.bottomLine, { backgroundColor: borderColor }]} />
       {isShowCount && (
         <Animated.View
@@ -246,7 +240,7 @@ const BottomColumn = ({
           />
         </Animated.View>
       )}
-    </Animated.View>
+    </View>
   );
 };
 
@@ -264,17 +258,15 @@ const EventItem = ({
 }) => {
   const {
     rightEdgeSpacing,
-    columnWidthAnim,
+    columnWidth,
     eventHeight: height,
     isExpanded,
     overlapEventsSpacing,
   } = useHeader();
   const { _internal, ...rest } = event;
 
-  const eventWidth = useDerivedValue(
-    () => _internal.columnSpan * columnWidthAnim.value - rightEdgeSpacing,
-    [_internal.columnSpan, rightEdgeSpacing]
-  );
+  const eventWidth = _internal.columnSpan * columnWidth - rightEdgeSpacing;
+  const eventWidthAnim = useDerivedValue(() => eventWidth, [eventWidth]);
 
   const isShow = useDerivedValue(() => {
     return isExpanded.value || _internal.rowIndex < 2;
@@ -284,9 +276,7 @@ const EventItem = ({
     return isShow.value ? height.value - overlapEventsSpacing : 0;
   }, [overlapEventsSpacing]);
 
-  const left = useDerivedValue(() => {
-    return _internal.startIndex * columnWidthAnim.value;
-  }, [_internal.startIndex]);
+  const left = _internal.startIndex * columnWidth;
 
   const top = useDerivedValue(() => {
     return _internal.rowIndex * height.value;
@@ -295,8 +285,6 @@ const EventItem = ({
   const eventContainerStyle = useAnimatedStyle(() => {
     return {
       position: 'absolute',
-      left: left.value,
-      width: eventWidth.value,
       top: top.value,
       height: eventHeight.value,
       opacity: isShow.value ? 1 : 0,
@@ -310,7 +298,7 @@ const EventItem = ({
   };
 
   return (
-    <Animated.View style={eventContainerStyle}>
+    <Animated.View style={[{ left, width: eventWidth }, eventContainerStyle]}>
       <TouchableOpacity
         activeOpacity={0.6}
         disabled={!onPressEvent}
@@ -322,7 +310,7 @@ const EventItem = ({
         ]}>
         {renderEvent ? (
           renderEvent(event, {
-            width: eventWidth,
+            width: eventWidthAnim,
             height: eventHeight,
           })
         ) : (

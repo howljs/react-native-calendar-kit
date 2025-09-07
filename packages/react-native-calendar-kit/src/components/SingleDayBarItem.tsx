@@ -213,14 +213,14 @@ const EventItem = ({
   const {
     eventHeight: height,
     isExpanded,
-    columnWidthAnim,
+    columnWidth,
     rightEdgeSpacing,
     overlapEventsSpacing,
   } = useHeader();
   const { _internal, ...rest } = event;
-  const eventWidth = useDerivedValue(() => {
-    return columnWidthAnim.value - rightEdgeSpacing;
-  });
+
+  const eventWidth = columnWidth - rightEdgeSpacing;
+  const eventWidthAnim = useDerivedValue(() => eventWidth, [eventWidth]);
 
   const isShow = useDerivedValue(() => {
     return isExpanded.value || _internal.rowIndex < 2;
@@ -231,9 +231,7 @@ const EventItem = ({
   }, [overlapEventsSpacing]);
 
   const eventContainerStyle = useAnimatedStyle(() => ({
-    width: eventWidth.value,
     height: eventHeight.value,
-    marginBottom: 2,
     opacity: withTiming(isShow.value ? 1 : 0),
   }));
 
@@ -244,7 +242,8 @@ const EventItem = ({
   };
 
   return (
-    <Animated.View style={eventContainerStyle}>
+    <Animated.View
+      style={[{ width: eventWidth, marginBottom: 2 }, eventContainerStyle]}>
       <TouchableOpacity
         activeOpacity={0.6}
         disabled={!onPressEvent}
@@ -256,7 +255,7 @@ const EventItem = ({
         ]}>
         {renderEvent ? (
           renderEvent(event, {
-            width: eventWidth,
+            width: eventWidthAnim,
             height: eventHeight,
           })
         ) : (

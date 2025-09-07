@@ -28,7 +28,7 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
   const {
     spaceFromTop,
     totalSlots,
-    columnWidthAnim,
+    columnWidth,
     minuteHeight,
     renderCustomHorizontalLine,
     visibleDateUnixAnim,
@@ -56,7 +56,7 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
       dateTime: dateTimeToISOString(dateObj),
     };
     if (resources) {
-      const colWidth = columnWidthAnim.value / resourcePerPage;
+      const colWidth = columnWidth / resourcePerPage;
       const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
       newProps.resourceId = resources[resourceIdx]?.id;
     }
@@ -75,7 +75,7 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
       dateTime: dateString,
     };
     if (resources) {
-      const colWidth = columnWidthAnim.value / resourcePerPage;
+      const colWidth = columnWidth / resourcePerPage;
       const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
       newProps.resourceId = resources[resourceIdx]?.id;
     }
@@ -94,13 +94,13 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
           key={i}
           borderColor={colors.border}
           index={i}
-          columnWidth={columnWidthAnim}
+          columnWidth={columnWidth}
           childColumns={resourcePerPage}
         />
       );
     }
     return lines;
-  }, [resources.length, colors.border, columnWidthAnim, resourcePerPage]);
+  }, [resources.length, colors.border, columnWidth, resourcePerPage]);
 
   const _renderHorizontalLines = useMemo(() => {
     const rows: React.ReactNode[] = [];

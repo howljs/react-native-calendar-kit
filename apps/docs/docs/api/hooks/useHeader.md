@@ -23,7 +23,6 @@ The `useHeader` hook returns an object with the following properties:
 
 - `dayBarHeight` (number): The height of the day bar in the header.
 - `numberOfDays` (number): The number of days displayed in the calendar view.
-- `columnWidthAnim` (`Animated.SharedValue<number>`): An animated value representing the width of each day column.
 - `calendarLayout` (object): Contains `width` and `height` of the calendar layout.
 - `hourWidth` (number): The width of the hour column.
 - `minuteHeight` (`Animated.SharedValue<number>`): An animated value representing the height of one minute in the calendar.

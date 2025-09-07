@@ -6,7 +6,6 @@ import type { Size } from './LayoutProvider';
 export interface HeaderContextProps {
   dayBarHeight: number;
   numberOfDays: number;
-  columnWidthAnim: SharedValue<number>;
   calendarLayout: Size;
   hourWidth: number;
   minuteHeight: SharedValue<number>;

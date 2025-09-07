@@ -18,7 +18,6 @@ export interface BodyContextProps {
   maxTimeIntervalHeight: number;
   minTimeIntervalHeight: number;
   timeIntervalHeight: SharedValue<number>;
-  columnWidthAnim: SharedValue<number>;
   allowPinchToZoom: boolean;
   spaceFromTop: number;
   spaceFromBottom: number;

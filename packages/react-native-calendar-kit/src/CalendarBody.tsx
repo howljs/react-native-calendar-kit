@@ -57,7 +57,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   const {
     calendarLayout,
     hourWidth,
-    columnWidthAnim,
     numberOfDays,
     offsetY,
     minuteHeight,
@@ -217,7 +216,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       hours,
       hourFormat,
       totalSlots,
-      columnWidthAnim,
       numberOfDays,
       hourWidth,
       start,
@@ -262,7 +260,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
       hours,
       hourFormat,
       totalSlots,
-      columnWidthAnim,
       numberOfDays,
       hourWidth,
       start,

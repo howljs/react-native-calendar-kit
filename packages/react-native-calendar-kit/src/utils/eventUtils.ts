@@ -858,6 +858,7 @@ export const populateAllDayEvents = (
           rowIndex,
           startIndex,
           columnSpan,
+          totalRows: rows.length,
         },
       };
       packedEvents.push(packedEvent);

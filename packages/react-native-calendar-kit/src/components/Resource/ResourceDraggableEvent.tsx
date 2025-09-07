@@ -51,13 +51,8 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
       };
     }, [])
   );
-  const {
-    minuteHeight,
-    columnWidthAnim,
-    start,
-    numberOfDays,
-    resourcePerPage,
-  } = useBody();
+  const { minuteHeight, columnWidth, start, numberOfDays, resourcePerPage } =
+    useBody();
   const {
     dragStartUnix,
     dragSelectedDuration,
@@ -67,10 +62,8 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
   } = useDragEvent();
   const { triggerDragSelectedEvent } = useDragEventActions();
 
-  const eventWidth = useDerivedValue(
-    () => columnWidthAnim.value / resourcePerPage,
-    [resourcePerPage]
-  );
+  const eventWidth = columnWidth / resourcePerPage;
+  const eventWidthAnim = useDerivedValue(() => eventWidth, [eventWidth]);
 
   const resourceIndex = useMemo(() => {
     if (!resources) {
@@ -92,16 +85,11 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
 
   const isDragging = useDerivedValue(() => dragStartUnix.value !== -1);
 
-  const left = useDerivedValue(() => {
-    return resourceIndex * eventWidth.value;
-  }, [resourceIndex]);
-
   const animView = useAnimatedStyle(() => {
     return {
       top: top.value,
       height: eventHeight.value,
-      width: eventWidth.value,
-      left: left.value,
+      left: resourceIndex * eventWidth,
       opacity: isDragging.value || top.value === -1 ? 0 : 1,
     };
   });
@@ -146,7 +134,7 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
     });
 
   return (
-    <Animated.View style={[styles.container, animView]}>
+    <Animated.View style={[styles.container, { width: eventWidth }, animView]}>
       {selectedEvent && (
         <View
           style={[
@@ -165,7 +153,7 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
           ]}>
           {renderEvent ? (
             renderEvent(selectedEvent, {
-              width: eventWidth,
+              width: eventWidthAnim,
               height: eventHeight,
             })
           ) : (

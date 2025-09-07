@@ -214,11 +214,11 @@ const UnavailableHourItem = ({
   resourceIndex,
   widthPercentage = 1,
 }: UnavailableHourItemProps) => {
-  const { minuteHeight, columnWidthAnim, columnWidth } = useBody();
+  const { minuteHeight, columnWidth } = useBody();
 
   const height = useDerivedValue(() => minuteHeight.value * duration);
   const childWidth = useDerivedValue(
-    () => columnWidthAnim.value * widthPercentage,
+    () => columnWidth * widthPercentage,
     [widthPercentage]
   );
 

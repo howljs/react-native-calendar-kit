@@ -130,7 +130,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     minStartDifference,
     onLongPressBackground,
     resources,
-    animateColumnWidth = false,
     dragToCreateMode = 'duration',
     allowHorizontalSwipe = !IS_WEB,
     enableResourceScroll = false,
@@ -242,7 +241,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   const verticalListRef = useAnimatedRef<Animated.ScrollView>();
   const dayBarListRef = useAnimatedRef<Animated.ScrollView>();
   const gridListRef = useAnimatedRef<Animated.ScrollView>();
-  const isTriggerMomentum = useRef(false);
   const scrollVisibleHeight = useRef(0);
   const triggerDateChanged = useRef<number | undefined>(undefined);
   const visibleDateRef = useRef<VisibleDateProviderRef>(null);
@@ -294,7 +292,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     visibleDateUnix,
   ]);
 
-  const columnWidthAnim = useSharedValue(columnWidth);
   const offsetY = useSharedValue(0);
   const offsetX = useSharedValue(
     isResourceMode && enableResourceScroll ? 0 : initialOffset
@@ -740,21 +737,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     }
   }, [enableResourceScroll, initialOffset, isResourceMode, offsetX]);
 
-  const prevMode = useRef(isSingleDay);
-  useEffect(() => {
-    if (!animateColumnWidth) {
-      columnWidthAnim.value = columnWidth;
-      return;
-    }
-
-    if (prevMode.current !== isSingleDay) {
-      prevMode.current = isSingleDay;
-      columnWidthAnim.value = columnWidth;
-    } else {
-      columnWidthAnim.value = withTiming(columnWidth);
-    }
-  }, [columnWidthAnim, columnWidth, isSingleDay, animateColumnWidth]);
-
   const snapToInterval =
     numberOfDays > 1 && scrollByDay && !isResourceMode
       ? columnWidth
@@ -770,7 +752,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       verticalListRef,
       dayBarListRef,
       gridListRef,
-      columnWidthAnim,
       firstDay,
       offsetY,
       minuteHeight,
@@ -789,7 +770,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       timeInterval,
       scrollVisibleHeight,
       offsetX,
-      isTriggerMomentum,
       showWeekNumber,
       calendarGridWidth,
       columnWidth,
@@ -828,7 +808,6 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       verticalListRef,
       dayBarListRef,
       gridListRef,
-      columnWidthAnim,
       firstDay,
       offsetY,
       minuteHeight,

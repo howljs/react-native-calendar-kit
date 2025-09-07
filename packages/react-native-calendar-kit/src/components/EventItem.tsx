@@ -1,17 +1,10 @@
 import isEqual from 'lodash.isequal';
 import type { FC } from 'react';
 import React, { useCallback, useMemo } from 'react';
-import {
-  GestureResponderEvent,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
+import { PressableEvent } from 'react-native-gesture-handler/lib/typescript/components/Pressable/PressableProps';
+import { useDerivedValue } from 'react-native-reanimated';
 import { MILLISECONDS_IN_DAY } from '../constants';
 import { useBody } from '../context/BodyContext';
 import { useTheme } from '../context/ThemeProvider';
@@ -24,10 +17,7 @@ interface EventItemProps {
   startUnix: number;
   renderEvent?: (event: PackedEvent, size: SizeAnimation) => React.ReactNode;
   onPressEvent?: (event: OnEventResponse) => void;
-  onLongPressEvent?: (
-    event: PackedEvent,
-    resEvent: GestureResponderEvent
-  ) => void;
+  onLongPressEvent?: (event: PackedEvent, resEvent: PressableEvent) => void;
   isDragging?: boolean;
   visibleDates: Record<string, { diffDays: number; unix: number }>;
   totalResources?: number;
@@ -54,7 +44,6 @@ const EventItem: FC<EventItemProps> = ({
 
   const {
     minuteHeight,
-    columnWidthAnim,
     start,
     end,
     rightEdgeSpacing,
@@ -64,6 +53,7 @@ const EventItem: FC<EventItemProps> = ({
     enableResourceScroll,
   } = useBody();
   const { _internal, ...event } = eventInput;
+  const timeRange = end - start;
   const {
     duration,
     startMinutes = 0,
@@ -139,18 +129,18 @@ const EventItem: FC<EventItemProps> = ({
     [data.totalDuration]
   );
 
-  const widthPercent = useDerivedValue(() => {
+  const widthPercent = useMemo(() => {
     if (total && columnSpan) {
       const availableWidth = columnWidth / childColumns - rightEdgeSpacing;
       const totalColumns = total - columnSpan;
       const overlapSpacing = (totalColumns * overlapEventsSpacing) / total;
       const eventWidth = (availableWidth / total) * columnSpan - overlapSpacing;
       const percent = eventWidth / availableWidth;
-      return withTiming(percent, { duration: 150 });
+      return percent;
     }
 
     const basePercent = widthPercentage ? widthPercentage / 100 : 1;
-    return withTiming(basePercent, { duration: 150 });
+    return basePercent;
   }, [
     widthPercentage,
     columnSpan,
@@ -161,21 +151,10 @@ const EventItem: FC<EventItemProps> = ({
     childColumns,
   ]);
 
-  const eventWidth = useDerivedValue(() => {
-    const availableWidth =
-      columnWidthAnim.value / childColumns - rightEdgeSpacing;
-    return widthPercent.value * availableWidth;
-  }, [
-    childColumns,
-    columnSpan,
-    rightEdgeSpacing,
-    overlapEventsSpacing,
-    total,
-    widthPercentage,
-  ]);
-
-  const eventPosX = useDerivedValue(() => {
-    const colWidth = columnWidthAnim.value / childColumns;
+  const availableWidth = columnWidth / childColumns - rightEdgeSpacing;
+  const eventWidth = widthPercent * availableWidth;
+  const eventPosX = useMemo(() => {
+    const colWidth = columnWidth / childColumns;
     const startOffset = resourceIndex
       ? (enableResourceScroll
           ? resourceIndex % resourcePerPage
@@ -183,36 +162,25 @@ const EventItem: FC<EventItemProps> = ({
       : 0;
     let left = data.diffDays * colWidth + startOffset;
     if (xOffsetPercentage) {
-      const availableWidth =
-        columnWidthAnim.value / childColumns - rightEdgeSpacing;
       left += availableWidth * (xOffsetPercentage / 100);
     } else if (columnSpan && index) {
-      left += (eventWidth.value + overlapEventsSpacing) * (index / columnSpan);
+      left += (eventWidth + overlapEventsSpacing) * (index / columnSpan);
     }
     return left;
   }, [
+    availableWidth,
     childColumns,
+    columnSpan,
+    columnWidth,
     data.diffDays,
-    overlapEventsSpacing,
-    rightEdgeSpacing,
+    enableResourceScroll,
+    eventWidth,
     index,
-    total,
-    xOffsetPercentage,
+    overlapEventsSpacing,
     resourceIndex,
+    resourcePerPage,
+    xOffsetPercentage,
   ]);
-
-  const top = useDerivedValue(() => {
-    return data.startMinutes * minuteHeight.value;
-  }, [data.startMinutes]);
-
-  const animView = useAnimatedStyle(() => {
-    return {
-      height: eventHeight.value,
-      width: eventWidth.value,
-      left: eventPosX.value + 1,
-      top: top.value + 1,
-    };
-  });
 
   const _onPressEvent = () => {
     if (onPressEvent) {
@@ -220,17 +188,30 @@ const EventItem: FC<EventItemProps> = ({
     }
   };
 
-  const _onLongPressEvent = (resEvent: GestureResponderEvent) => {
+  const _onLongPressEvent = (resEvent: PressableEvent) => {
     onLongPressEvent!(eventInput, resEvent);
   };
 
   const opacity = isDragging ? 0.5 : 1;
 
+  const eventWidthAnim = useDerivedValue(() => eventWidth, [eventWidth]);
+
   return (
-    <Animated.View style={[styles.container, animView]}>
-      <TouchableOpacity
-        style={StyleSheet.absoluteFill}
-        activeOpacity={0.6}
+    <View
+      style={[
+        styles.container,
+        {
+          width: eventWidth,
+          left: eventPosX + 1,
+          height: `${((data.totalDuration - 1) / timeRange) * 100}%`,
+          top: `${((data.startMinutes + 1) / timeRange) * 100}%`,
+        },
+      ]}>
+      <Pressable
+        style={(state) => [
+          StyleSheet.absoluteFill,
+          { opacity: state.pressed ? 0.6 : 1 },
+        ]}
         disabled={!onPressEvent && !onLongPressEvent}
         onPress={onPressEvent ? _onPressEvent : undefined}
         onLongPress={onLongPressEvent ? _onLongPressEvent : undefined}>
@@ -244,7 +225,7 @@ const EventItem: FC<EventItemProps> = ({
           ]}>
           {renderEvent ? (
             renderEvent(eventInput, {
-              width: eventWidth,
+              width: eventWidthAnim,
               height: eventHeight,
             })
           ) : (
@@ -258,8 +239,8 @@ const EventItem: FC<EventItemProps> = ({
             </Text>
           )}
         </View>
-      </TouchableOpacity>
-    </Animated.View>
+      </Pressable>
+    </View>
   );
 };
 

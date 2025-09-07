@@ -50,7 +50,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
 
   const {
     minuteHeight,
-    columnWidthAnim,
+    columnWidth,
     start,
     hourWidth,
     visibleDateUnixAnim,
@@ -106,12 +106,9 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     }
     return clampValues(currentIndex - startIndex, 0, columns - 1);
   };
-  const eventWidth = useDerivedValue(
-    () =>
-      columnWidthAnim.value /
-      (enableResourceScroll ? resourcePerPage : totalResources),
-    [totalResources, enableResourceScroll, resourcePerPage]
-  );
+  const eventWidth =
+    columnWidth / (enableResourceScroll ? resourcePerPage : totalResources);
+  const eventWidthAnim = useDerivedValue(() => eventWidth, [eventWidth]);
 
   const resourceIndex = useDerivedValue(() => {
     if (totalResources === 1) {
@@ -119,7 +116,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     }
 
     const xWithoutHourWidth = dragX.value - hourWidth;
-    const columnIndex = Math.floor(xWithoutHourWidth / eventWidth.value);
+    const columnIndex = Math.floor(xWithoutHourWidth / eventWidth);
     return clampValues(columnIndex, 0, totalResources - 1);
   }, [totalResources, hourWidth]);
 
@@ -140,13 +137,12 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
   });
 
   const animView = useAnimatedStyle(() => {
-    const startX = resourceIndex.value * eventWidth.value;
+    const startX = resourceIndex.value * eventWidth;
     const dIndex = enableResourceScroll ? 0 : internalDayIndex.value;
     return {
       top: (dragStartMinutes.value - start) * minuteHeight.value,
       height: dragDuration.value * minuteHeight.value,
-      width: eventWidth.value,
-      left: startX + hourWidth + eventWidth.value * dIndex - 1,
+      left: startX + hourWidth + eventWidth * dIndex - 1,
     };
   }, [totalResources, hourWidth]);
 
@@ -193,7 +189,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
   };
 
   return (
-    <Animated.View style={[styles.container, animView]}>
+    <Animated.View style={[styles.container, { width: eventWidth }, animView]}>
       <View
         style={[
           StyleSheet.absoluteFill,
@@ -207,7 +203,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
         ]}>
         {renderEvent
           ? renderEvent(draggingEvent, {
-              width: eventWidth,
+              width: eventWidthAnim,
               height: eventHeight,
             })
           : !!draggingEvent?.title && (

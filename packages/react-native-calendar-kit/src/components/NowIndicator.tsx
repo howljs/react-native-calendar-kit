@@ -31,16 +31,12 @@ const NowIndicatorInner = ({
     start,
     end,
     startOffset,
-    columnWidthAnim,
+    columnWidth,
     NowIndicatorComponent,
   } = useBody();
   const nowIndicatorColor = useTheme(
     useCallback((state) => state.nowIndicatorColor || state.colors.primary, [])
   );
-
-  const left = useDerivedValue(() => {
-    return dayIndex * columnWidthAnim.value + startLeft;
-  }, [dayIndex, startLeft]);
 
   const opacity = useDerivedValue(() => {
     return currentTime.value >= start && currentTime.value <= end ? 1 : 0;
@@ -48,8 +44,6 @@ const NowIndicatorInner = ({
 
   const animView = useAnimatedStyle(() => {
     return {
-      width: width ?? columnWidthAnim.value,
-      left: left.value,
       top: currentTime.value * minuteHeight.value - startOffset.value,
       opacity: opacity.value,
     };
@@ -58,7 +52,14 @@ const NowIndicatorInner = ({
   return (
     <Animated.View
       pointerEvents="box-none"
-      style={[styles.container, animView]}>
+      style={[
+        styles.container,
+        {
+          width: width ?? columnWidth,
+          left: dayIndex * columnWidth + startLeft,
+        },
+        animView,
+      ]}>
       {NowIndicatorComponent || (
         <View style={styles.lineContainer}>
           <View style={[styles.line, { backgroundColor: nowIndicatorColor }]} />

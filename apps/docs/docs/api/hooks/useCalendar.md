@@ -29,7 +29,6 @@ The `useCalendar` hook returns an object with numerous properties and functions.
 - `verticalListRef` (RefObject): Reference to the vertical list component.
 - `dayBarListRef` (RefObject): Reference to the day bar list component.
 - `gridListRef` (RefObject): Reference to the grid list component.
-- `columnWidthAnim` (`SharedValue<number>`): Animated value for column width.
 - `firstDay` (number): The first day of the week (0 for Sunday, 1 for Monday, etc.).
 - `offsetY` (`SharedValue<number>`): Animated value for vertical offset.
 - `minuteHeight` (`SharedValue<number>`): Animated value for the height of one minute.

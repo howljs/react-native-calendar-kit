@@ -17,7 +17,6 @@ export interface CalendarContextProps {
   verticalListRef: AnimatedRef<Animated.ScrollView>;
   dayBarListRef: AnimatedRef<Animated.ScrollView>;
   gridListRef: AnimatedRef<Animated.ScrollView>;
-  columnWidthAnim: SharedValue<number>;
   firstDay: WeekdayNumbers;
   offsetY: SharedValue<number>;
   minuteHeight: Readonly<SharedValue<number>>;
@@ -36,7 +35,6 @@ export interface CalendarContextProps {
   timeInterval: number;
   scrollVisibleHeight: React.RefObject<number>;
   offsetX: SharedValue<number>;
-  isTriggerMomentum: React.RefObject<boolean>;
   showWeekNumber: boolean;
   calendarGridWidth: number;
   columnWidth: number;

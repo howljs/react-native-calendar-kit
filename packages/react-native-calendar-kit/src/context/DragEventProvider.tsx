@@ -138,7 +138,6 @@ const DragEventProvider: FC<
     gridListRef,
     hourWidth,
     columns,
-    columnWidthAnim,
     columnWidth,
     calendarListRef,
     numberOfDays,
@@ -229,7 +228,7 @@ const DragEventProvider: FC<
       const totalResources = enableResourceScroll
         ? resourcePerPage
         : resources.length;
-      const width = columnWidthAnim.value / totalResources;
+      const width = columnWidth / totalResources;
       const startIndex = enableResourceScroll
         ? Math.round(offsetX.value / width)
         : 0;
@@ -578,7 +577,7 @@ const DragEventProvider: FC<
         dragSelectedType.value !== 'bottom'
       ) {
         const isAtLeftEdge = curX <= hourWidth - 10;
-        const width = columnWidthAnim.value * numberOfDays + hourWidth;
+        const width = columnWidth * numberOfDays + hourWidth;
         const isAtRightEdge = width - curX <= 24;
         const isStartAutoScroll = isAtLeftEdge || isAtRightEdge;
 

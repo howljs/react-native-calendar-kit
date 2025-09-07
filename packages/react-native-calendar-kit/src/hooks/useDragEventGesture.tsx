@@ -7,7 +7,7 @@ import { clampValues, findNearestNumber, roundMinutes } from '../utils/utils';
 const useDragEventGesture = () => {
   const {
     minuteHeight,
-    columnWidthAnim,
+    columnWidth,
     hourWidth,
     visibleDateUnixAnim,
     calendarData,
@@ -128,11 +128,10 @@ const useDragEventGesture = () => {
     }
 
     const dayIndexOffset = initialDayUnixIndex - visibleIndex;
-    const extraX =
-      initialXPosition - dayIndexOffset * columnWidthAnim.value - hourWidth;
-    const initialOffset = dayIndexOffset * columnWidthAnim.value;
+    const extraX = initialXPosition - dayIndexOffset * columnWidth - hourWidth;
+    const initialOffset = dayIndexOffset * columnWidth;
     const newX = initialOffset + translationX + extraX;
-    const newDragDayIndex = Math.floor(newX / columnWidthAnim.value);
+    const newDragDayIndex = Math.floor(newX / columnWidth);
     const clampedDragDayIndex = clampValues(newDragDayIndex, 0, columns - 1);
     const nextDayIndex = visibleIndex + clampedDragDayIndex;
     const targetDayUnix = calendarData.visibleDatesArray[nextDayIndex];

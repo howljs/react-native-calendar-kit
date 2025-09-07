@@ -48,7 +48,6 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   const {
     calendarLayout,
     numberOfDays,
-    columnWidthAnim,
     minuteHeight,
     hourWidth,
     dayBarListRef,
@@ -159,7 +158,6 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     () => ({
       dayBarHeight,
       numberOfDays,
-      columnWidthAnim,
       calendarLayout,
       hourWidth,
       minuteHeight,
@@ -184,7 +182,6 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     [
       dayBarHeight,
       numberOfDays,
-      columnWidthAnim,
       calendarLayout,
       hourWidth,
       minuteHeight,
