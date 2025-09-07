@@ -30,6 +30,7 @@ export const useLinkedScrollGroup = (
   const listenersInitialized = useRef(false);
   const peers = useRef<AnimatedRef<Animated.ScrollView>[]>([]);
   const abortController = useRef<AbortController | null>(null);
+  const activeId = useRef<string | null>(null);
 
   const eventHandler = useCallback(() => {
     if (!activeController.current?.current) {
@@ -79,6 +80,7 @@ export const useLinkedScrollGroup = (
       const controller = allControllers.current.find((c) => c.id === triggerId);
 
       if (controller?.ref?.current) {
+        activeId.current = triggerId;
         activeController.current = controller.ref;
         const element = getWebScrollableElement(controller.ref.current);
 
@@ -106,6 +108,7 @@ export const useLinkedScrollGroup = (
       const controller = allControllers.current.find((c) => c.id === triggerId);
 
       if (controller?.ref?.current) {
+        activeId.current = triggerId;
         activeController.current = controller.ref;
         const element = getWebScrollableElement(controller.ref.current);
 
@@ -186,7 +189,11 @@ export const useLinkedScrollGroup = (
     };
   }, [cleanupEventListeners]);
 
-  return { offset, addAndGet, remove, setOffset };
+  const getActiveId = useCallback(() => activeId.current, []);
+
+  const setActiveId = useCallback((id: string) => (activeId.current = id), []);
+
+  return { offset, addAndGet, remove, setOffset, getActiveId, setActiveId };
 };
 
 type ControllerGroup = {

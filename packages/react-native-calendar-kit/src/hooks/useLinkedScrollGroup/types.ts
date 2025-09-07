@@ -20,6 +20,7 @@ export type EventHandlerInternal<Event extends object> = {
 };
 export type ScrollController = {
   onTouchStart?: (event: GestureResponderEvent) => void;
+  onWheel?: (event: WheelEvent) => void;
 };
 
 export type LinkedScrollController = {

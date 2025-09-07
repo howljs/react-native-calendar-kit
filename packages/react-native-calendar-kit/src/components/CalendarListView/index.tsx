@@ -2,7 +2,11 @@ import React, { forwardRef, useCallback, useMemo } from 'react';
 import type Animated from 'react-native-reanimated';
 import type { AnimatedRef } from 'react-native-reanimated';
 import { CalendarList, CalendarListRef } from '../../service/CalendarList';
-import { GestureResponderEvent } from 'react-native';
+import {
+  GestureResponderEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from 'react-native';
 
 const MAX_OFFSETS = 180537;
 
@@ -30,10 +34,40 @@ interface CalendarListViewProps {
     extraScrollData: Record<string, any>;
     offset: number;
   }) => void;
+  extraScrollData?: any;
   columnsPerPage: number;
-  extraScrollData?: Record<string, any>;
   onLoad?: () => void;
   onTouchStart?: (event: GestureResponderEvent) => void;
+
+  /**
+   * Fires if a user initiates a scroll gesture.
+   */
+  onScrollBeginDrag?:
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
+
+  /**
+   * Fires when a user has finished scrolling.
+   */
+  onScrollEndDrag?:
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
+
+  /**
+   * Fires when scroll view has finished moving
+   */
+  onMomentumScrollEnd?:
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
+
+  /**
+   * Fires when scroll view has begun moving
+   */
+  onMomentumScrollBegin?:
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
+
+  onWheel?: (event: WheelEvent) => void;
 }
 
 export type CalendarListViewHandle = {
@@ -59,11 +93,8 @@ const CalendarListView = forwardRef<CalendarListRef, CalendarListViewProps>(
       onScroll,
       snapToInterval,
       // inverted,
-      onVisibleColumnChanged,
       columnsPerPage,
-      extraScrollData,
-      onLoad,
-      onTouchStart,
+      ...rest
     } = props;
 
     const _renderItem = useCallback(
@@ -110,15 +141,12 @@ const CalendarListView = forwardRef<CalendarListRef, CalendarListViewProps>(
         initialOffset={initialOffset}
         snapToOffsets={_snapToOffsets}
         drawDistance={width * renderAheadItem}
-        extraScrollData={extraScrollData}
         columnsPerPage={columnsPerPage}
-        onVisibleColumnChanged={onVisibleColumnChanged}
         keyExtractor={keyExtractor}
         onScroll={onScroll}
         scrollEventThrottle={scrollEventThrottle}
         scrollEnabled={scrollEnabled}
-        onLoad={onLoad}
-        onTouchStart={onTouchStart}
+        {...rest}
       />
     );
   }

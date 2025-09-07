@@ -73,7 +73,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     resourcePagingEnabled,
     linkedScrollGroup,
   } = useCalendar();
-  const { onTouchStart } = linkedScrollGroup.addAndGet(
+  const { onTouchStart, onWheel } = linkedScrollGroup.addAndGet(
     ScrollType.dayBar,
     dayBarListRef
   );
@@ -91,7 +91,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     )
   );
 
-  const { onScroll, onVisibleColumnChanged } = useSyncedList({
+  const scrollProps = useSyncedList({
     id: ScrollType.dayBar,
   });
 
@@ -370,11 +370,11 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                   width={calendarGridWidth}
                   height={dayBarHeight}
                   resourcePerPage={resourcePerPage}
-                  onScroll={onScroll}
                   renderItem={_renderResourceHeaderItem}
-                  onTouchStart={onTouchStart}
                   pagingEnabled={resourcePagingEnabled}
-                  scrollEnabled={allowHorizontalSwipe && Platform.OS !== 'web'}
+                  scrollEnabled={allowHorizontalSwipe}
+                  onTouchStart={onTouchStart}
+                  onWheel={onWheel}
                 />
               ) : (
                 <CalendarListView
@@ -387,12 +387,12 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                   inverted={isRTL}
                   snapToInterval={snapToInterval}
                   initialOffset={initialOffset}
-                  onScroll={onScroll}
-                  onTouchStart={onTouchStart}
                   columnsPerPage={columns}
-                  onVisibleColumnChanged={onVisibleColumnChanged}
                   extraScrollData={extraScrollData}
-                  scrollEnabled={allowHorizontalSwipe && Platform.OS !== 'web'}
+                  scrollEnabled={allowHorizontalSwipe}
+                  {...scrollProps}
+                  onTouchStart={onTouchStart}
+                  onWheel={onWheel}
                 />
               )}
             </View>

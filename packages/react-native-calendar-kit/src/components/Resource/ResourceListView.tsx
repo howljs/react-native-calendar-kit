@@ -43,6 +43,8 @@ export interface ResourceListViewProps {
     resources: ResourceItem[];
   }) => React.ReactNode;
   onTouchStart?: (event: GestureResponderEvent) => void;
+  scrollEventThrottle?: number;
+  onWheel?: (event: WheelEvent) => void;
 }
 
 export interface ResourceListViewRef {
@@ -65,6 +67,8 @@ const ResourceListView = forwardRef<Animated.ScrollView, ResourceListViewProps>(
       renderOverlay,
       scrollEnabled,
       onTouchStart,
+      scrollEventThrottle = 16,
+      onWheel,
     },
     ref
   ) => {
@@ -150,7 +154,9 @@ const ResourceListView = forwardRef<Animated.ScrollView, ResourceListViewProps>(
         pagingEnabled={pagingEnabled}
         disableIntervalMomentum={!pagingEnabled}
         scrollEnabled={scrollEnabled}
+        scrollEventThrottle={scrollEventThrottle}
         onTouchStart={onTouchStart}
+        {...{ onWheel }}
         style={{ height }}>
         <View style={{ width: totalSize, height: '100%' }}>
           <ResourceContainer

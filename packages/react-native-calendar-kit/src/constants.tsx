@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import type { LocaleConfigsProps, ThemeConfigs } from './types';
 
 export const DEFAULT_THEME: ThemeConfigs = {
@@ -65,3 +66,5 @@ export const MAX_ALL_DAY_MINUTES = 30;
 export const DEFAULT_ALL_DAY_MINUTES = 20;
 
 export const DEFAULT_MIN_START_DIFFERENCE = 30;
+
+export const IS_WEB = Platform.OS === 'web';

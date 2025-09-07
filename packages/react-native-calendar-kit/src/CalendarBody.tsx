@@ -102,7 +102,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     resourcePagingEnabled,
     linkedScrollGroup,
   } = useCalendar();
-  const { onTouchStart } = linkedScrollGroup.addAndGet(
+  const { onTouchStart, onWheel } = linkedScrollGroup.addAndGet(
     ScrollType.calendarGrid,
     gridListRef
   );
@@ -110,7 +110,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
   const locale = useLocale();
   const { onRefresh, onLoad } = useActions();
   const resources = useResources();
-  const { onScroll, onVisibleColumnChanged } = useSyncedList({
+  const scrollProps = useSyncedList({
     id: ScrollType.calendarGrid,
   });
 
@@ -366,23 +366,19 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                       width={calendarGridWidth}
                       height={maxTimelineHeight + EXTRA_HEIGHT * 2}
                       resourcePerPage={resourcePerPage}
-                      onScroll={onScroll}
                       renderItem={_renderResourceItem}
                       pagingEnabled={resourcePagingEnabled}
                       renderOverlay={_renderResourceOverlay}
-                      scrollEnabled={
-                        allowHorizontalSwipe && Platform.OS !== 'web'
-                      }
+                      scrollEnabled={allowHorizontalSwipe}
                       onTouchStart={onTouchStart}
+                      onWheel={onWheel}
                     />
                   ) : (
                     <CalendarListView
                       ref={calendarListRef}
                       animatedRef={gridListRef}
                       count={calendarData.count}
-                      scrollEnabled={
-                        allowHorizontalSwipe && Platform.OS !== 'web'
-                      }
+                      scrollEnabled={allowHorizontalSwipe}
                       width={calendarGridWidth}
                       height={maxTimelineHeight + EXTRA_HEIGHT * 2}
                       renderItem={_renderTimeSlots}
@@ -390,13 +386,13 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                       inverted={isRTL}
                       snapToInterval={snapToInterval}
                       initialOffset={initialOffset}
-                      onScroll={onScroll}
                       columnsPerPage={columns}
-                      onVisibleColumnChanged={onVisibleColumnChanged}
                       renderAheadItem={pagesPerSide}
                       extraScrollData={extraScrollData}
+                      {...scrollProps}
                       onLoad={onLoad}
                       onTouchStart={onTouchStart}
+                      onWheel={onWheel}
                     />
                   )}
                 </View>

@@ -17,10 +17,10 @@ import {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { CalendarListRef } from './service/CalendarList';
 import {
   HOUR_WIDTH,
   INITIAL_DATE,
+  IS_WEB,
   MAX_DATE,
   MIN_DATE,
   ScrollType,
@@ -44,6 +44,8 @@ import VisibleDateProvider, {
 } from './context/VisibleDateProvider';
 import useLatestCallback from './hooks/useLatestCallback';
 import useLazyRef from './hooks/useLazyRef';
+import { useLinkedScrollGroup } from './hooks/useLinkedScrollGroup';
+import { CalendarListRef } from './service/CalendarList';
 import HapticService from './service/HapticService';
 import type {
   CalendarKitHandle,
@@ -64,7 +66,6 @@ import {
   findNearestNumber,
   prepareCalendarRange,
 } from './utils/utils';
-import { useLinkedScrollGroup } from './hooks/useLinkedScrollGroup';
 
 const CalendarContainer: React.ForwardRefRenderFunction<
   CalendarKitHandle,
@@ -131,7 +132,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     resources,
     animateColumnWidth = false,
     dragToCreateMode = 'duration',
-    allowHorizontalSwipe = true,
+    allowHorizontalSwipe = !IS_WEB,
     enableResourceScroll = false,
     resourcePerPage = 3,
     resourcePagingEnabled = false,

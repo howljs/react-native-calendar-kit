@@ -51,11 +51,41 @@ interface CalendarListProps {
     offset: number;
   }) => void;
   columnsPerPage: number;
-  extraScrollData: any;
+  extraScrollData?: any;
   scrollEventThrottle?: number;
   scrollEnabled?: boolean;
   onLoad?: () => void;
   onTouchStart?: (event: GestureResponderEvent) => void;
+
+  /**
+   * Fires if a user initiates a scroll gesture.
+   */
+  onScrollBeginDrag?:
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
+
+  /**
+   * Fires when a user has finished scrolling.
+   */
+  onScrollEndDrag?:
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
+
+  /**
+   * Fires when scroll view has finished moving
+   */
+  onMomentumScrollEnd?:
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
+
+  /**
+   * Fires when scroll view has begun moving
+   */
+  onMomentumScrollBegin?:
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
+
+  onWheel?: (event: WheelEvent) => void;
 }
 
 export interface CalendarListRef {
@@ -95,6 +125,11 @@ export const CalendarList = React.forwardRef<
       scrollEnabled = true,
       onLoad,
       onTouchStart,
+      onScrollBeginDrag,
+      onMomentumScrollBegin,
+      onMomentumScrollEnd,
+      onScrollEndDrag,
+      onWheel,
     },
     ref
   ) => {
@@ -129,6 +164,9 @@ export const CalendarList = React.forwardRef<
     const internalOffset = useSharedValue(initialOffset ?? 0);
     const scrollOffsetAnim = useScrollViewOffset(animScrollRef, internalOffset);
 
+    const extraScrollDataRef = useRef(extraScrollData);
+    extraScrollDataRef.current = extraScrollData;
+
     const handleColumnChanged = useCallback(
       (offset: number) => {
         const columnWidth = itemSize / columnsPerPage;
@@ -142,11 +180,11 @@ export const CalendarList = React.forwardRef<
           index: startIndex,
           column,
           columns: columnsPerPage,
-          extraScrollData,
+          extraScrollData: extraScrollDataRef.current,
           offset,
         });
       },
-      [itemSize, columnsPerPage, onVisibleColumnChanged, extraScrollData]
+      [itemSize, columnsPerPage, onVisibleColumnChanged]
     );
 
     useAnimatedReaction(
@@ -257,6 +295,10 @@ export const CalendarList = React.forwardRef<
         style={style}
         contentContainerStyle={[contentContainerStyle, { width: totalSize }]}
         onScroll={onScroll}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onScrollEndDrag={onScrollEndDrag}
+        onMomentumScrollBegin={onMomentumScrollBegin}
+        onMomentumScrollEnd={onMomentumScrollEnd}
         onLayout={handleLayout}
         contentOffset={{ x: initialOffset ?? 0, y: 0 }}
         scrollEventThrottle={scrollEventThrottle}
@@ -267,7 +309,8 @@ export const CalendarList = React.forwardRef<
         disableIntervalMomentum={!!snapToOffsets || !!snapToInterval}
         snapToInterval={snapToInterval}
         onTouchStart={onTouchStart}
-        snapToOffsets={snapToOffsets}>
+        snapToOffsets={snapToOffsets}
+        {...{ onWheel }}>
         <HorizontalVirtualizedList
           count={count}
           renderItem={renderItem}

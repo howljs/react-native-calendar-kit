@@ -557,7 +557,10 @@ export interface CalendarProviderProps extends ActionsProviderProps {
    */
   minRegularEventMinutes?: number;
 
-  /** Enable resource scroll */
+  /** Enable resource scroll
+   * 
+   * Default: true - (Web: false)
+   */
   enableResourceScroll?: boolean;
 
   /** Resource per page */
