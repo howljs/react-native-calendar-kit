@@ -100,7 +100,13 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     enableResourceScroll,
     resourcePerPage,
     resourcePagingEnabled,
+    linkedScrollGroup,
   } = useCalendar();
+  const { onTouchStart } = linkedScrollGroup.addAndGet(
+    ScrollType.calendarGrid,
+    gridListRef
+  );
+
   const locale = useLocale();
   const { onRefresh, onLoad } = useActions();
   const resources = useResources();
@@ -367,6 +373,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                       scrollEnabled={
                         allowHorizontalSwipe && Platform.OS !== 'web'
                       }
+                      onTouchStart={onTouchStart}
                     />
                   ) : (
                     <CalendarListView
@@ -389,6 +396,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                       renderAheadItem={pagesPerSide}
                       extraScrollData={extraScrollData}
                       onLoad={onLoad}
+                      onTouchStart={onTouchStart}
                     />
                   )}
                 </View>

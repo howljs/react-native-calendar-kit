@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  GestureResponderEvent,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -54,6 +55,7 @@ interface CalendarListProps {
   scrollEventThrottle?: number;
   scrollEnabled?: boolean;
   onLoad?: () => void;
+  onTouchStart?: (event: GestureResponderEvent) => void;
 }
 
 export interface CalendarListRef {
@@ -92,6 +94,7 @@ export const CalendarList = React.forwardRef<
       scrollEventThrottle = 16,
       scrollEnabled = true,
       onLoad,
+      onTouchStart,
     },
     ref
   ) => {
@@ -263,6 +266,7 @@ export const CalendarList = React.forwardRef<
         pagingEnabled={pagingEnabled}
         disableIntervalMomentum={!!snapToOffsets || !!snapToInterval}
         snapToInterval={snapToInterval}
+        onTouchStart={onTouchStart}
         snapToOffsets={snapToOffsets}>
         <HorizontalVirtualizedList
           count={count}

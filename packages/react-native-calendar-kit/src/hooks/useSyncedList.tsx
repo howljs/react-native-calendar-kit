@@ -2,7 +2,6 @@ import { useCallback, useRef } from 'react';
 import {
   runOnJS,
   runOnUI,
-  scrollTo,
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
@@ -14,24 +13,20 @@ import { dateTimeToISOString, parseDateTime } from '../utils/dateUtils';
 
 const useSyncedList = ({ id }: { id: ScrollType }) => {
   const {
-    scrollType,
-    gridListRef,
-    dayBarListRef,
     visibleDateUnix,
-    offsetX,
     isTriggerMomentum,
     triggerDateChanged,
     visibleDateUnixAnim,
     visibleWeeks,
+    linkedScrollGroup,
   } = useCalendar();
   const notifyDateChanged = useNotifyDateChanged();
   const { onChange, onDateChanged } = useActions();
   const isDragging = useSharedValue(false);
 
   const startDateUnix = useRef(0);
-  const _updateScrolling = (isScrolling: boolean) => {
+  const _updateScrolling = () => {
     startDateUnix.current = visibleDateUnix.current;
-    scrollType.current = isScrolling ? id : ScrollType.calendarGrid;
   };
 
   const _updateMomentum = (isTrigger: boolean) => {
@@ -53,22 +48,9 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
   };
 
   const onScroll = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      if (!isDragging.value) {
-        return;
-      }
-
-      const x = event.contentOffset.x;
-      offsetX.value = x;
-      if (id === ScrollType.dayBar) {
-        scrollTo(gridListRef, offsetX.value, 0, false);
-      } else {
-        scrollTo(dayBarListRef, offsetX.value, 0, false);
-      }
-    },
     onBeginDrag: () => {
       isDragging.value = true;
-      runOnJS(_updateScrolling)(true);
+      runOnJS(_updateScrolling)();
     },
     onMomentumBegin: () => {
       if (isDragging.value) {
@@ -94,7 +76,9 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       const { index: pageIndex, column, columns, extraScrollData } = props;
       const { visibleColumns, visibleDates } = extraScrollData;
 
-      if (scrollType.current === id && visibleColumns && visibleDates) {
+      const activeId =
+        linkedScrollGroup.getActiveId() || ScrollType.calendarGrid;
+      if (activeId === id.toString() && visibleColumns && visibleDates) {
         const dayIndex = pageIndex * columns + column;
         const visibleStart = visibleDates[pageIndex * columns];
         const visibleEnd =
@@ -139,7 +123,7 @@ const useSyncedList = ({ id }: { id: ScrollType }) => {
       }
     },
     [
-      scrollType,
+      linkedScrollGroup,
       id,
       visibleDateUnix,
       visibleWeeks,

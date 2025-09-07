@@ -3,10 +3,10 @@ import type { FC, PropsWithChildren } from 'react';
 import React from 'react';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 import type Animated from 'react-native-reanimated';
-import type { ScrollType } from '../constants';
 import type HapticService from '../service/HapticService';
 import type { DataByMode } from '../utils/utils';
 import { CalendarListRef } from '../service/CalendarList';
+import { LinkedScrollGroup } from '../hooks/useLinkedScrollGroup';
 
 export interface CalendarContextProps {
   calendarData: DataByMode;
@@ -19,7 +19,6 @@ export interface CalendarContextProps {
   gridListRef: AnimatedRef<Animated.ScrollView>;
   columnWidthAnim: SharedValue<number>;
   firstDay: WeekdayNumbers;
-  scrollType: React.RefObject<ScrollType | null>;
   offsetY: SharedValue<number>;
   minuteHeight: Readonly<SharedValue<number>>;
   maxTimelineHeight: number;
@@ -65,6 +64,7 @@ export interface CalendarContextProps {
   enableResourceScroll: boolean;
   resourcePerPage: number;
   resourcePagingEnabled: boolean;
+  linkedScrollGroup: LinkedScrollGroup;
 }
 
 export const CalendarContext = React.createContext<

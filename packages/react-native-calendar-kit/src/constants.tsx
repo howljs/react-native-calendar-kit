@@ -43,8 +43,8 @@ export const MILLISECONDS_IN_MINUTE = 60000;
 export const MINUTES_IN_DAY = 1440;
 
 export enum ScrollType {
-  dayBar,
-  calendarGrid,
+  dayBar = 'dayBar',
+  calendarGrid = 'calendarGrid',
 }
 
 export enum ScrollTypeMonth {

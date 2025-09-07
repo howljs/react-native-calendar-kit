@@ -2,6 +2,7 @@ import React, { forwardRef, useCallback, useMemo } from 'react';
 import type Animated from 'react-native-reanimated';
 import type { AnimatedRef } from 'react-native-reanimated';
 import { CalendarList, CalendarListRef } from '../../service/CalendarList';
+import { GestureResponderEvent } from 'react-native';
 
 const MAX_OFFSETS = 180537;
 
@@ -32,6 +33,7 @@ interface CalendarListViewProps {
   columnsPerPage: number;
   extraScrollData?: Record<string, any>;
   onLoad?: () => void;
+  onTouchStart?: (event: GestureResponderEvent) => void;
 }
 
 export type CalendarListViewHandle = {
@@ -61,6 +63,7 @@ const CalendarListView = forwardRef<CalendarListRef, CalendarListViewProps>(
       columnsPerPage,
       extraScrollData,
       onLoad,
+      onTouchStart,
     } = props;
 
     const _renderItem = useCallback(
@@ -115,6 +118,7 @@ const CalendarListView = forwardRef<CalendarListRef, CalendarListViewProps>(
         scrollEventThrottle={scrollEventThrottle}
         scrollEnabled={scrollEnabled}
         onLoad={onLoad}
+        onTouchStart={onTouchStart}
       />
     );
   }

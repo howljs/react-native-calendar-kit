@@ -71,7 +71,12 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     enableResourceScroll,
     resourcePerPage,
     resourcePagingEnabled,
+    linkedScrollGroup,
   } = useCalendar();
+  const { onTouchStart } = linkedScrollGroup.addAndGet(
+    ScrollType.dayBar,
+    dayBarListRef
+  );
   const resources = useResources();
 
   const headerStyles = useTheme(
@@ -367,6 +372,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                   resourcePerPage={resourcePerPage}
                   onScroll={onScroll}
                   renderItem={_renderResourceHeaderItem}
+                  onTouchStart={onTouchStart}
                   pagingEnabled={resourcePagingEnabled}
                   scrollEnabled={allowHorizontalSwipe && Platform.OS !== 'web'}
                 />
@@ -382,6 +388,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                   snapToInterval={snapToInterval}
                   initialOffset={initialOffset}
                   onScroll={onScroll}
+                  onTouchStart={onTouchStart}
                   columnsPerPage={columns}
                   onVisibleColumnChanged={onVisibleColumnChanged}
                   extraScrollData={extraScrollData}

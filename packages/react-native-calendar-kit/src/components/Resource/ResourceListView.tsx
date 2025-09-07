@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  GestureResponderEvent,
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -41,6 +42,7 @@ export interface ResourceListViewProps {
     totalSize: number;
     resources: ResourceItem[];
   }) => React.ReactNode;
+  onTouchStart?: (event: GestureResponderEvent) => void;
 }
 
 export interface ResourceListViewRef {
@@ -62,6 +64,7 @@ const ResourceListView = forwardRef<Animated.ScrollView, ResourceListViewProps>(
       pagingEnabled = false,
       renderOverlay,
       scrollEnabled,
+      onTouchStart,
     },
     ref
   ) => {
@@ -147,6 +150,7 @@ const ResourceListView = forwardRef<Animated.ScrollView, ResourceListViewProps>(
         pagingEnabled={pagingEnabled}
         disableIntervalMomentum={!pagingEnabled}
         scrollEnabled={scrollEnabled}
+        onTouchStart={onTouchStart}
         style={{ height }}>
         <View style={{ width: totalSize, height: '100%' }}>
           <ResourceContainer
