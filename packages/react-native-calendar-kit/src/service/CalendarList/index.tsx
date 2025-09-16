@@ -135,24 +135,23 @@ export const CalendarList = React.forwardRef<
     ref
   ) => {
     const scrollViewRef = useRef<ScrollView>(null);
-    const [viewportWidth, setViewportWidth] = useState(0);
     const [scrollOffset, setScrollOffset] = useState(initialOffset ?? 0);
     const isLoaded = useRef(false);
 
     const totalSize = count * itemSize;
 
     const visibleRange = useMemo(() => {
-      if (viewportWidth === 0 || count === 0) {
+      if (count === 0) {
         return { start: 0, end: 0 };
       }
 
       const buffer = drawDistance;
       const scrollStart = Math.max(0, scrollOffset - buffer);
-      const scrollEnd = scrollOffset + viewportWidth + buffer;
+      const scrollEnd = scrollOffset + itemSize + buffer;
       const startIndex = Math.max(0, Math.floor(scrollStart / itemSize));
       const endIndex = Math.min(count - 1, Math.floor(scrollEnd / itemSize));
       return { start: startIndex, end: endIndex };
-    }, [count, scrollOffset, viewportWidth, drawDistance, itemSize]);
+    }, [count, scrollOffset, drawDistance, itemSize]);
 
     const getItemPosition = useCallback(
       (index: number) => {
@@ -195,15 +194,6 @@ export const CalendarList = React.forwardRef<
         runOnJS(handleColumnChanged)(offset);
         runOnJS(setScrollOffset)(offset);
       }
-    );
-
-    const handleLayout = useCallback(
-      (event: LayoutChangeEvent) => {
-        const { width } = event.nativeEvent.layout;
-        setViewportWidth(width);
-        onLayout?.(event);
-      },
-      [onLayout]
     );
 
     useImperativeHandle(
@@ -254,7 +244,7 @@ export const CalendarList = React.forwardRef<
     );
 
     useLayoutEffect(() => {
-      if (viewportWidth > 0 && count > 0) {
+      if (count > 0) {
         let offset = initialOffset;
         if (typeof initialScrollIndex === 'number') {
           const targetIndex = Math.min(initialScrollIndex, count - 1);
@@ -269,13 +259,7 @@ export const CalendarList = React.forwardRef<
           }, 0);
         }
       }
-    }, [
-      initialScrollIndex,
-      viewportWidth,
-      count,
-      getItemPosition,
-      initialOffset,
-    ]);
+    }, [initialScrollIndex, count, getItemPosition, initialOffset]);
 
     useEffect(() => {
       setTimeout(() => {
@@ -301,7 +285,7 @@ export const CalendarList = React.forwardRef<
         onScrollEndDrag={onScrollEndDrag}
         onMomentumScrollBegin={onMomentumScrollBegin}
         onMomentumScrollEnd={onMomentumScrollEnd}
-        onLayout={handleLayout}
+        onLayout={onLayout}
         contentOffset={{ x: initialOffset ?? 0, y: 0 }}
         scrollEventThrottle={scrollEventThrottle}
         scrollEnabled={scrollEnabled}
