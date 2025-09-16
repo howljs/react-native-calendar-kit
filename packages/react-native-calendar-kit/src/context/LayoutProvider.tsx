@@ -1,3 +1,4 @@
+import type { PropsWithChildren } from 'react';
 import React, {
   createContext,
   useCallback,
@@ -5,9 +6,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { PropsWithChildren } from 'react';
-import { StyleSheet } from 'react-native';
 import type { LayoutChangeEvent } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DEBOUNCE_TIME, DEFAULT_SIZE } from '../constants';
 
@@ -28,11 +28,12 @@ const LayoutProvider: React.FC<PropsWithChildren<object>> = ({ children }) => {
     }
 
     const { width, height } = event.nativeEvent.layout;
+    if (width <= 0 || height <= 0) {
+      return;
+    }
+
     timerRef.current = setTimeout(() => {
-      setLayout({
-        width,
-        height,
-      });
+      setLayout({ width, height });
     }, DEBOUNCE_TIME);
   }, []);
 
