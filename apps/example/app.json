@@ -19,6 +19,7 @@
     },
     "android": {
       "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

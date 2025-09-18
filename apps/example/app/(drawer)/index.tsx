@@ -709,7 +709,8 @@ const Calendar = () => {
         />
         <CalendarBody
           renderCustomHorizontalLine={_renderCustomHorizontalLine}
-          renderCustomUnavailableHour={_renderCustomUnavailableHour}
+          /** Performance drops on Android when using pinch-to-zoom with react-native-svg. */
+          // renderCustomUnavailableHour={_renderCustomUnavailableHour}
           renderDraggingEvent={
             configs.dragToCreateMode === 'duration'
               ? undefined
