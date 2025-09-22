@@ -74,9 +74,10 @@ export const useLinkedScrollGroup = (
   const unsubscribeAll = useCallback(() => {
     allControllers.current.forEach((controller) => {
       if (controller.ref?.getTag) {
-        eventHandler.workletEventHandler.unregisterFromEvents(
-          controller.ref.getTag()
-        );
+        const tag = controller.ref.getTag();
+        if (tag) {
+          eventHandler.workletEventHandler.unregisterFromEvents(tag);
+        }
       }
     });
   }, [eventHandler.workletEventHandler]);
@@ -101,10 +102,10 @@ export const useLinkedScrollGroup = (
 
   const onTouchStartHandler = useCallback(
     (triggerId: string) => {
-      const elementTag =
-        allControllers.current
-          .find((controller) => controller.id === triggerId)
-          ?.ref.getTag() ?? null;
+      const selectedController = allControllers.current.find(
+        (controller) => controller.id === triggerId
+      );
+      const elementTag = selectedController?.ref?.getTag?.() ?? null;
 
       if (elementTag) {
         activeId.current = triggerId;
@@ -165,7 +166,9 @@ export const useLinkedScrollGroup = (
           activeId.current = null;
           activeTag.value = null;
         }
-        eventHandler.workletEventHandler.unregisterFromEvents(tag);
+        if (tag) {
+          eventHandler.workletEventHandler.unregisterFromEvents(tag);
+        }
       }
 
       allControllers.current = allControllers.current.filter(
