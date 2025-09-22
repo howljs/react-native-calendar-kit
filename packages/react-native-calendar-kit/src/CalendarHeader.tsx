@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
@@ -44,6 +43,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   eventMaxMinutes = MAX_ALL_DAY_MINUTES,
   eventInitialMinutes = DEFAULT_ALL_DAY_MINUTES,
   renderDayItem,
+  insetBottom = 100,
 }) => {
   const {
     calendarLayout,
@@ -145,12 +145,21 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
     if (numberOfDays === 1) {
       const bottomHeight = isExpanded.value ? 10 : headerBottomHeight + 10;
-      return Math.max(dayBarHeight, allDayEventsHeight.value + bottomHeight);
+      return clampValues(
+        allDayEventsHeight.value + bottomHeight,
+        dayBarHeight,
+        calendarLayout.height - insetBottom
+      );
     }
-    return dayBarHeight + allDayEventsHeight.value;
-  }, [numberOfDays, dayBarHeight, headerBottomHeight]);
 
-  const contentStyle = useAnimatedStyle(() => ({
+    return clampValues(
+      dayBarHeight + allDayEventsHeight.value,
+      0,
+      calendarLayout.height - insetBottom
+    );
+  }, [numberOfDays, dayBarHeight, headerBottomHeight, insetBottom]);
+
+  const headerContainerStyle = useAnimatedStyle(() => ({
     height: contentHeight.value,
   }));
 
@@ -292,7 +301,13 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     }
 
     return (
-      <View style={[styles.leftArea, { width: hourWidth }]}>
+      <Pressable
+        onPress={() => {
+          if (isShowExpandButton.value) {
+            isExpanded.value = !isExpanded.value;
+          }
+        }}
+        style={[styles.leftArea, { width: hourWidth }]}>
         {showWeekNumber && <WeekNumber date={visibleDateUnixAnim} />}
         {useAllDayEvent && (
           <ExpandButton
@@ -304,7 +319,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         <View
           style={[styles.border, { backgroundColor: headerStyles.borderColor }]}
         />
-      </View>
+      </Pressable>
     );
   };
 
@@ -328,6 +343,20 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     [visibleDateUnixAnim, renderHeaderItem]
   );
 
+  const height = useDerivedValue(() => {
+    return numberOfDays === 1
+      ? Math.max(
+          dayBarHeight,
+          allDayEventsHeight.value +
+            (isExpanded.value ? 10 : headerBottomHeight + 10)
+        )
+      : dayBarHeight + allDayEventsHeight.value;
+  }, [dayBarHeight, headerBottomHeight, calendarLayout.height, numberOfDays]);
+
+  const headerContentStyle = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+
   return (
     <View
       style={[
@@ -339,25 +368,22 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         headerStyles.headerContainer,
         { width: calendarLayout.width },
       ]}>
-      <ScrollView alwaysBounceVertical={false} overScrollMode="never">
+      <Animated.ScrollView
+        style={headerContainerStyle}
+        alwaysBounceVertical={false}
+        bounces={false}
+        overScrollMode="never">
         <HeaderContext.Provider value={value}>
           <Animated.View
-            style={[
-              contentStyle,
-              {
-                overflow: Platform.select({
-                  web: 'hidden',
-                  default: 'visible',
-                }),
-              },
-            ]}>
+            style={[{ width: calendarLayout.width }, headerContentStyle]}>
             {(numberOfDays > 1 || !!resources) && _renderLeftArea()}
-            <View
+            <Animated.View
               style={[
                 styles.absolute,
                 {
                   left: Math.max(0, leftSize - 1),
                   width: calendarLayout.width - leftSize,
+                  height: '100%',
                 },
               ]}>
               {enableResourceScroll ? (
@@ -378,7 +404,6 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                   animatedRef={dayBarListRef}
                   count={calendarData.count}
                   width={calendarGridWidth}
-                  height={useAllDayEvent ? calendarLayout.height : dayBarHeight}
                   renderItem={_renderHeaderItem}
                   extraData={extraData}
                   inverted={isRTL}
@@ -392,10 +417,10 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                   onWheel={onWheel}
                 />
               )}
-            </View>
+            </Animated.View>
           </Animated.View>
         </HeaderContext.Provider>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 };

@@ -3,6 +3,7 @@ import type Animated from 'react-native-reanimated';
 import type { AnimatedRef } from 'react-native-reanimated';
 import { CalendarList, CalendarListRef } from '../../service/CalendarList';
 import {
+  DimensionValue,
   GestureResponderEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -13,7 +14,7 @@ const MAX_OFFSETS = 180537;
 interface CalendarListViewProps {
   count: number;
   width: number;
-  height: number;
+  height?: DimensionValue;
   extraData?: any;
   renderItem: (
     index: number,

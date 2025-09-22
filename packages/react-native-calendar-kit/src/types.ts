@@ -732,6 +732,8 @@ export interface CalendarHeaderProps {
    * Default: `20`
    */
   eventInitialMinutes?: number;
+
+  insetBottom?: number;
 }
 
 export interface CalendarBodyProps {

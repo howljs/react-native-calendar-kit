@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import type { GestureResponderEvent, TextStyle, ViewStyle } from 'react-native';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
   useAnimatedStyle,
@@ -132,7 +132,12 @@ const SingleDayBarItem = ({
     if (useAllDayEvent) {
       return (
         <View style={[styles.container, dayBarStyles.singleDayContainer]}>
-          <View
+          <Pressable
+            onPress={() => {
+              if (isShowExpandButton.value) {
+                isExpanded.value = !isExpanded.value;
+              }
+            }}
             style={[
               styles.dayItemContainer,
               { width: hourWidth, borderRightColor: dayBarStyles.borderColor },
@@ -147,7 +152,7 @@ const SingleDayBarItem = ({
               isShowExpandButton={isShowExpandButton}
               renderExpandIcon={renderExpandIcon}
             />
-          </View>
+          </Pressable>
           <View style={styles.rightContainer}>
             <Touchable
               onPress={_onPressBackground}
