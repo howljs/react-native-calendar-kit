@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DEBOUNCE_TIME, DEFAULT_SIZE } from '../constants';
 
@@ -46,8 +46,10 @@ const LayoutProvider: React.FC<PropsWithChildren<object>> = ({ children }) => {
 
   return (
     <LayoutContext.Provider value={value}>
-      <GestureHandlerRootView style={styles.flex} onLayout={onLayout}>
-        {isValidLayout ? children : null}
+      <GestureHandlerRootView>
+        <View style={styles.flex} onLayout={onLayout}>
+          {isValidLayout ? children : null}
+        </View>
       </GestureHandlerRootView>
     </LayoutContext.Provider>
   );
