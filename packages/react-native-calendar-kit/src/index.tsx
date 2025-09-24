@@ -46,6 +46,7 @@ export type { DraggableEventProps } from './components/DraggableEvent';
 export { DraggableEvent } from './components/DraggableEvent';
 export type { DraggingEventProps } from './components/DraggingEvent';
 export { DraggingEvent } from './components/DraggingEvent';
+export { ResourceDraggableEvent } from './components/Resource/ResourceDraggableEvent';
 
 export type { WeekdayNumbers } from 'luxon';
 
