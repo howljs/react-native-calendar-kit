@@ -35,7 +35,7 @@ export interface DraggableEventProps {
   resources?: ResourceItem[];
 }
 
-export const DraggableEvent: FC<DraggableEventProps> = ({
+export const ResourceDraggableEvent: FC<DraggableEventProps> = ({
   renderEvent,
   resources,
   TopEdgeComponent,
@@ -252,13 +252,14 @@ export const DraggableEventResource = ({
           visibleDates: { [startUnix]: { diffDays: 1, unix: startUnix } },
           index: 0,
           renderEvent,
+          resources,
         })}
       </React.Fragment>
     );
   }
 
   return (
-    <DraggableEvent
+    <ResourceDraggableEvent
       startUnix={startUnix}
       visibleDates={{ [startUnix]: { diffDays: 1, unix: startUnix } }}
       index={0}

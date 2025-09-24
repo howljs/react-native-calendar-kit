@@ -349,6 +349,7 @@ const DraggableEventWrapper: FC<DraggableEventWrapperProps> = ({
             visibleDates,
             index,
             renderEvent,
+            resources,
           })}
         </React.Fragment>
       );

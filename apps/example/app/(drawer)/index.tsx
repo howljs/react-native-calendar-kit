@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type {
   CalendarKitHandle,
   DateOrDateTime,
+  DraggableEventProps,
   DraggingEventProps,
   EventItem,
   HeaderItemProps,
@@ -16,7 +17,9 @@ import {
   CalendarBody,
   CalendarContainer,
   CalendarHeader,
+  DraggableEvent,
   DraggingEvent,
+  ResourceDraggableEvent,
   ResourceHeaderItem,
 } from '@howljs/calendar-kit';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -567,6 +570,16 @@ const Calendar = () => {
     );
   }, []);
 
+  const renderDraggableEvent = useCallback(
+    (props: DraggableEventProps) => {
+      if (!isResourcesMode) {
+        return <DraggableEvent {...props} />;
+      }
+      return <ResourceDraggableEvent {...props} />;
+    },
+    [isResourcesMode]
+  );
+
   return (
     <View style={styles.container}>
       <Header
@@ -711,6 +724,7 @@ const Calendar = () => {
           renderCustomHorizontalLine={_renderCustomHorizontalLine}
           /** Performance drops on Android when using pinch-to-zoom with react-native-svg. */
           // renderCustomUnavailableHour={_renderCustomUnavailableHour}
+          renderDraggableEvent={renderDraggableEvent}
           renderDraggingEvent={
             configs.dragToCreateMode === 'duration'
               ? undefined
