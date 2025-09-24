@@ -231,8 +231,11 @@ export const divideAllDayEvents = (
   ).toMillis();
   const weekEndUnix = startOfWeek(eventEnd.toISODate(), firstDay).toMillis();
 
+  const startWeekNumber = Math.floor(weekStartUnix / (7 * MILLISECONDS_IN_DAY));
+  const endWeekNumber = Math.floor(weekEndUnix / (7 * MILLISECONDS_IN_DAY));
   const diffWeeks =
-    Math.floor((weekEndUnix - weekStartUnix) / (7 * MILLISECONDS_IN_DAY)) + 1;
+    startWeekNumber === endWeekNumber ? 1 : endWeekNumber - startWeekNumber + 1;
+    
   const isSameDay = event._internal.startUnix === event._internal.endUnix;
   let eventStartUnix = eventStart.startOf('day').toMillis();
   const eventEndUnix = isSameDay
