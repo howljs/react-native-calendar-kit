@@ -1,6 +1,7 @@
 import type { WeekdayNumbers } from 'luxon';
 import type { FC, PropsWithChildren } from 'react';
 import React from 'react';
+import type { ViewStyle } from 'react-native';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 import type Animated from 'react-native-reanimated';
 import type HapticService from '../service/HapticService';
@@ -63,6 +64,9 @@ export interface CalendarContextProps {
   resourcePerPage: number;
   resourcePagingEnabled: boolean;
   linkedScrollGroup: LinkedScrollGroup;
+  scrollViewTopMargin: number;
+  scrollViewBottomMargin: number;
+  scrollViewContentContainerStyle?: ViewStyle;
 }
 
 export const CalendarContext = React.createContext<

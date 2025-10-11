@@ -135,6 +135,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     enableResourceScroll = false,
     resourcePerPage = 3,
     resourcePagingEnabled = false,
+    scrollViewTopMargin = 0,
+    scrollViewBottomMargin = 0,
+    scrollViewContentContainerStyle,
   },
   ref
 ) => {
@@ -798,6 +801,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       resourcePerPage,
       resourcePagingEnabled,
       linkedScrollGroup,
+      scrollViewTopMargin,
+      scrollViewBottomMargin,
+      scrollViewContentContainerStyle,
     }),
     [
       calendarLayout,
@@ -852,6 +858,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       resourcePerPage,
       resourcePagingEnabled,
       linkedScrollGroup,
+      scrollViewTopMargin,
+      scrollViewBottomMargin,
+      scrollViewContentContainerStyle,
     ]
   );
 

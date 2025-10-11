@@ -100,6 +100,9 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     resourcePerPage,
     resourcePagingEnabled,
     linkedScrollGroup,
+    scrollViewTopMargin,
+    scrollViewBottomMargin,
+    scrollViewContentContainerStyle,
   } = useCalendar();
   const { onTouchStart, onWheel } = linkedScrollGroup.addAndGet(
     ScrollType.calendarGrid,
@@ -324,6 +327,13 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
           showsVerticalScrollIndicator={false}
           onLayout={_onLayout}
           onScroll={_onScroll}
+          contentContainerStyle={[
+            scrollViewContentContainerStyle,
+            {
+              paddingTop: scrollViewTopMargin,
+              paddingBottom: scrollViewBottomMargin,
+            },
+          ]}
           refreshControl={
             onRefresh ? (
               <RefreshControl refreshing={false} onRefresh={_onRefresh} />

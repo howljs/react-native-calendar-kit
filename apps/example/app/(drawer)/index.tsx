@@ -646,6 +646,12 @@ const Calendar = () => {
         end={23 * 60}
         spaceFromBottom={safeBottom}
         defaultDuration={60}
+        // Test the new margin customization feature
+        scrollViewTopMargin={50}
+        scrollViewBottomMargin={50}
+        scrollViewContentContainerStyle={{
+          backgroundColor: 'rgba(0, 0, 0, 0.1)', // Light red background to visualize the margins
+        }}
         onDragEventEnd={async (event) => {
           console.log('onDragEventEnd', event);
 

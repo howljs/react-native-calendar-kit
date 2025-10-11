@@ -86,6 +86,9 @@ export interface ThemeConfigs {
 
   /** Default style of the event */
   eventTitleStyle?: TextStyle;
+
+  /** Custom style for the ScrollView content container */
+  scrollViewContentContainerStyle?: ViewStyle;
 }
 
 export type GoToDateOptions = {
@@ -553,7 +556,7 @@ export interface CalendarProviderProps extends ActionsProviderProps {
   /** Enable resource scroll
    *
    * Default: true - (Web: false)
-   */
+/** Enable resource scroll */
   enableResourceScroll?: boolean;
 
   /** Resource per page */
@@ -561,6 +564,26 @@ export interface CalendarProviderProps extends ActionsProviderProps {
 
   /** Resource paging enabled */
   resourcePagingEnabled?: boolean;
+
+  /**
+   * Custom margin for the top of the ScrollView content
+   *
+   * Default: `0`
+   */
+  scrollViewTopMargin?: number;
+
+  /**
+   * Custom margin for the bottom of the ScrollView content
+   *
+   * Default: `0`
+   */
+  scrollViewBottomMargin?: number;
+
+  /**
+   * Custom style for the ScrollView content container
+   * This allows for advanced styling including custom margins, padding, etc.
+   */
+  scrollViewContentContainerStyle?: ViewStyle;
 }
 
 export interface ResourceItem extends Record<string, any> {
