@@ -48,8 +48,19 @@ export const UnavailableHoursByDate = memo(
     resources,
     widthPercentage,
   }: UnavailableHoursByDateProps) => {
-    const unavailableHours = useUnavailableHoursByDate(currentUnix);
-
+    let unavailableHours = useUnavailableHoursByDate(currentUnix);
+    // remove unavailableHours whose resourceId does not exist in resources
+    if (resources && unavailableHours) {
+      const resourceIds = new Set(
+        resources.map((resource) => resource.id)
+      );
+      unavailableHours = unavailableHours.filter((hour) => {
+        return (
+            // if exists, need to check both string and number types
+          !hour.resourceId || resourceIds.has(hour.resourceId) || resourceIds.has(String(hour.resourceId)) || resourceIds.has(Number(hour.resourceId))
+        );
+      });
+    }
     if (!unavailableHours) {
       return null;
     }
@@ -116,11 +127,14 @@ const UnavailableColumns = memo(
       const result: UnavailableColumnHourProps[] = [];
       const widthPerResource = widthPercentage || 1 / resourcesList.length;
 
-      // Create a map for faster resource lookup
-      const resourceMap = new Map<string, number>();
+      // Create a map for faster resource lookup - support both string and number ids
+      const resourceMap = new Map<string | number, number>();
       resourcesList.forEach((resource, index) => {
-        if (resource.id) {
+        if (resource.id !== undefined && resource.id !== null) {
+          // Store both string and number versions
           resourceMap.set(resource.id, index);
+          resourceMap.set(String(resource.id), index);
+          resourceMap.set(Number(resource.id), index);
         }
       });
 
@@ -136,8 +150,17 @@ const UnavailableColumns = memo(
             });
           });
         } else {
-          // Resource-specific unavailable hour
-          const resourceIndex = resourceMap.get(item.resourceId);
+          // Resource-specific unavailable hour - only apply to matching resource
+          // Try both original value and converted versions
+          let resourceIndex = resourceMap.get(item.resourceId);
+          if (resourceIndex === undefined) {
+            resourceIndex = resourceMap.get(String(item.resourceId));
+          }
+          if (resourceIndex === undefined) {
+            resourceIndex = resourceMap.get(Number(item.resourceId));
+          }
+          
+          
           if (resourceIndex !== undefined) {
             result.push({
               item,

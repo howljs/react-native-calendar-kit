@@ -36,7 +36,6 @@ const UnavailableHoursProvider: FC<
     })
   ).current;
   const currentDate = useDateChangedListener();
-
   const notifyDataChanged = useCallback(
     (date: number, offset: number = 7) => {
       let originalData: Record<string, UnavailableHourProps[]> = {};
@@ -71,11 +70,21 @@ const UnavailableHoursProvider: FC<
 
         // Get unavailable hours either by specific date or by weekday
         const unavailableHoursByDate =
-          originalData[dateStr] || originalData[weekDay];
+          originalData[dateStr] || originalData[weekDay] || [];
+
+        // Filter items that match the current date
+        const filteredHours = unavailableHoursByDate.filter((item) => {
+          // If item has a date property, only include it if it matches
+          if (item.date) {
+            return item.date === dateStr;
+          }
+          // If no date property, include it (applies to all matching weekdays)
+          return true;
+        });
 
         // If unavailable hours are found for this day, store them
-        if (unavailableHoursByDate) {
-          data[dateUnix] = unavailableHoursByDate;
+        if (filteredHours.length > 0) {
+          data[dateUnix] = filteredHours;
         }
 
         // Move to the next day
