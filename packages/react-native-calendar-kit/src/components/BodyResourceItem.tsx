@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -14,12 +14,24 @@ import ResourceBoard from './Resource/ResourceBoard';
 
 interface BodyResourceItemProps {
   resources: ResourceItem[];
+  dateUnix?: number;
 }
 
-const BodyResourceItem = ({ resources }: BodyResourceItemProps) => {
-  const { spaceFromTop, hourWidth, timelineHeight, spaceFromBottom } =
-    useBody();
-  const visibleDateUnix = useDateChangedListener();
+const BodyResourceItem = ({ resources, dateUnix }: BodyResourceItemProps) => {
+  const { spaceFromTop, timelineHeight, spaceFromBottom } = useBody();
+  const globalVisibleDateUnix = useDateChangedListener();
+
+  const targetDateUnix = dateUnix ?? globalVisibleDateUnix;
+
+  const visibleDates = useMemo(
+    () => ({
+      [targetDateUnix]: {
+        diffDays: 0,
+        unix: targetDateUnix,
+      },
+    }),
+    [targetDateUnix]
+  );
 
   const height = useDerivedValue(() => {
     return timelineHeight.value - spaceFromTop - spaceFromBottom;
@@ -31,25 +43,20 @@ const BodyResourceItem = ({ resources }: BodyResourceItemProps) => {
 
   return (
     <View style={styles.container}>
-      <ResourceBoard resources={resources} />
+      <ResourceBoard resources={resources} visibleDates={visibleDates} />
       <Animated.View
         pointerEvents="box-none"
         style={[
           styles.content,
           {
-            left: resources ? 0 : Math.max(0, hourWidth - 1),
+            left: 0,
             top: EXTRA_HEIGHT + spaceFromTop,
           },
           animView,
         ]}>
         <Events
-          startUnix={visibleDateUnix}
-          visibleDates={{
-            [visibleDateUnix]: {
-              diffDays: 1,
-              unix: visibleDateUnix,
-            },
-          }}
+          startUnix={targetDateUnix}
+          visibleDates={visibleDates}
           resources={resources}
         />
       </Animated.View>

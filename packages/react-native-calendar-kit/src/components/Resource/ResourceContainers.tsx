@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { ResourceItem } from '../../types';
+import { DateResourceItem } from './ResourceListView';
 
 interface ResourceContainerProps {
   resources?: ResourceItem[];
+  items?: DateResourceItem[];
   renderItem: (item: {
     items: ResourceItem[];
     index: number;
@@ -18,6 +20,7 @@ interface ResourceContainerProps {
 export const ResourceContainer = React.memo(
   ({
     resources,
+    items,
     renderItem,
     itemSize,
     visibleRange,
@@ -26,14 +29,47 @@ export const ResourceContainer = React.memo(
     getItemPosition,
   }: ResourceContainerProps) => {
     const renderItems = useMemo(() => {
-      const items: React.ReactNode[] = [];
-      if (!resources) {
-        return items;
+      const renderedItems: React.ReactNode[] = [];
+      const firstVisiblePosition = getItemPosition(visibleRange.start);
+
+      // Dual-axis mode: items provided (date+resource pairs)
+      // Each item is rendered individually, one resource per position
+      if (items) {
+        for (
+          let itemIndex = visibleRange.start;
+          itemIndex <= Math.min(visibleRange.end, items.length - 1);
+          itemIndex++
+        ) {
+          const item = items[itemIndex];
+          const absolutePosition = getItemPosition(itemIndex);
+          const relativePosition = absolutePosition - firstVisiblePosition;
+          const key = `item-${itemIndex}`;
+
+          renderedItems.push(
+            <View
+              key={key}
+              style={{
+                position: 'absolute',
+                left: relativePosition,
+                width: itemSize,
+                height: '100%',
+              }}>
+              {renderItem({
+                items: [item.resource],
+                index: itemIndex,
+              })}
+            </View>
+          );
+        }
+        return renderedItems;
       }
 
-      const firstVisiblePosition = getItemPosition(visibleRange.start);
-      const pageCount = Math.ceil(resources.length / resourcePerPage);
+      // Regular mode: resources grouped into pages
+      if (!resources) {
+        return renderedItems;
+      }
 
+      const pageCount = Math.ceil(resources.length / resourcePerPage);
       for (
         let pageIndex = visibleRange.start;
         pageIndex <= Math.min(visibleRange.end, pageCount - 1);
@@ -51,7 +87,7 @@ export const ResourceContainer = React.memo(
           const relativePosition = absolutePosition - firstVisiblePosition;
           const key = `page-${pageIndex}`;
 
-          items.push(
+          renderedItems.push(
             <View
               key={key}
               style={{
@@ -69,11 +105,12 @@ export const ResourceContainer = React.memo(
         }
       }
 
-      return items;
+      return renderedItems;
     }, [
       visibleRange.start,
       visibleRange.end,
       resources,
+      items,
       resourcePerPage,
       getItemPosition,
       itemSize,

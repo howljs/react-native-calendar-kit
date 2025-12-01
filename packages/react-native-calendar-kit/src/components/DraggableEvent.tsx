@@ -84,8 +84,8 @@ export const DraggableEvent: FC<DraggableEventProps> = ({
     );
   }, [resources, selectedEvent?.resourceId]);
   const left = useMemo(() => {
-    const diffDays = visibleDates[startUnix]?.diffDays ?? 1;
-    return (diffDays - 1) * columnWidth;
+    const diffDays = visibleDates[startUnix]?.diffDays ?? 0;
+    return diffDays * columnWidth;
   }, [visibleDates, startUnix, columnWidth]);
 
   const top = useDerivedValue(() => {

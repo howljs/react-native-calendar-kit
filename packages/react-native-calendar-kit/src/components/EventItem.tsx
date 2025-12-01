@@ -81,30 +81,46 @@ const EventItem: FC<EventItemProps> = ({
       newStart = 0;
     }
 
-    let diffDays = Math.floor(
-      (eventStartUnix - startUnix) / MILLISECONDS_IN_DAY
-    );
+    // Get the event's day start (not the event time, but the start of that day)
+    const eventDayStart = parseDateTime(eventStartUnix)
+      .startOf('day')
+      .toMillis();
 
-    if (eventStartUnix < startUnix) {
-      for (
-        let dayUnix = eventStartUnix;
-        dayUnix < startUnix;
-        dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
-      ) {
-        const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
-        if (!visibleDates[dayStartUnix]) {
-          diffDays++;
-        }
-      }
+    // Use the diffDays from visibleDates if available, otherwise calculate it
+    let diffDays = 0;
+    if (visibleDates[eventDayStart]) {
+      diffDays = visibleDates[eventDayStart].diffDays;
     } else {
-      for (
-        let dayUnix = startUnix;
-        dayUnix < eventStartUnix;
-        dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
-      ) {
-        const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
-        if (!visibleDates[dayStartUnix]) {
-          diffDays--;
+      // Fallback: calculate based on day difference
+      const referenceDayStart = parseDateTime(startUnix)
+        .startOf('day')
+        .toMillis();
+      diffDays = Math.floor(
+        (eventDayStart - referenceDayStart) / MILLISECONDS_IN_DAY
+      );
+
+      // Adjust for hidden days
+      if (eventStartUnix < startUnix) {
+        for (
+          let dayUnix = eventStartUnix;
+          dayUnix < startUnix;
+          dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
+        ) {
+          const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
+          if (!visibleDates[dayStartUnix]) {
+            diffDays++;
+          }
+        }
+      } else {
+        for (
+          let dayUnix = startUnix;
+          dayUnix < eventStartUnix;
+          dayUnix = parseDateTime(dayUnix).plus({ days: 1 }).toMillis()
+        ) {
+          const dayStartUnix = parseDateTime(dayUnix).startOf('day').toMillis();
+          if (!visibleDates[dayStartUnix]) {
+            diffDays--;
+          }
         }
       }
     }
@@ -124,6 +140,12 @@ const EventItem: FC<EventItemProps> = ({
     visibleDates,
   ]);
 
+  // Calculate childColumns based on mode:
+  // - Dual-axis resource mode: totalResources === 1, use resourcePerPage
+  // - Grouped resource mode: totalResources > 1, use resourcePerPage
+  // - Regular resource mode (no scroll): use totalResources
+  // - Week view (no resources): use 1 (diffDays handles day positioning)
+  const isDualAxisMode = enableResourceScroll && totalResources === 1;
   const childColumns = enableResourceScroll
     ? resourcePerPage
     : totalResources && totalResources > 0
@@ -161,17 +183,26 @@ const EventItem: FC<EventItemProps> = ({
   const eventWidth = widthPercent * availableWidth;
   const eventPosX = useMemo(() => {
     const colWidth = columnWidth / childColumns;
-    const startOffset = resourceIndex
-      ? (enableResourceScroll
+
+    // In dual-axis mode, each container has only 1 resource, so position is always 0
+    // In grouped mode, calculate visual column position
+    let startOffset = 0;
+    if (!isDualAxisMode) {
+      const visualColumn =
+        resourceIndex !== undefined && enableResourceScroll
           ? resourceIndex % resourcePerPage
-          : resourceIndex) * colWidth
-      : 0;
+          : resourceIndex || 0;
+      startOffset = visualColumn * colWidth;
+    }
+
     let left = data.diffDays * colWidth + startOffset;
+
     if (xOffsetPercentage) {
       left += availableWidth * (xOffsetPercentage / 100);
     } else if (columnSpan && index) {
       left += (eventWidth + overlapEventsSpacing) * (index / columnSpan);
     }
+
     return left;
   }, [
     availableWidth,
@@ -182,6 +213,7 @@ const EventItem: FC<EventItemProps> = ({
     enableResourceScroll,
     eventWidth,
     index,
+    isDualAxisMode,
     overlapEventsSpacing,
     resourceIndex,
     resourcePerPage,

@@ -184,11 +184,12 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     : (initialUseAllDayEvent ?? true);
   const hideWeekDaysCount = hideWeekDays.length;
   const daysToShow = 7 - hideWeekDaysCount;
-  const numberOfDays = isResourceMode
-    ? 1
-    : initialNumberOfDays > daysToShow
-      ? daysToShow
-      : initialNumberOfDays;
+  const numberOfDays =
+    isResourceMode && !enableResourceScroll
+      ? 1
+      : initialNumberOfDays > daysToShow
+        ? daysToShow
+        : initialNumberOfDays;
 
   const isSingleDay = numberOfDays === 1;
   const columns = isSingleDay ? 1 : daysToShow;
@@ -276,7 +277,14 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     }
     const nearestIndex = nearestDate.index;
     if (isSingleDay || scrollByDay) {
-      const colWidth = isSingleDay ? calendarGridWidth : columnWidth;
+      let colWidth = isSingleDay ? calendarGridWidth : columnWidth;
+
+      // For resource mode with enableResourceScroll, calculate day width
+      if (isResourceMode && enableResourceScroll && resources) {
+        const resourceWidth = calendarGridWidth / resourcePerPage;
+        colWidth = resources.length * resourceWidth;
+      }
+
       return nearestIndex * colWidth;
     }
 
@@ -290,12 +298,14 @@ const CalendarContainer: React.ForwardRefRenderFunction<
     isSingleDay,
     scrollByDay,
     visibleDateUnix,
+    isResourceMode,
+    enableResourceScroll,
+    resources,
+    resourcePerPage,
   ]);
 
   const offsetY = useSharedValue(0);
-  const offsetX = useSharedValue(
-    isResourceMode && enableResourceScroll ? 0 : initialOffset
-  );
+  const offsetX = useSharedValue(initialOffset);
   const linkedScrollGroup = useLinkedScrollGroup(offsetX);
   const scrollVisibleHeightAnim = useSharedValue(0);
   const timeIntervalHeight = useSharedValue(initialTimeIntervalHeight);
@@ -332,7 +342,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         offset = pageIndex * (columnWidth * columns);
       }
 
-      if (isResourceMode && enableResourceScroll) {
+      if (isResourceMode && enableResourceScroll && resources) {
         visibleDateUnix.current = nearestUnix;
         visibleDateUnixAnim.value = nearestUnix;
         visibleDateRef.current?.updateVisibleDate(nearestUnix);
@@ -340,6 +350,20 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         const newDate = dateTimeToISOString(dateObj);
         onDateChanged?.(newDate);
         onChange?.(newDate);
+
+        // Calculate the scroll offset for the date
+        const resourceWidth = calendarGridWidth / resourcePerPage;
+        const dayOffset = visibleDayIndex * resources.length * resourceWidth;
+
+        linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
+        const animatedDate =
+          props?.animatedDate !== undefined ? props.animatedDate : true;
+
+        runOnUI(() => {
+          offsetX.value = dayOffset;
+          scrollTo(dayBarListRef, dayOffset, 0, animatedDate);
+          scrollTo(gridListRef, dayOffset, 0, animatedDate);
+        })();
       } else {
         const isScrollable = calendarListRef.current?.isScrollable(
           offset,
@@ -408,7 +432,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       }
 
       const nextDateUnix = visibleDatesArray[nextVisibleDayIndex];
-      if (isResourceMode && enableResourceScroll && nextDateUnix) {
+      if (isResourceMode && enableResourceScroll && nextDateUnix && resources) {
         visibleDateUnix.current = nextDateUnix;
         visibleDateUnixAnim.value = nextDateUnix;
         visibleDateRef.current?.updateVisibleDate(nextDateUnix);
@@ -416,6 +440,17 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         const newDate = dateTimeToISOString(dateObj);
         onDateChanged?.(newDate);
         onChange?.(newDate);
+
+        // Calculate the scroll offset for the new day
+        const resourceWidth = calendarGridWidth / resourcePerPage;
+        const dayOffset = nextVisibleDayIndex * resources.length * resourceWidth;
+
+        linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
+        runOnUI(() => {
+          offsetX.value = dayOffset;
+          scrollTo(dayBarListRef, dayOffset, 0, animated);
+          scrollTo(gridListRef, dayOffset, 0, animated);
+        })();
         return;
       }
 
@@ -466,7 +501,7 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         numberOfDays
       );
       const nextDateUnix = visibleDatesArray[nextVisibleDayIndex];
-      if (isResourceMode && enableResourceScroll && nextDateUnix) {
+      if (isResourceMode && enableResourceScroll && nextDateUnix && resources) {
         visibleDateUnix.current = nextDateUnix;
         visibleDateUnixAnim.value = nextDateUnix;
         visibleDateRef.current?.updateVisibleDate(nextDateUnix);
@@ -474,6 +509,17 @@ const CalendarContainer: React.ForwardRefRenderFunction<
         const newDate = dateTimeToISOString(dateObj);
         onDateChanged?.(newDate);
         onChange?.(newDate);
+
+        // Calculate the scroll offset for the new day
+        const resourceWidth = calendarGridWidth / resourcePerPage;
+        const dayOffset = nextVisibleDayIndex * resources.length * resourceWidth;
+
+        linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
+        runOnUI(() => {
+          offsetX.value = dayOffset;
+          scrollTo(dayBarListRef, dayOffset, 0, animated);
+          scrollTo(gridListRef, dayOffset, 0, animated);
+        })();
         return;
       }
 
@@ -638,14 +684,19 @@ const CalendarContainer: React.ForwardRefRenderFunction<
 
   const goToNextResource = useLatestCallback(
     (animated?: boolean, resourceScrollType?: 'resource' | 'page') => {
-      const resourceWidth = columnWidth / resourcePerPage;
+      if (!isResourceMode || !enableResourceScroll) {
+        console.warn('Only available for resource mode (enableResourceScroll)');
+        return;
+      }
+
+      const resourceWidth = calendarGridWidth / resourcePerPage;
       let nextOffset = 0;
       let mode = resourcePagingEnabled ? 'page' : 'resource';
       if (resourceScrollType) {
         mode = resourceScrollType;
       }
       if (mode === 'page') {
-        nextOffset = offsetX.value + columnWidth;
+        nextOffset = offsetX.value + calendarGridWidth;
       } else {
         nextOffset = offsetX.value + resourceWidth;
       }
@@ -667,19 +718,24 @@ const CalendarContainer: React.ForwardRefRenderFunction<
 
   const goToPrevResource = useLatestCallback(
     (animated?: boolean, resourceScrollType?: 'resource' | 'page') => {
-      const resourceWidth = columnWidth / resourcePerPage;
+      if (!isResourceMode || !enableResourceScroll) {
+        console.warn('Only available for resource mode (enableResourceScroll)');
+        return;
+      }
+
+      const resourceWidth = calendarGridWidth / resourcePerPage;
       let nextOffset = 0;
       let mode = resourcePagingEnabled ? 'page' : 'resource';
       if (resourceScrollType) {
         mode = resourceScrollType;
       }
       if (mode === 'page') {
-        nextOffset = offsetX.value - columnWidth;
+        nextOffset = offsetX.value - calendarGridWidth;
       } else {
         nextOffset = offsetX.value - resourceWidth;
       }
       if (nextOffset < 0) {
-        return;
+        nextOffset = 0;
       }
 
       linkedScrollGroup.setActiveId(ScrollType.calendarGrid);
@@ -730,12 +786,114 @@ const CalendarContainer: React.ForwardRefRenderFunction<
   useImperativeHandle(ref, () => calendarMethods, [calendarMethods]);
 
   useEffect(() => {
-    if (enableResourceScroll && isResourceMode) {
-      offsetX.value = 0;
-    } else {
-      offsetX.value = initialOffset;
+    offsetX.value = initialOffset;
+  }, [initialOffset, offsetX]);
+
+  const dateResourceItems = useMemo(() => {
+    if (!enableResourceScroll || !isResourceMode || !resources) {
+      return undefined;
     }
-  }, [enableResourceScroll, initialOffset, isResourceMode, offsetX]);
+
+    const visibleDatesArray = calendarData.visibleDatesArray;
+    const items = visibleDatesArray.flatMap((date) =>
+      resources.map((resource) => ({ date, resource }))
+    );
+
+    return items;
+  }, [enableResourceScroll, isResourceMode, resources, calendarData]);
+
+  const daySnapOffsets = useMemo(() => {
+    if (!enableResourceScroll || !isResourceMode || !resources) {
+      return undefined;
+    }
+
+    const visibleDatesArray = calendarData.visibleDatesArray;
+    const resourceWidth = calendarGridWidth / resourcePerPage;
+    const resourcesCount = resources.length;
+
+    const offsets: number[] = [];
+
+    visibleDatesArray.forEach((_, dayIndex) => {
+      const dayStartOffset = dayIndex * resourcesCount * resourceWidth;
+
+      if (resourcesCount <= resourcePerPage) {
+        // If all resources fit in one page, only snap at the start of the day
+        offsets.push(dayStartOffset);
+      } else {
+        // Snap at every resource position that keeps all visible resources within the current day
+        // Last valid snap position is where the last resource of the day is at the right edge
+        const maxResourceStartIndex = resourcesCount - resourcePerPage;
+
+        for (let i = 0; i <= maxResourceStartIndex; i++) {
+          offsets.push(dayStartOffset + i * resourceWidth);
+        }
+      }
+    });
+
+    return offsets;
+  }, [
+    enableResourceScroll,
+    isResourceMode,
+    resources,
+    calendarData,
+    calendarGridWidth,
+    resourcePerPage,
+  ]);
+
+  const handleResourceScrollOffsetChange = useLatestCallback(
+    (scrollOffset: number) => {
+      if (
+        !enableResourceScroll ||
+        !isResourceMode ||
+        !resources ||
+        !dateResourceItems
+      ) {
+        return;
+      }
+
+      const resourceWidth = calendarGridWidth / resourcePerPage;
+      const viewportStart = scrollOffset;
+      const viewportEnd = scrollOffset + calendarGridWidth;
+
+      // Calculate which resource items are visible
+      // Use Math.floor for start, but subtract 0.5 from end to avoid counting items at exact boundary
+      const startItemIndex = Math.floor(viewportStart / resourceWidth);
+      const endItemIndex = Math.floor((viewportEnd - 0.5) / resourceWidth);
+
+      // Count visible resources per day
+      const dayCounts = new Map<number, number>();
+      for (
+        let i = startItemIndex;
+        i <= Math.min(endItemIndex, dateResourceItems.length - 1);
+        i++
+      ) {
+        const item = dateResourceItems[i];
+        if (item) {
+          const count = dayCounts.get(item.date) || 0;
+          dayCounts.set(item.date, count + 1);
+        }
+      }
+
+      // Select the latest date that has at least one visible resource
+      const visibleDates = Array.from(dayCounts.keys()).sort((a, b) => a - b);
+      const activeDayUnix =
+        visibleDates.length > 0
+          ? visibleDates[visibleDates.length - 1]
+          : visibleDateUnix.current;
+
+      if (activeDayUnix && activeDayUnix !== visibleDateUnix.current) {
+        visibleDateUnix.current = activeDayUnix;
+        visibleDateUnixAnim.value = activeDayUnix;
+        visibleDateRef.current?.updateVisibleDate(activeDayUnix);
+
+        const dateObj = forceUpdateZone(activeDayUnix, timeZone);
+        const newDate = dateTimeToISOString(dateObj);
+
+        onDateChanged?.(newDate);
+        onChange?.(newDate);
+      }
+    }
+  );
 
   const snapToInterval =
     numberOfDays > 1 && scrollByDay && !isResourceMode
@@ -798,6 +956,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       resourcePerPage,
       resourcePagingEnabled,
       linkedScrollGroup,
+      dateResourceItems,
+      daySnapOffsets,
+      handleResourceScrollOffsetChange,
     }),
     [
       calendarLayout,
@@ -852,6 +1013,9 @@ const CalendarContainer: React.ForwardRefRenderFunction<
       resourcePerPage,
       resourcePagingEnabled,
       linkedScrollGroup,
+      dateResourceItems,
+      daySnapOffsets,
+      handleResourceScrollOffsetChange,
     ]
   );
 

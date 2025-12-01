@@ -1,6 +1,4 @@
-import React from 'react';
-import { useUnavailableHoursByDate } from '../../context/UnavailableHoursProvider';
-import { useDateChangedListener } from '../../context/VisibleDateProvider';
+import React, { useCallback } from 'react';
 import { ResourceItem } from '../../types';
 import { UnavailableHoursByDate } from '../TimelineBoard/UnavailableHours';
 import { StyleSheet, View } from 'react-native';
@@ -8,27 +6,41 @@ import { useBody } from '../../context/BodyContext';
 
 interface UnavailableHoursByResourceProps {
   resources: ResourceItem[];
+  visibleDates: Record<string, { diffDays: number; unix: number }>;
 }
 
 const UnavailableHoursByResource = ({
   resources,
+  visibleDates,
 }: UnavailableHoursByResourceProps) => {
-  const visibleDateUnix = useDateChangedListener();
-  const unavailableHours = useUnavailableHoursByDate(visibleDateUnix);
   const { enableResourceScroll, resourcePerPage } = useBody();
 
-  if (!unavailableHours) {
-    return null;
-  }
+  const _renderColumn = useCallback(
+    (currentUnix: string) => {
+      const dateInfo = visibleDates[currentUnix];
+
+      if (!dateInfo) {
+        return null;
+      }
+
+      return (
+        <UnavailableHoursByDate
+          key={`UnavailableHours_${currentUnix}_${resources.map(r => r.id).join('-')}`}
+          currentUnix={Number(currentUnix)}
+          visibleDateIndex={dateInfo.diffDays}
+          resources={resources}
+          widthPercentage={
+            enableResourceScroll ? 1 / resourcePerPage : undefined
+          }
+        />
+      );
+    },
+    [visibleDates, resources, enableResourceScroll, resourcePerPage]
+  );
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <UnavailableHoursByDate
-        currentUnix={visibleDateUnix}
-        visibleDateIndex={0}
-        resources={resources}
-        widthPercentage={enableResourceScroll ? 1 / resourcePerPage : undefined}
-      />
+      {Object.keys(visibleDates).map(_renderColumn)}
     </View>
   );
 };

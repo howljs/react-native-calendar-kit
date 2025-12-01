@@ -100,6 +100,9 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
     resourcePerPage,
     resourcePagingEnabled,
     linkedScrollGroup,
+    dateResourceItems,
+    daySnapOffsets,
+    handleResourceScrollOffsetChange,
   } = useCalendar();
   const { onTouchStart, onWheel } = linkedScrollGroup.addAndGet(
     ScrollType.calendarGrid,
@@ -195,9 +198,11 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
 
   const _renderResourceItem = useCallback(
     (item: { items: ResourceItem[]; index: number }) => {
-      return <BodyResourceItem resources={item.items} />;
+      // In dual-axis mode, get the date for this specific item
+      const dateUnix = dateResourceItems?.[item.index]?.date;
+      return <BodyResourceItem resources={item.items} dateUnix={dateUnix} />;
     },
-    []
+    [dateResourceItems]
   );
 
   const value = useMemo<BodyContextProps>(
@@ -360,6 +365,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                     <ResourceListView
                       ref={gridListRef}
                       resources={resources}
+                      items={dateResourceItems}
                       width={calendarGridWidth}
                       height={maxTimelineHeight + EXTRA_HEIGHT * 2}
                       resourcePerPage={resourcePerPage}
@@ -369,6 +375,9 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                       scrollEnabled={allowHorizontalSwipe}
                       onTouchStart={onTouchStart}
                       onWheel={onWheel}
+                      snapToOffsets={daySnapOffsets}
+                      onScrollOffsetChange={handleResourceScrollOffsetChange}
+                      initialOffset={initialOffset}
                     />
                   ) : (
                     <CalendarListView

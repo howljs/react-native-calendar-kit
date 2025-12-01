@@ -20,9 +20,10 @@ import UnavailableHoursByResource from './UnavailableHoursByResource';
 
 interface ResourceBoardProps {
   resources: ResourceItem[];
+  visibleDates: Record<string, { diffDays: number; unix: number }>;
 }
 
-const ResourceBoard = ({ resources }: ResourceBoardProps) => {
+const ResourceBoard = ({ resources, visibleDates }: ResourceBoardProps) => {
   const colors = useTheme((state) => state.colors);
 
   const {
@@ -56,9 +57,13 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
       dateTime: dateTimeToISOString(dateObj),
     };
     if (resources) {
-      const colWidth = columnWidth / resourcePerPage;
-      const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
-      newProps.resourceId = resources[resourceIdx]?.id;
+      if (resources.length === 1) {
+        newProps.resourceId = resources[0]?.id;
+      } else {
+        const colWidth = columnWidth / resourcePerPage;
+        const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
+        newProps.resourceId = resources[resourceIdx]?.id;
+      }
     }
     onPressBackground?.(newProps, event);
   };
@@ -75,9 +80,13 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
       dateTime: dateString,
     };
     if (resources) {
-      const colWidth = columnWidth / resourcePerPage;
-      const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
-      newProps.resourceId = resources[resourceIdx]?.id;
+      if (resources.length === 1) {
+        newProps.resourceId = resources[0]?.id;
+      } else {
+        const colWidth = columnWidth / resourcePerPage;
+        const resourceIdx = Math.floor(event.nativeEvent.locationX / colWidth);
+        newProps.resourceId = resources[resourceIdx]?.id;
+      }
     }
     onLongPressBackground?.(newProps, event);
     if (triggerDragCreateEvent) {
@@ -160,10 +169,13 @@ const ResourceBoard = ({ resources }: ResourceBoardProps) => {
             !onLongPressBackground
           }
         />
-        <UnavailableHoursByResource resources={resources} />
+        <UnavailableHoursByResource
+          resources={resources}
+          visibleDates={visibleDates}
+        />
         {_renderHorizontalLines}
       </Animated.View>
-      {resources.length > 1 && _renderVerticalLines}
+      {!!resources?.length && _renderVerticalLines}
     </View>
   );
 };
@@ -173,6 +185,7 @@ export default memo(ResourceBoard);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginLeft: -0.5,
   },
   calendarGrid: { width: '100%' },
   touchable: { flex: 1 },

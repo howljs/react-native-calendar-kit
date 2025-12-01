@@ -36,7 +36,7 @@ const VisibleDateProvider: ForwardRefRenderFunction<
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedDateUnix(visibleDateUnix);
-    }, 150);
+    }, 50);
     return () => clearTimeout(timeoutId);
   }, [visibleDateUnix]);
 

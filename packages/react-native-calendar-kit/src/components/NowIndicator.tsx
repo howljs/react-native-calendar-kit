@@ -91,7 +91,7 @@ const NowIndicator: FC<{
   return (
     <NowIndicatorInner
       currentTime={currentTime}
-      dayIndex={visibleDate.diffDays - 1}
+      dayIndex={visibleDate.diffDays}
       showDot={showDot}
     />
   );

@@ -302,10 +302,21 @@ export const useRegularEvents = (
   const selectorByDate = useCallback(
     (state: EventsState) => {
       const data: PackedEvent[] = [];
-      const totalDays = numberOfDays === 1 ? 1 : 7;
-      for (let i = 0; i < totalDays; i++) {
-        const dateUnix = parseDateTime(date).plus({ days: i }).toMillis();
-        if (visibleDays[dateUnix]) {
+      const visibleDaysKeys = Object.keys(visibleDays);
+
+      // If we have explicit visible days, use them directly
+      if (visibleDaysKeys.length > 0) {
+        visibleDaysKeys.forEach((dateUnixStr) => {
+          const events = state.regularEvents[Number(dateUnixStr)];
+          if (events) {
+            data.push(...events);
+          }
+        });
+      } else {
+        // Fallback to original sequential logic
+        const totalDays = numberOfDays === 1 ? 1 : 7;
+        for (let i = 0; i < totalDays; i++) {
+          const dateUnix = parseDateTime(date).plus({ days: i }).toMillis();
           const events = state.regularEvents[dateUnix];
           if (events) {
             data.push(...events);

@@ -41,15 +41,13 @@ const BodyItem = ({
 
   const visibleDates = useMemo(() => {
     const data: Record<string, { diffDays: number; unix: number }> = {};
-    let diffDays = 1;
     for (let i = 0; i < columns; i++) {
       const currentUnix = calendarData.visibleDatesArray[pageIndex + i];
       if (currentUnix) {
         data[currentUnix] = {
           unix: currentUnix,
-          diffDays,
+          diffDays: i,  // Use i directly: 0 for first column, 1 for second, etc.
         };
-        diffDays += 1;
       }
     }
 

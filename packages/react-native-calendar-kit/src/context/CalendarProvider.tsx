@@ -7,6 +7,7 @@ import type HapticService from '../service/HapticService';
 import type { DataByMode } from '../utils/utils';
 import { CalendarListRef } from '../service/CalendarList';
 import { LinkedScrollGroup } from '../hooks/useLinkedScrollGroup';
+import { DateResourceItem } from '../components/Resource/ResourceListView';
 
 export interface CalendarContextProps {
   calendarData: DataByMode;
@@ -63,6 +64,9 @@ export interface CalendarContextProps {
   resourcePerPage: number;
   resourcePagingEnabled: boolean;
   linkedScrollGroup: LinkedScrollGroup;
+  dateResourceItems?: DateResourceItem[];
+  daySnapOffsets?: number[];
+  handleResourceScrollOffsetChange?: (offset: number) => void;
 }
 
 export const CalendarContext = React.createContext<

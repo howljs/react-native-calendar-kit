@@ -8,7 +8,6 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
-  withTiming,
 } from 'react-native-reanimated';
 import { useBody } from '../context/BodyContext';
 import { useDragEvent } from '../context/DragEventProvider';
@@ -84,7 +83,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
       );
       const nearestVisibleIndex =
         calendarData.visibleDates[nearestVisibleUnix]?.index;
-      if (!nearestVisibleIndex) {
+      if (nearestVisibleIndex === undefined) {
         return 0;
       }
       currentIndex = nearestVisibleIndex;
@@ -99,7 +98,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
       );
       const nearestVisibleIndex =
         calendarData.visibleDates[nearestVisibleUnix]?.index;
-      if (!nearestVisibleIndex) {
+      if (nearestVisibleIndex === undefined) {
         return 0;
       }
       startIndex = nearestVisibleIndex;
@@ -127,7 +126,8 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
     (dayUnix) => {
       if (dayUnix !== -1) {
         const dayIndex = getDayIndex(dayUnix);
-        internalDayIndex.value = withTiming(dayIndex, { duration: 100 });
+        // Update immediately without animation to avoid position lag after drag ends
+        internalDayIndex.value = dayIndex;
       }
     }
   );
@@ -139,6 +139,7 @@ export const DraggingEvent: FC<DraggingEventProps> = ({
   const animView = useAnimatedStyle(() => {
     const startX = resourceIndex.value * eventWidth;
     const dIndex = enableResourceScroll ? 0 : internalDayIndex.value;
+
     return {
       top: (dragStartMinutes.value - start) * minuteHeight.value,
       height: dragDuration.value * minuteHeight.value,

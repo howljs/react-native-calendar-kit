@@ -344,7 +344,7 @@ const allDayEvents: EventItem[] = [
   },
 ];
 
-const TOTAL_RESOURCES = 50;
+const TOTAL_RESOURCES = 10;
 
 const generateEvents = () => {
   return new Array(500)

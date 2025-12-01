@@ -71,6 +71,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     resourcePerPage,
     resourcePagingEnabled,
     linkedScrollGroup,
+    dateResourceItems,
   } = useCalendar();
   const { onTouchStart, onWheel } = linkedScrollGroup.addAndGet(
     ScrollType.dayBar,
@@ -390,6 +391,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 <ResourceListView
                   ref={dayBarListRef}
                   resources={resources}
+                  items={dateResourceItems}
                   width={calendarGridWidth}
                   height={dayBarHeight}
                   resourcePerPage={resourcePerPage}
@@ -398,6 +400,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                   scrollEnabled={allowHorizontalSwipe}
                   onTouchStart={onTouchStart}
                   onWheel={onWheel}
+                  initialOffset={initialOffset}
                 />
               ) : (
                 <CalendarListView
