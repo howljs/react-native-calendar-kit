@@ -45,6 +45,7 @@ export interface ResourceListViewProps {
   onTouchStart?: (event: GestureResponderEvent) => void;
   scrollEventThrottle?: number;
   onWheel?: (event: WheelEvent) => void;
+  onLoad?: () => void;
 }
 
 export interface ResourceListViewRef {
@@ -69,12 +70,14 @@ const ResourceListView = forwardRef<Animated.ScrollView, ResourceListViewProps>(
       onTouchStart,
       scrollEventThrottle = 16,
       onWheel,
+      onLoad,
     },
     ref
   ) => {
     const [viewportWidth, setViewportWidth] = useState(0);
     const [scrollOffset, setScrollOffset] = useState(0);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isLoaded = useRef(false);
 
     const count = Math.ceil((resources?.length ?? 0) / resourcePerPage);
 
@@ -120,6 +123,15 @@ const ResourceListView = forwardRef<Animated.ScrollView, ResourceListViewProps>(
         }
       };
     }, []);
+
+    useEffect(() => {
+      setTimeout(() => {
+        if (!isLoaded.current) {
+          isLoaded.current = true;
+          onLoad?.();
+        }
+      }, 0);
+    }, [onLoad]);
 
     const handleLayout = useCallback((event: LayoutChangeEvent) => {
       const { width: viewWidth } = event.nativeEvent.layout;
