@@ -369,6 +369,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({
                       scrollEnabled={allowHorizontalSwipe}
                       onTouchStart={onTouchStart}
                       onWheel={onWheel}
+                      onLoad={onLoad}
                     />
                   ) : (
                     <CalendarListView
