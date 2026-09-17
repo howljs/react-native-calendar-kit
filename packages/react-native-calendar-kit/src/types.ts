@@ -701,6 +701,16 @@ export interface CalendarHeaderProps {
    */
   renderDayItem?: (date: { dateUnix: number }) => React.ReactNode;
 
+  /**
+   * Show a day item in the resource header (resource mode only)
+   *
+   * Displays the same `DayItem` as the day view on the left of the
+   * header, keeping a coherent design between day and resource views.
+   *
+   * - Default: `false`
+   */
+  showDayItem?: boolean;
+
   /** Custom left area (multiple days) */
   LeftAreaComponent?: React.ReactElement | null | undefined;
 

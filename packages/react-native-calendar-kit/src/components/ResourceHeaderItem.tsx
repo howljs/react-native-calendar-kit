@@ -20,6 +20,10 @@ interface ResourceHeaderItemProps {
   isShowSeparator?: boolean;
   dateFormat?: string;
   isShowWeekDay?: boolean;
+  /**
+   * Hides the date banner (the day item is displayed instead)
+   */
+  showDayItem?: boolean;
 }
 
 const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
@@ -30,6 +34,7 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
   isShowSeparator = true,
   dateFormat = 'yyyy-MM-dd',
   isShowWeekDay = true,
+  showDayItem = false,
 }) => {
   const { weekDayShort } = useLocale();
   const { enableResourceScroll, resourcePerPage, columnWidth } = useHeader();
@@ -87,9 +92,9 @@ const ResourceHeaderItem: FC<ResourceHeaderItemProps> = ({
 
   return (
     <View style={styles.container}>
-      {DateComponent === null || enableResourceScroll
-        ? null
-        : (DateComponent ?? _renderDate())}
+      {!showDayItem && DateComponent !== null && !enableResourceScroll
+        ? (DateComponent ?? _renderDate())
+        : null}
       <View style={styles.resourceContainer}>
         {resources?.map(_renderResource)}
       </View>

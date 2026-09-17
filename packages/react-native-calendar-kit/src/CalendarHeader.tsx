@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import CalendarListView from './components/CalendarListView';
+import DayItem from './components/DayItem';
 import ExpandButton from './components/ExpandButton';
 import MultiDayBarItem from './components/MultiDayBarItem';
 import ResourceListView from './components/Resource/ResourceListView';
@@ -28,6 +29,7 @@ import { HeaderContext } from './context/DayBarContext';
 import { useEventCountsByWeek, useResources } from './context/EventsProvider';
 import { useTheme } from './context/ThemeProvider';
 import useSyncedList from './hooks/useSyncedList';
+import useDayItemSlideDate from './hooks/useDayItemSlideDate';
 import type { CalendarHeaderProps, ResourceItem } from './types';
 import { clampValues } from './utils/utils';
 
@@ -43,6 +45,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   eventMaxMinutes = MAX_ALL_DAY_MINUTES,
   eventInitialMinutes = DEFAULT_ALL_DAY_MINUTES,
   renderDayItem,
+  showDayItem = false,
   insetBottom = 100,
 }) => {
   const {
@@ -78,6 +81,10 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   );
   const resources = useResources();
 
+  const showResourceDayItem = !!resources && showDayItem;
+  // In non-resource-scroll mode, the day item slides with the date pages
+  const slideDayItem = showResourceDayItem && !enableResourceScroll;
+
   const headerStyles = useTheme(
     useCallback(
       (state) => ({
@@ -92,6 +99,13 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 
   const scrollProps = useSyncedList({
     id: ScrollType.dayBar,
+  });
+
+  // Date for the day item, derived from the instant visible date instead
+  // of the debounced one to avoid stale-then-flash updates.
+  const { date: slideDate, fadeStyle: dayItemFadeStyle } = useDayItemSlideDate({
+    enabled: showResourceDayItem,
+    visibleDateUnixAnim,
   });
 
   const isExpanded = useSharedValue(false);
@@ -256,6 +270,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         <ResourceHeaderItem
           resources={extra.resources}
           startUnix={dateUnixByIndex}
+          showDayItem={showResourceDayItem}
         />
       );
     }
@@ -309,6 +324,16 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         }}
         style={[styles.leftArea, { width: hourWidth }]}>
         {showWeekNumber && <WeekNumber date={visibleDateUnixAnim} />}
+        {enableResourceScroll && showResourceDayItem && (
+          <View style={styles.gutterDayItem}>
+            {slideDate !== undefined &&
+              (renderDayItem ? (
+                renderDayItem({ dateUnix: slideDate })
+              ) : (
+                <DayItem dateUnix={slideDate} />
+              ))}
+          </View>
+        )}
         {useAllDayEvent && (
           <ExpandButton
             isExpanded={isExpanded}
@@ -418,6 +443,22 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 />
               )}
             </Animated.View>
+            {slideDayItem && (
+              <Animated.View
+                pointerEvents="box-none"
+                style={[
+                  styles.dayItemOverlay,
+                  { width: hourWidth - 1 },
+                  dayItemFadeStyle,
+                ]}>
+                {slideDate !== undefined &&
+                  (renderDayItem ? (
+                    renderDayItem({ dateUnix: slideDate })
+                  ) : (
+                    <DayItem dateUnix={slideDate} />
+                  ))}
+              </Animated.View>
+            )}
           </Animated.View>
         </HeaderContext.Provider>
       </Animated.ScrollView>
@@ -436,4 +477,13 @@ const styles = StyleSheet.create({
   absolute: { position: 'absolute' },
   leftArea: { height: '100%' },
   border: { right: 0, height: '100%', position: 'absolute', width: 1 },
+  gutterDayItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  dayItemOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
